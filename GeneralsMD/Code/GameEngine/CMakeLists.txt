@@ -1164,6 +1164,33 @@ add_library(z_gameengine STATIC)
 
 target_sources(z_gameengine PRIVATE ${GAMEENGINE_SRC})
 
+# GeneralsX @feature Opt-in local game automation through the normal command pipeline.
+if(RTS_ENABLE_MCP_BRIDGE)
+    set(MCP_WINDOWS_DEVICE "${CMAKE_SOURCE_DIR}/Core/GameEngineDevice/Source/Win32Device")
+    target_sources(z_gameengine PRIVATE
+        Include/Common/AgentBridge.h
+        Include/Common/AgentGameAdapter.h
+        Include/Common/AgentGameInternal.h
+        Include/Common/AgentSkirmishTest.h
+        "${MCP_WINDOWS_DEVICE}/AgentBridge.cpp"
+        "${MCP_WINDOWS_DEVICE}/AgentFileReader.cpp"
+        Source/Common/AgentGameAdapter.cpp
+        Source/Common/AgentGameCommands.cpp
+        Source/Common/AgentGameObservation.cpp
+        Source/Common/AgentGameSession.cpp
+        Source/Common/AgentGameLobby.cpp
+        Source/Common/AgentSkirmishTest.cpp
+    )
+    set_source_files_properties(
+        "${MCP_WINDOWS_DEVICE}/AgentBridge.cpp"
+        "${MCP_WINDOWS_DEVICE}/AgentFileReader.cpp"
+        PROPERTIES SKIP_PRECOMPILE_HEADERS ON
+    )
+    target_include_directories(z_gameengine PRIVATE "${CMAKE_SOURCE_DIR}/Core/GameEngineDevice/Include")
+    target_compile_definitions(z_gameengine PRIVATE RTS_ENABLE_MCP_BRIDGE)
+    target_link_libraries(z_gameengine PRIVATE advapi32)
+endif()
+
 target_include_directories(z_gameengine PUBLIC
     Include
 )

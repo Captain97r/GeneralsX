@@ -52,6 +52,13 @@ public:
 	// GeneralsX @bugfix Mr. Meesseeks 29/09/2026 Test if an IPv4 address belongs to any active local interface on this machine.
 	static Bool isLocalHostAddress(UnsignedInt ip);
 
+	// GeneralsX @bugfix Treat each explicitly bound loopback address as its own
+	// endpoint. Real interfaces retain the existing multi-homed host behavior.
+	static Bool isLocalEndpointAddress(UnsignedInt boundIP, UnsignedInt address)
+	{
+		return address == boundIP || ((boundIP >> 24) != 127 && isLocalHostAddress(address));
+	}
+
 	// GeneralsX @bugfix Mr. Meesseeks 29/09/2026 Test if an IPv4 address belongs to a real active local network adapter (excluding loopback).
 	static Bool isRealLocalInterfaceAddress(UnsignedInt ip);
 };

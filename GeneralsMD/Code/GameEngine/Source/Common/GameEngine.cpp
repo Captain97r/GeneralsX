@@ -29,6 +29,11 @@
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "Common/ActionManager.h"
+#ifdef RTS_ENABLE_MCP_BRIDGE
+#include "Common/AgentBridge.h"
+#include "Common/AgentGameInternal.h"
+#include "Common/AgentSkirmishTest.h"
+#endif
 #include "Common/AudioAffect.h"
 #include "Common/BuildAssistant.h"
 #include "Common/CRCDebug.h"
@@ -271,6 +276,11 @@ GameEngine::GameEngine()
 //-------------------------------------------------------------------------------------------------
 GameEngine::~GameEngine()
 {
+#ifdef RTS_ENABLE_MCP_BRIDGE
+	GeneralsAgent::ShutdownBridge();
+	GeneralsAgent::ShutdownObservation();
+	GeneralsAgent::ShutdownSession();
+#endif
 	//extern std::vector<std::string>	preloadTextureNamesGlobalHack;
 	//preloadTextureNamesGlobalHack.clear();
 
@@ -1040,6 +1050,16 @@ void GameEngine::update()
 
 			TheAudio->UPDATE();
 			TheGameClient->UPDATE();
+#ifdef RTS_ENABLE_MCP_BRIDGE
+			// TheSuperHackers @feature Service local orders on the game thread before dispatch.
+			GeneralsAgent::UpdateBridge();
+			if (GeneralsAgent::IsBridgeEnabled())
+			{
+				GeneralsAgent::UpdateSession();
+				GeneralsAgent::UpdateObservation();
+			}
+			rts::updateAgentSkirmishTest();
+#endif
 			TheMessageStream->propagateMessages();
 
 			if (TheNetwork != nullptr)

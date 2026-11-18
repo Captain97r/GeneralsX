@@ -65,6 +65,10 @@ void RadiusDecalTemplate::createRadiusDecal(const Coord3D& pos, Real radius, con
 
 	// it is now considered nonEmpty, regardless of the state of m_decal, etc
 	result.m_empty = false;
+	// TheSuperHackers @bugfix Headless games have no projected-shadow manager.
+	// Keep the logical decal present for game/network sync while omitting graphics.
+	if (TheProjectedShadowManager == nullptr)
+		return;
 
 	if (!m_onlyVisibleToOwningPlayer ||
 			owningPlayer->getPlayerIndex() == ThePlayerList->getLocalPlayer()->getPlayerIndex())

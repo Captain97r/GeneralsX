@@ -146,7 +146,7 @@ void LANAPI::handleGameAnnounce( LANMessage *msg, UnsignedInt senderIP )
 		PRINTF_IP_AS_4_INTS(senderIP), GetWindowsWideCharAsWchar(msg->GameInfo.gameName),
 		msg->GameInfo.inProgress, msg->GameInfo.isDirectConnect); */
 	// GeneralsX @bugfix Mr. Meesseeks 29/09/2026 Ignore self-announcements from any active local interface on multi-homed hosts.
-	if (senderIP == m_localIP || LANInterfaceDevice::isLocalHostAddress(senderIP))
+	if (LANInterfaceDevice::isLocalEndpointAddress(m_localIP, senderIP))
 	{
 		return; // Don't try to update own info
 	}
@@ -330,7 +330,7 @@ void LANAPI::handleRequestJoin( LANMessage *msg, UnsignedInt senderIP )
 		m_pendingAction, m_inLobby); */
 
 	// GeneralsX @bugfix Mr. Meesseeks 29/09/2026 Accept join requests targeted at either m_localIP or any local interface IP.
-	if (msg->GameToJoin.gameIP != m_localIP && !LANInterfaceDevice::isLocalHostAddress(msg->GameToJoin.gameIP))
+	if (!LANInterfaceDevice::isLocalEndpointAddress(m_localIP, msg->GameToJoin.gameIP))
 	{
 		/* 		fprintf(stderr, "[LAN86] handleRequestJoin ignored sender=%d.%d.%d.%d reason=wrong-game-ip\n",
 			PRINTF_IP_AS_4_INTS(senderIP)); */
@@ -530,7 +530,7 @@ void LANAPI::handleJoinAccept( LANMessage *msg, UnsignedInt senderIP )
 		PRINTF_IP_AS_4_INTS(senderIP), PRINTF_IP_AS_4_INTS(msg->GameJoined.playerIP), PRINTF_IP_AS_4_INTS(m_localIP),
 		m_pendingAction, msg->GameJoined.slotPosition, GetWindowsWideCharAsWchar(msg->GameJoined.gameName)); */
 	// GeneralsX @bugfix Mr. Meesseeks 29/09/2026 Accept join response if playerIP matches m_localIP or any local interface IP.
-	if (msg->GameJoined.playerIP == m_localIP || LANInterfaceDevice::isLocalHostAddress(msg->GameJoined.playerIP)) // Is it for us?
+	if (LANInterfaceDevice::isLocalEndpointAddress(m_localIP, msg->GameJoined.playerIP))
 	{
 		if (m_pendingAction == ACT_JOIN) // Are we trying to join?
 		{
@@ -599,7 +599,7 @@ void LANAPI::handleJoinDeny( LANMessage *msg, UnsignedInt senderIP )
 		PRINTF_IP_AS_4_INTS(senderIP), PRINTF_IP_AS_4_INTS(msg->GameJoined.playerIP), PRINTF_IP_AS_4_INTS(m_localIP),
 		m_pendingAction, msg->GameNotJoined.reason, GetWindowsWideCharAsWchar(msg->GameNotJoined.gameName)); */
 	// GeneralsX @bugfix Mr. Meesseeks 29/09/2026 Accept join deny if playerIP matches m_localIP or any local interface IP.
-	if (msg->GameJoined.playerIP == m_localIP || LANInterfaceDevice::isLocalHostAddress(msg->GameJoined.playerIP)) // Is it for us?
+	if (LANInterfaceDevice::isLocalEndpointAddress(m_localIP, msg->GameJoined.playerIP))
 	{
 		if (m_pendingAction == ACT_JOIN) // Are we trying to join?
 		{

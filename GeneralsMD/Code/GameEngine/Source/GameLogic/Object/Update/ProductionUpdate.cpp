@@ -31,6 +31,9 @@
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "Common/BitFlagsIO.h"
+#ifdef RTS_ENABLE_MCP_BRIDGE
+#include "Common/AgentGameInternal.h"
+#endif
 #include "Common/BuildAssistant.h"
 #include "Common/CRCDebug.h"
 #include "Common/GameState.h"
@@ -778,6 +781,11 @@ UpdateSleepTime ProductionUpdate::update()
 																	creationBuilding->getControllingPlayer()->getDefaultTeam() );
 
 							newObj->setProducer(creationBuilding);
+#ifdef RTS_ENABLE_MCP_BRIDGE
+                            // TheSuperHackers @feature Correlate completed production with its real object ID.
+                            GeneralsAgent::RecordUnitProduced(creationBuilding->getID(),
+                                static_cast<int>(production->getProductionID()), newObj->getID());
+#endif
 
 							// call the exit interface to do the rally point and position stuff
 							exitInterface->exitObjectViaDoor( newObj, exitDoor );

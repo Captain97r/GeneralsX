@@ -96,7 +96,7 @@ Bool LANGameSlot::isLocalPlayer() const
 	// (e.g. Ethernet vs Wi-Fi), match by player name and verify that the slot IP is a local host address.
 	if (!TheLAN->GetMyName().isEmpty() && TheLAN->GetMyName().compare(getName()) == 0)
 	{
-		if (LANInterfaceDevice::isLocalHostAddress(getIP()))
+		if (LANInterfaceDevice::isLocalEndpointAddress(TheLAN->GetLocalIP(), getIP()))
 		{
 			return TRUE;
 		}

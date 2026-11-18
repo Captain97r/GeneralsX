@@ -301,6 +301,7 @@ public:
 
 	/// return t if the player has the given science, either intrinsically, via specialization, or via capture.
 	Bool hasScience(ScienceType t) const;
+	const ScienceVec& getOwnedSciences() const { return m_sciences; }
 	Bool isScienceDisabled( ScienceType t ) const;	///< Can't purchase this science because of script reasons.
 	Bool isScienceHidden( ScienceType t ) const;		///< This science is effectively hidden due to  script reasons.
 
@@ -357,6 +358,8 @@ public:
 	void resetOrStartSpecialPowerReadyFrame( const SpecialPowerTemplate *temp );
 	///< my new command center wants to init his timers to the status quo
 	UnsignedInt getOrStartSpecialPowerReadyFrame( const SpecialPowerTemplate *temp);
+	// TheSuperHackers @feature Read shared cooldowns without creating simulation timers.
+	Bool tryGetSpecialPowerReadyFrame( const SpecialPowerTemplate *temp, UnsignedInt& frame ) const;
 	void expressSpecialPowerReadyFrame( const SpecialPowerTemplate *temp, UnsignedInt frame );
 	void addNewSharedSpecialPowerTimer( const SpecialPowerTemplate *temp, UnsignedInt frame );
 

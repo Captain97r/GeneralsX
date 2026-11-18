@@ -1276,6 +1276,8 @@ static CommandLineParam paramsForEngineInit[] =
 	{ "-playStats", parsePlayStats },
 	{ "-noshaders", parseNoShaders },
 	{ "-quickstart", parseQuickStart },
+	// TheSuperHackers @feature Allow isolated automation runs without an audio device.
+	{ "-noaudio", parseNoAudio },
 	{ "-useWaveEditor", parseUseWaveEditor },
 
 	// TheSuperHackers @feature bobtista 22/07/2026 Load a save game file from the command line.
@@ -1291,7 +1293,6 @@ static CommandLineParam paramsForEngineInit[] =
 	{ "-forcefullviewport", parseFullViewport },
 
 #if defined(RTS_DEBUG)
-	{ "-noaudio", parseNoAudio },
 	{ "-map", parseMapName },
 	{ "-nomusic", parseNoMusic },
 	{ "-novideo", parseNoVideo },

@@ -3366,6 +3366,24 @@ void Player::expressSpecialPowerReadyFrame( const SpecialPowerTemplate *temp, Un
 
 
 //-------------------------------------------------------------------------------------------------
+Bool Player::tryGetSpecialPowerReadyFrame( const SpecialPowerTemplate *temp, UnsignedInt& frame ) const
+{
+	if (temp == nullptr)
+		return FALSE;
+	const UnsignedInt lookupID = temp->getID();
+	for (SpecialPowerReadyTimerList::const_iterator it = m_specialPowerReadyTimerList.begin();
+		it != m_specialPowerReadyTimerList.end(); ++it)
+	{
+		if (it->m_templateID == lookupID)
+		{
+			frame = it->m_readyFrame;
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+//-------------------------------------------------------------------------------------------------
 UnsignedInt Player::getOrStartSpecialPowerReadyFrame( const SpecialPowerTemplate *temp)
 {
 

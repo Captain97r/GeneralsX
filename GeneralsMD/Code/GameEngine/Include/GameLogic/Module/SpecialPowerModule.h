@@ -71,6 +71,11 @@ public:
 
 	//If the special power launches a construction site, we need to know the final product for placement purposes.
 	virtual const ThingTemplate* getReferenceThingTemplate() const = 0;
+
+	// TheSuperHackers @feature Observe effective cooldowns without creating shared timers.
+	virtual Bool isReadyReadOnly() const = 0;
+	virtual Real getPercentReadyReadOnly() const = 0;
+	virtual UnsignedInt getReadyFrameReadOnly() const = 0;
 };
 
 //-------------------------------------------------------------------------------------------------
@@ -164,6 +169,14 @@ public:
 
 	//If the special power launches a construction site, we need to know the final product for placement purposes.
 	virtual const ThingTemplate* getReferenceThingTemplate() const override { return nullptr; }
+	virtual Bool isReadyReadOnly() const override;
+	virtual Real getPercentReadyReadOnly() const override;
+	virtual UnsignedInt getReadyFrameReadOnly() const override;
+
+private:
+	Bool isReadyImpl( Bool initializeSharedTimer ) const;
+	Real getPercentReadyImpl( Bool initializeSharedTimer ) const;
+	UnsignedInt getReadyFrameImpl( Bool initializeSharedTimer ) const;
 
 protected:
 

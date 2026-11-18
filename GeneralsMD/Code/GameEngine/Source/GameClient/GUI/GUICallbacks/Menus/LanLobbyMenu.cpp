@@ -31,6 +31,9 @@
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
+#ifdef RTS_ENABLE_MCP_BRIDGE
+#include "Common/AgentGameInternal.h"
+#endif
 #include "Common/crc.h"
 #include "Common/GameEngine.h"
 #include "Common/GlobalData.h"
@@ -68,6 +71,11 @@ char *LANnextScreen = nullptr;
 
 static Int	initialGadgetDelay = 2;
 static Bool justEntered = FALSE;
+
+#ifdef RTS_ENABLE_MCP_BRIDGE
+// TheSuperHackers @feature Report the delayed entry animation to structured lobby controls.
+Bool LanLobbyMenuIsEntering() { return justEntered; }
+#endif
 
 
 
@@ -418,10 +426,18 @@ void LanLobbyMenuInit( WindowLayout *layout, void *userData )
 	OptionPreferences optionPrefs;
 	UnsignedInt preferredLANIP = optionPrefs.getLANIPAddress();
 	UnsignedInt IP = preferredLANIP ? preferredLANIP : TheGlobalData->m_defaultIP;
+	Bool foundPreferredIP = FALSE;
+#ifdef RTS_ENABLE_MCP_BRIDGE
+	LANPreferences prefs;
+	defaultName = prefs.getUserName();
+	// GeneralsX @feature Preserve session-only MCP overrides. Loopback aliases
+	// are valid bind targets even though adapter enumeration omits them.
+	if (GeneralsAgent::ApplyLobbyOverrides(IP, defaultName) && (IP >> 24) == 127)
+		foundPreferredIP = TRUE;
+#endif
 	IPEnumeration IPs;
 	EnumeratedIP *IPlist = IPs.getAddresses();
 	const WideChar* IPSource;
-	Bool foundPreferredIP = FALSE;
 
 	for (EnumeratedIP *candidate = IPlist; candidate != nullptr; candidate = candidate->getNext())
 	{
@@ -503,8 +519,10 @@ void LanLobbyMenuInit( WindowLayout *layout, void *userData )
 	//Initialize the gadgets on the window
 	//UnicodeString	txtInput;
 	//txtInput.translate(IPs.getMachineName());
+#ifndef RTS_ENABLE_MCP_BRIDGE
 	LANPreferences prefs;
 	defaultName = prefs.getUserName();
+#endif
 	defaultName.truncateTo(g_lanPlayerNameLength);
 
 	GadgetTextEntrySetText( textEntryPlayerName, defaultName);
@@ -596,9 +614,15 @@ static void shutdownComplete( WindowLayout *layout )
 //-------------------------------------------------------------------------------------------------
 void LanLobbyMenuShutdown( WindowLayout *layout, void *userData )
 {
-	LANPreferences prefs;
-	prefs["UserName"] = UnicodeStringToQuotedPrintable(GadgetTextEntryGetText( textEntryPlayerName ));
-	prefs.write();
+#ifdef RTS_ENABLE_MCP_BRIDGE
+	// A temporary MCP identity must not replace the user's saved LAN name.
+	if (!GeneralsAgent::HasLobbyNameOverride())
+#endif
+	{
+		LANPreferences prefs;
+		prefs["UserName"] = UnicodeStringToQuotedPrintable(GadgetTextEntryGetText( textEntryPlayerName ));
+		prefs.write();
+	}
 
 	DestroyGameInfoWindow();
 	// hide menu
@@ -814,6 +838,9 @@ WindowMsgHandledType LanLobbyMenuSystem( GameWindow *window, UnsignedInt msg,
 					LANbuttonPushed = true;
 					DEBUG_LOG(("Back was hit - popping to main menu"));
 					TheShell->pop();
+#ifdef RTS_ENABLE_MCP_BRIDGE
+					GeneralsAgent::ClearLobbyOverrides();
+#endif
 					delete TheLAN;
 					TheLAN = nullptr;
 					//TheTransitionHandler->reverse("LanLobbyFade");

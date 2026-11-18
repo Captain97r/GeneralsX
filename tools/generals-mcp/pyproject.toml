@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "generals-zh-mcp"
+version = "0.3.0"
+description = "Local MCP tools for the Generals Zero Hour skirmish bridge"
+requires-python = ">=3.11"
+dependencies = ["mcp>=1.28.1,<2"]
+
+[project.scripts]
+generals-mcp = "generals_mcp.server:main"
+generals-game = "generals_mcp.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

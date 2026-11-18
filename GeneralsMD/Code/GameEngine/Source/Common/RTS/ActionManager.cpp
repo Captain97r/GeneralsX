@@ -1038,7 +1038,8 @@ Bool ActionManager::canCaptureBuilding( const Object *obj, const Object *objectT
 	if (!spInterface)
 		return false;
 
-	if( spInterface->getPercentReady() < 1.0f )
+	// TheSuperHackers @bugfix Eligibility queries do not initialize shared power timers.
+	if( spInterface->getPercentReadyReadOnly() < 1.0f )
 	{
 		// Special not ready or non-existent.
 		return false;
@@ -1131,7 +1132,7 @@ Bool ActionManager::canDisableVehicleViaHacking( const Object *obj, const Object
 	SpecialPowerModuleInterface *spInterface = obj->findSpecialPowerModuleInterface( SPECIAL_BLACKLOTUS_DISABLE_VEHICLE_HACK );
 	if (checkSourceRequirements)
 	{
-		if( !spInterface || spInterface->getPercentReady() < 1.0f )
+		if( !spInterface || spInterface->getPercentReadyReadOnly() < 1.0f )
 		{
 			//Special not ready or non-existent.
 			return FALSE;
@@ -1250,7 +1251,7 @@ Bool ActionManager::canStealCashViaHacking( const Object *obj, const Object *obj
 
 
 	SpecialPowerModuleInterface *spInterface = obj->findSpecialPowerModuleInterface( SPECIAL_BLACKLOTUS_STEAL_CASH_HACK );
-	if( !spInterface || spInterface->getPercentReady() < 1.0f )
+	if( !spInterface || spInterface->getPercentReadyReadOnly() < 1.0f )
 	{
 		//Special not ready or non-existent.
 		return false;
@@ -1327,7 +1328,7 @@ Bool ActionManager::canDisableBuildingViaHacking( const Object *obj, const Objec
 	}
 
 	SpecialPowerModuleInterface *spInterface = obj->findSpecialPowerModuleInterface( SPECIAL_HACKER_DISABLE_BUILDING );
-	if( !spInterface || spInterface->getPercentReady() < 1.0f )
+	if( !spInterface || spInterface->getPercentReadyReadOnly() < 1.0f )
 	{
 		//Special not ready or non-existent.
 		return FALSE;
@@ -1487,7 +1488,7 @@ Bool ActionManager::canDoSpecialPowerAtLocation( const Object *obj, const Coord3
 	{
 		if (checkSourceRequirements)
 		{
-			if( mod->getPercentReady() < 1.0f )
+			if( mod->getPercentReadyReadOnly() < 1.0f )
 			{
 				//Not fully ready
 				return false;
@@ -1643,7 +1644,7 @@ Bool ActionManager::canDoSpecialPowerAtObject( const Object *obj, const Object *
 	{
 		if (checkSourceRequirements)
 		{
-			if( mod->getPercentReady() < 1.0f )
+			if( mod->getPercentReadyReadOnly() < 1.0f )
 			{
 				//Not fully ready
 				return false;
@@ -1898,7 +1899,7 @@ Bool ActionManager::canDoSpecialPower( const Object *obj, const SpecialPowerTemp
 	{
 		if (checkSourceRequirements)
 		{
-			if( mod->getPercentReady() < 1.0f )
+			if( mod->getPercentReadyReadOnly() < 1.0f )
 			{
 				//Not fully ready
 				return false;

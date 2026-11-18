@@ -54,6 +54,19 @@
 #include "GameClient/InGameUI.h"
 #include "GameClient/ControlBar.h"
 
+namespace
+{
+UnsignedInt sharedReadyFrame( Player* player, const SpecialPowerTemplate* power, Bool initialize )
+{
+	if (initialize)
+		return player->getOrStartSpecialPowerReadyFrame(power);
+	// An absent timer is effectively ready now in getOrStartSpecialPowerReadyFrame.
+	// Preserve that result for telemetry without inserting the timer into the player.
+	UnsignedInt frame = TheGameLogic->getFrame();
+	player->tryGetSpecialPowerReadyFrame(power, frame);
+	return frame;
+}
+}
 
 
 //-------------------------------------------------------------------------------------------------
@@ -294,6 +307,16 @@ Bool SpecialPowerModule::isModuleForPower( const SpecialPowerTemplate *specialPo
 //-------------------------------------------------------------------------------------------------
 Bool SpecialPowerModule::isReady() const
 {
+	return isReadyImpl(TRUE);
+}
+
+Bool SpecialPowerModule::isReadyReadOnly() const
+{
+	return isReadyImpl(FALSE);
+}
+
+Bool SpecialPowerModule::isReadyImpl( Bool initializeSharedTimer ) const
+{
 #if defined(RTS_DEBUG) || defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
 	// this is a cheat ... remove this for release!
 	if( TheGlobalData->m_specialPowerUsesDelay == FALSE )
@@ -309,7 +332,7 @@ Bool SpecialPowerModule::isReady() const
 		if ( player )
 		{
 			if ( modData->m_specialPowerTemplate->isSharedNSync())
-				return (TheGameLogic->getFrame() >= player->getOrStartSpecialPowerReadyFrame( modData->m_specialPowerTemplate ) );
+				return (TheGameLogic->getFrame() >= sharedReadyFrame(player, modData->m_specialPowerTemplate, initializeSharedTimer));
 		}
 	}
 
@@ -326,6 +349,16 @@ Bool SpecialPowerModule::isReady() const
 //-------------------------------------------------------------------------------------------------
 Real SpecialPowerModule::getPercentReady() const
 {
+	return getPercentReadyImpl(TRUE);
+}
+
+Real SpecialPowerModule::getPercentReadyReadOnly() const
+{
+	return getPercentReadyImpl(FALSE);
+}
+
+Real SpecialPowerModule::getPercentReadyImpl( Bool initializeSharedTimer ) const
+{
 	if( m_pausedCount > 0 && m_pausedPercent == 1.0f )
 	{
 			//Don't consider it ready if paused.
@@ -338,7 +371,7 @@ Real SpecialPowerModule::getPercentReady() const
 #endif
 
 	// easy case ... is ready
-	if( isReady() )
+	if( initializeSharedTimer ? isReady() : isReadyReadOnly() )
 		return 1.0f;
 
 	if( m_pausedCount > 0 )
@@ -364,7 +397,7 @@ Real SpecialPowerModule::getPercentReady() const
 		{
 			if ( modData->m_specialPowerTemplate->isSharedNSync())
 			{
-				readyFrame = player->getOrStartSpecialPowerReadyFrame( getSpecialPowerTemplate() );
+				readyFrame = sharedReadyFrame(player, getSpecialPowerTemplate(), initializeSharedTimer);
 			}
 		}
 	}
@@ -809,6 +842,16 @@ void SpecialPowerModule::pauseCountdown( Bool pause )
 //-------------------------------------------------------------------------------------------------
 UnsignedInt SpecialPowerModule::getReadyFrame() const
 {
+	return getReadyFrameImpl(TRUE);
+}
+
+UnsignedInt SpecialPowerModule::getReadyFrameReadOnly() const
+{
+	return getReadyFrameImpl(FALSE);
+}
+
+UnsignedInt SpecialPowerModule::getReadyFrameImpl( Bool initializeSharedTimer ) const
+{
 	if ( getSpecialPowerTemplate()->isSharedNSync() )
 	{
 		const Object* obj = getObject();
@@ -816,7 +859,7 @@ UnsignedInt SpecialPowerModule::getReadyFrame() const
 		{
 			Player *player = getObject()->getControllingPlayer();
 			if ( player )
-				return player->getOrStartSpecialPowerReadyFrame( getSpecialPowerTemplate() );
+				return sharedReadyFrame(player, getSpecialPowerTemplate(), initializeSharedTimer);
 		}
 	}
 

@@ -103,6 +103,9 @@ public:
 	UnsignedInt getPackTime()						const { return getDeployStyleAIUpdateModuleData()->m_packTime; }
 	Bool doTurretsFunctionOnlyWhenDeployed() const { return getDeployStyleAIUpdateModuleData()->m_turretsFunctionOnlyWhenDeployed; }
 	Bool doTurretsHaveToCenterBeforePacking() const { return getDeployStyleAIUpdateModuleData()->m_turretsMustCenterBeforePacking; }
+	// TheSuperHackers @feature Expose deployment telemetry without changing the AI state.
+	DeployStateTypes getDeployState() const { return m_state; }
+	UnsignedInt getDeployCompletionFrame() const { return m_frameToWaitForDeploy; }
 	void setMyState( DeployStateTypes StateID, Bool reverseDeploy = FALSE );
 
 protected:

@@ -144,6 +144,8 @@ public:
 
 	void registerWithAnimateManager( GameWindow *win, AnimTypes animType, Bool needsToFinish, UnsignedInt delayMS = 0);
 	Bool isAnimFinished();
+	// GeneralsX @feature Expose deferred shell navigation separately from animations.
+	Bool isLayoutChangePending() const { return m_pendingPush || m_pendingPop; }
 	void reverseAnimatewindow();
 	Bool isAnimReversed();
 

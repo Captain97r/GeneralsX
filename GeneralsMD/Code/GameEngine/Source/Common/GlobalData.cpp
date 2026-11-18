@@ -37,6 +37,10 @@
 
 #include "Common/GlobalData.h"
 
+#if defined(RTS_ENABLE_MCP_BRIDGE)
+#include "Common/AgentSkirmishTest.h"
+#endif
+
 #define DEFINE_TERRAIN_LOD_NAMES
 #define DEFINE_TIME_OF_DAY_NAMES
 #define DEFINE_WEATHER_NAMES
@@ -1477,6 +1481,12 @@ UnsignedInt GlobalData::generateExeCRC()
 
 AsciiString GlobalData::BuildUserDataPathFromRegistry()
 {
+#if defined(RTS_ENABLE_MCP_BRIDGE)
+	AsciiString testDirectory;
+	if (rts::agentSkirmishTestUserData(testDirectory))
+		return testDirectory;
+#endif
+
 	AsciiString userDataDir;
 
 #ifdef _WIN32

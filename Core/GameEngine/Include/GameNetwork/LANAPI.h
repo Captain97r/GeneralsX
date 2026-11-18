@@ -349,6 +349,9 @@ public:
 	virtual UnicodeString GetMyName() override { return m_name; }                 ///< What's my name?
 	virtual LANGameInfo* GetMyGame() override { return m_currentGame; }					      ///< What's my Game?
 	virtual UnsignedInt GetLocalIP() { return m_localIP; }								///< What's my IP?
+	// TheSuperHackers @feature Expose read-only lobby progress to structured game controls.
+	Bool hasPendingAction() const { return m_pendingAction != ACT_NONE; }
+	Bool isGameStartCountdownActive() const { return m_gameStartTime != 0; }
 	virtual void fillInLANMessage( LANMessage *msg ) override;																	///< Fill in default params
 	virtual void checkMOTD() override;
 protected:

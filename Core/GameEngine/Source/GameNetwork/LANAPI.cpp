@@ -425,7 +425,7 @@ void LANAPI::update()
 			UnsignedInt senderIP = m_transport->m_inBuffer[i].addr;
 			// GeneralsX @bugfix Mr. Meesseeks 29/09/2026 Ignore self-echo from any active local interface on multi-homed hosts
 			// (prevents creating duplicate local ghost players and 'Duplicate name already in game' errors).
-			if (senderIP == m_localIP || LANInterfaceDevice::isLocalHostAddress(senderIP))
+			if (LANInterfaceDevice::isLocalEndpointAddress(m_localIP, senderIP))
 			{
 				/* 				fprintf(stderr, "[LAN86] recv self-echo type=%u (%s) from %d.%d.%d.%d ignored\n",
 					((LANMessage *)(m_transport->m_inBuffer[i].data))->messageType,
@@ -1427,7 +1427,7 @@ void LANAPI::SetLocalIP( AsciiString localIP )
 // GeneralsX @bugfix Mr. Meesseeks 29/09/2026 Recognize local host if slot 0 IP matches either m_localIP or any local interface.
 Bool LANAPI::AmIHost()
 {
-	return m_currentGame && (m_currentGame->getIP(0) == m_localIP || LANInterfaceDevice::isLocalHostAddress(m_currentGame->getIP(0)));
+	return m_currentGame && LANInterfaceDevice::isLocalEndpointAddress(m_localIP, m_currentGame->getIP(0));
 }
 
 void LANAPI::setIsActive(Bool isActive) {
