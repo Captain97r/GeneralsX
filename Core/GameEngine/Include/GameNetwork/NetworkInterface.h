@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "Common/GameCommon.h"
 #include "Common/MessageStream.h"
 #include "GameNetwork/ConnectionManager.h"
 #include "GameNetwork/User.h"
@@ -49,12 +50,16 @@ CommandPacket *GetCommandPacket();											///< TheNetwork calls GetCommandPac
  */
 class NetworkInterface : public SubsystemInterface
 {
+private:
+	const Int m_nativeSimulationRate;
 protected:
+	explicit NetworkInterface(Int rate) : m_nativeSimulationRate(rate) {}
 
 public:
 	virtual ~NetworkInterface() override { };
 
-	static NetworkInterface * createNetwork();
+	static NetworkInterface * createNetwork(Int nativeSimulationRate = BaseFps);
+	Int getNativeSimulationRate() const { return m_nativeSimulationRate; }
 
 	virtual void liteupdate() = 0;															///< does a lightweight update for passing messages around.
 

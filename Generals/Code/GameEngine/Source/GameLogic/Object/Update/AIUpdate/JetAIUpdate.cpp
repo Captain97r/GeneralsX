@@ -272,11 +272,7 @@ protected:
 private:
 	Int m_checkAirfield;
 
-	enum
-	{
-		// only recheck for new airfields every second or so
-		HOW_OFTEN_TO_CHECK = LOGICFRAMES_PER_SECOND
-	};
+	// Recheck for available airfields once per game second.
 
 public:
 	JetOrHeliCirclingDeadAirfieldState( StateMachine *machine ) :
@@ -304,7 +300,7 @@ public:
 		// just stay where we are.
 		jetAI->setLocomotorGoalNone();
 
-		m_checkAirfield = HOW_OFTEN_TO_CHECK;
+		m_checkAirfield = LOGICFRAMES_PER_SECOND;
 
 		//Play the "low fuel" voice whenever the craft is circling above the airfield.
 		AudioEventRTS soundToPlay = *jet->getTemplate()->getPerUnitSound( "VoiceLowFuel" );
@@ -344,7 +340,7 @@ public:
 
 		if (--m_checkAirfield <= 0)
 		{
-			m_checkAirfield = HOW_OFTEN_TO_CHECK;
+			m_checkAirfield = LOGICFRAMES_PER_SECOND;
 			Object* airfield = findSuitableAirfield( jet );
 			if (airfield)
 			{

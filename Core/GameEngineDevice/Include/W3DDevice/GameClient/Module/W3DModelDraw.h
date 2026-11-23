@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/ModelState.h"
 #include "Common/DrawModule.h"
@@ -295,10 +297,10 @@ public:
 #endif
 	Int																m_defaultState;
 	Int																m_projectileBoneFeedbackEnabledSlots;	///< Hide and show the launch bone geometries according to clip status adjustments.
-	Real															m_initialRecoil;
+	SimulationRateValue<Real>															m_initialRecoil;
 	Real															m_maxRecoil;
 	Real															m_recoilDamping;
-	Real															m_recoilSettle;
+	SimulationRateValue<Real>															m_recoilSettle;
 	StaticGameLODLevel								m_minLODRequired;				///< minumum game LOD level necessary to use this module.
 	ModelConditionFlags								m_ignoreConditionStates;
 	Bool															m_okToChangeModelColor;

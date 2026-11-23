@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/PropagandaTowerBehavior.h"
@@ -52,7 +54,7 @@ public:
 	static void buildFieldParse( MultiIniFieldParse &p );
 
 	Real m_scanRadius;													///< radius of our scan
-	UnsignedInt m_scanDelayInFrames;						///< how frequently we do an update scan
+	SimulationFrameValue<UnsignedInt> m_scanDelayInFrames;						///< how frequently we do an update scan
 	Real m_autoHealPercentPerSecond;						///< how much % of max health we heal per second
 	const FXList *m_pulseFX;										///< FXList to play when scan is updated
 	AsciiString m_upgradeRequired;							///< Upgrade required to use the upgraded pulse FX

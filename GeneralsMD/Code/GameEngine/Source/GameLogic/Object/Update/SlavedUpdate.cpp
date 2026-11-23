@@ -120,7 +120,7 @@ UpdateSleepTime SlavedUpdate::update()
 		{
 			return UPDATE_SLEEP_NONE;
 		}
-		m_framesToWait = SLAVED_UPDATE_RATE;
+		m_framesToWait = getSlavedUpdateRate();
 	}
 
 	if( m_slaver == INVALID_ID )
@@ -522,7 +522,7 @@ void SlavedUpdate::endRepair()
 	{
 		//Remove the state so we can start using the update timer again.
 		m_repairState = REPAIRSTATE_NONE;
-		m_framesToWait = SLAVED_UPDATE_RATE;
+		m_framesToWait = getSlavedUpdateRate();
 		m_repairing = false;
 
 		//Set the packing state and clear any other states (to force the arm to fully retract)

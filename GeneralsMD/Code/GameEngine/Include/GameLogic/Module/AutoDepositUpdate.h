@@ -45,6 +45,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 //-----------------------------------------------------------------------------
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
@@ -72,7 +74,7 @@ class AutoDepositUpdateModuleData : public UpdateModuleData
 {
 public:
 
-	UnsignedInt m_depositFrame;
+	SimulationFrameValue<UnsignedInt> m_depositFrame;
 	Int m_depositAmount;
 	Int m_initialCaptureBonus;
 	Bool m_isActualMoney;

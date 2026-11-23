@@ -61,7 +61,7 @@ FrameMetrics::~FrameMetrics() {
 
 void FrameMetrics::init() {
 	// GeneralsX @feature Codex 22/11/2026 Seed the rolling history at the normal simulation rate.
-	m_averageFps = LOGICFRAMES_PER_SECOND;
+	m_averageFps = TheNetwork->getNativeSimulationRate();
 	m_averageLatency = (Real)0.2;
 	m_minimumCushion = -1;
 

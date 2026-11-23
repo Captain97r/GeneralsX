@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/SpecialPowerModule.h"
 
@@ -46,9 +48,9 @@ public:
 
 	static void buildFieldParse( MultiIniFieldParse& p );
 
-	UnsignedInt m_baseDurationInFrames;		///< duration of the demoralization (in frames)
-	UnsignedInt m_bonusDurationPerCapturedInFrames;	///< additional duration added for each prisoner we have
-	UnsignedInt m_maxDurationInFrames;		///< no matter how many prisoners we have, this is max
+	SimulationFrameValue<UnsignedInt> m_baseDurationInFrames;		///< duration of the demoralization (in frames)
+	SimulationFrameValue<UnsignedInt> m_bonusDurationPerCapturedInFrames;	///< additional duration added for each prisoner we have
+	SimulationFrameValue<UnsignedInt> m_maxDurationInFrames;		///< no matter how many prisoners we have, this is max
 
 };
 

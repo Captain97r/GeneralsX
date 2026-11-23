@@ -30,6 +30,7 @@
 #pragma once
 
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
+#include "Common/SimulationValue.h"
 #include "Common/AudioEventRTS.h"
 #include "GameClient/TerrainRoads.h"
 #include "GameLogic/Module/BehaviorModule.h"
@@ -48,7 +49,7 @@ class BridgeInfo;
 // ------------------------------------------------------------------------------------------------
 struct TimeAndLocationInfo
 {
-	UnsignedInt delay;			///< how long to wait to execute this
+	SimulationFrameValue<UnsignedInt> delay;			///< how long to wait to execute this
 	AsciiString boneName;		///< which bone to execute at
 };
 // ------------------------------------------------------------------------------------------------
@@ -99,8 +100,8 @@ public:
 
 	static void buildFieldParse( MultiIniFieldParse &p );
 
-	Real m_lateralScaffoldSpeed;
-	Real m_verticalScaffoldSpeed;
+	SimulationRateValue<Real> m_lateralScaffoldSpeed;
+	SimulationRateValue<Real> m_verticalScaffoldSpeed;
 	BridgeFXList m_fx;							///< list of FX lists to execute
 	BridgeOCLList m_ocl;						///< list of OCL to execute
 

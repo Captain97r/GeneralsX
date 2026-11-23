@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/GameCommon.h"
 #include "Common/GameType.h"
 #include "GameClient/Color.h"
@@ -71,7 +73,7 @@ private:
 	ShadowType		m_shadowType;
 	Real					m_minOpacity;
 	Real					m_maxOpacity;
-	UnsignedInt		m_opacityThrobTime;
+	SimulationFrameValue<UnsignedInt>		m_opacityThrobTime;
 	Color					m_color;
 	Bool					m_onlyVisibleToOwningPlayer;
 

@@ -115,7 +115,7 @@ static void parseTimeAndLocationInfo( INI *ini, void *instance,
 	}
 
 	// delay value
-	ini->parseDurationUnsignedInt( ini, instance, &timeAndLocationInfo->delay, nullptr );
+	timeAndLocationInfo->delay.setMilliseconds(static_cast<Real>(INI::scanUnsignedInt(ini->getNextToken())));
 
 	// get optional bone label
 	token = ini->getNextTokenOrNull( ini->getSepsColon() );

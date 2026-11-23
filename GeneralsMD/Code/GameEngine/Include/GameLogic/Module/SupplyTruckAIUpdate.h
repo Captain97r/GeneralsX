@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/StateMachine.h"
 #include "GameLogic/Module/AIUpdate.h"
 
@@ -124,8 +126,8 @@ class SupplyTruckAIUpdateModuleData : public AIUpdateModuleData
 {
 public:
 	Int m_maxBoxesData;
-	UnsignedInt m_centerDelay;
-	UnsignedInt m_warehouseDelay;
+	SimulationFrameValue<UnsignedInt> m_centerDelay;
+	SimulationFrameValue<UnsignedInt> m_warehouseDelay;
 	Real m_warehouseScanDistance;
  	AudioEventRTS m_suppliesDepletedVoice;						///< Sound played when I take the last box.
 

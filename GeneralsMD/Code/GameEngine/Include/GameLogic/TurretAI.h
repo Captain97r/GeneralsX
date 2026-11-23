@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/StateMachine.h"
 #include "Common/GameMemory.h"
 
@@ -214,8 +216,8 @@ class TurretAIData : public MemoryPoolObject
 {
 	MEMORY_POOL_GLUE_WITH_USERLOOKUP_CREATE(TurretAIData, "TurretAIData")
 public:
-	Real						m_turnRate;
-	Real						m_pitchRate;
+	SimulationRateValue<Real>						m_turnRate;
+	SimulationRateValue<Real>						m_pitchRate;
 	Real						m_naturalTurretAngle;
 	Real						m_naturalTurretPitch;
 	Real						m_turretFireAngleSweep[WEAPONSLOT_COUNT];	///< if nonzero, sweep within +/- this angle range while firing
@@ -225,13 +227,13 @@ public:
 	Real						m_groundUnitPitch;			///< dependent on allowspitch. defaults to 0 (horizontal). The lowest pitch allowed when firing at ground units to give the weapon an arc.  jba
 	UnsignedInt			m_turretWeaponSlots;		///< which WeaponSlots are controlled by this turret
 #ifdef INTER_TURRET_DELAY
-	UnsignedInt			m_interTurretDelay;			///< special-case for multiturret battleships
+	SimulationFrameValue<UnsignedInt>			m_interTurretDelay;			///< special-case for multiturret battleships
 #endif
 	Real						m_minIdleScanAngle;			///< max angle the turret can turn while idling
 	Real						m_maxIdleScanAngle;			///< max angle the turret can turn while idling
-	UnsignedInt			m_minIdleScanInterval;	///< min interval between idle scans
-	UnsignedInt			m_maxIdleScanInterval;	///< max interval between idle scans
-	UnsignedInt			m_recenterTime;					///< time to wait before recentering turret
+	SimulationFrameValue<UnsignedInt>			m_minIdleScanInterval;	///< min interval between idle scans
+	SimulationFrameValue<UnsignedInt>			m_maxIdleScanInterval;	///< max interval between idle scans
+	SimulationFrameValue<UnsignedInt>			m_recenterTime;					///< time to wait before recentering turret
 	Bool						m_initiallyDisabled;		///< manually controlled and disabled.
 	Bool						m_firesWhileTurning;    ///< so the firing state does not instantly expire the turning state
 	Bool						m_isAllowsPitch;				///< This type of turret can pitch up and down as well as spin

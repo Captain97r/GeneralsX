@@ -106,6 +106,7 @@ public:
 	AsciiString mapLabel;							// pretty name of this level set in the editor
 	SaveDate date;										// date of file save
 	AsciiString campaignSide;					// which campaign side we're playing
+	Int simulationRate;
 	Int missionNumber;								// mission number in campaign
 	UnicodeString description;				// user description for save game file
 	SaveFileType saveFileType;				// type of save file we're dealing with
@@ -179,6 +180,7 @@ public:
 										 SnapshotType which = SNAPSHOT_SAVELOAD );  ///< save a game
 	SaveResult missionSave();																 ///< do a in between mission save
 	SaveCode loadGame( AvailableGameInfo gameInfo );							 ///< load a save file
+	Int takeMissionLoadSimulationRate();
 	void loadQueuedSaveGame();																 ///< load the save file requested on startup
 	SaveGameInfo *getSaveGameInfo() { return &m_gameInfo; }
 
@@ -245,6 +247,7 @@ private:
 
 	AvailableGameInfo *m_availableGames;		///< list of available games we can save over or load from
 
+	Int m_missionLoadSimulationRate = 0;
 	Bool m_isInLoadGame; // Brutal hack to allow bone pos validation while loading games
 };
 

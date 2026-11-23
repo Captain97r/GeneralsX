@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -39,8 +41,8 @@ class OCLUpdateModuleData : public UpdateModuleData
 {
 public:
 	const ObjectCreationList *m_ocl;
-	UnsignedInt m_minDelay;
-	UnsignedInt m_maxDelay;
+	SimulationFrameValue<UnsignedInt> m_minDelay;
+	SimulationFrameValue<UnsignedInt> m_maxDelay;
 	Bool m_isCreateAtEdge; ///< Otherwise, it is created on top of myself
 
 	OCLUpdateModuleData();

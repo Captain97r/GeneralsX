@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "GameClient/RadiusDecal.h"
 #include "Common/GameType.h"
 #include "Common/GlobalData.h"
@@ -44,12 +46,12 @@ class NeutronMissileUpdateModuleData : public UpdateModuleData
 {
 public:
 	Real					m_initialDist;
-	Real					m_maxTurnRate;
+	SimulationRateValue<Real>					m_maxTurnRate;
 	Real					m_forwardDamping;
 	Real					m_relativeSpeed;
 	Real					m_targetFromDirectlyAbove;	///< aim first for dest+offset, then dest
 	Real					m_specialAccelFactor;
-	UnsignedInt		m_specialSpeedTime;
+	SimulationFrameValue<UnsignedInt>		m_specialSpeedTime;
 	Real					m_specialSpeedHeight;
 	Real					m_specialJitterDistance;
 	const FXList*	m_launchFX;			///< FXList to do when missile 'launches'

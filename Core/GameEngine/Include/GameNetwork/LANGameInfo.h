@@ -33,6 +33,16 @@
 
 class GameWindow;
 
+// A room can switch 30 -> 60 -> 30 before a delayed ready or start packet arrives.
+// The game seed identifies the room. Only the host advances the rate revision.
+#pragma pack(push, 1)
+struct LANRoomStamp
+{
+	uint32_t seed;
+	uint32_t revision;
+};
+#pragma pack(pop)
+
 /**
   * LANGameSlot class - maintains information about the contents of a
 	* game slot.  This persists throughout the game.
@@ -88,8 +98,13 @@ public:
 
 	UnsignedInt getLastHeard() { return m_lastHeard; }
 	void setLastHeard( UnsignedInt lastHeard ) { m_lastHeard = lastHeard; }
-	Bool hasCompatibleSimulation() const { return m_compatibleSimulation; }
-	void setCompatibleSimulation(Bool compatible) { m_compatibleSimulation = compatible; }
+	Int getSimulationRate() const { return m_simulationRate; }
+	void setSimulationRate(Int rate) { m_simulationRate = rate; }
+	LANRoomStamp getSimulationStamp() const { return {static_cast<uint32_t>(getSeed()), m_simulationRevision}; }
+	void changeSimulationRate(Int rate) { ++m_simulationRevision; setSimulationRate(rate); }
+	Bool adoptSimulationRate(Int rate, const LANRoomStamp &stamp, Bool joining = false);
+	Bool matchesSimulationRate(Int rate, const LANRoomStamp &stamp) const;
+	Bool areRemotePlayersReady() const;
 	LANGameInfo *getNext() { return m_next; }
 	void setNext( LANGameInfo *next ) { m_next = next; }
 
@@ -166,7 +181,8 @@ public:
 
 
 private:
-	Bool m_compatibleSimulation = false;
+	Int m_simulationRate = 0;
+	uint32_t m_simulationRevision = 0;
 	LANGameInfo *m_next;																///< Pointer for linked list
 	UnsignedInt m_lastHeard;														///< The last time we heard from this game (for timeout purposes)
 	UnicodeString m_gameName;														///< Game name.  @todo: are game names based off of host player names?

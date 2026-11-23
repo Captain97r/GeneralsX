@@ -231,7 +231,7 @@ void LANAPI::OnGameStart()
 		TheNetwork = nullptr;
 
 		// Time to initialize TheNetwork for this game.
-		TheNetwork = NetworkInterface::createNetwork();
+		TheNetwork = NetworkInterface::createNetwork(m_currentGame->getSimulationRate());
 		TheNetwork->init();
 		TheNetwork->setLocalAddress(m_localIP, 8088);
 		TheNetwork->initTransport();

@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/GameMemory.h"
 #include "GameLogic/Module/SupplyCenterDockUpdate.h"
@@ -44,7 +46,7 @@ public:
 
 	static void buildFieldParse(MultiIniFieldParse& p);
 
-	Real m_framesForFullHeal;			///< time (in frames) something becomes fully repaired
+	SimulationFrameValue<Real> m_framesForFullHeal;			///< time (in frames) something becomes fully repaired
 
 };
 

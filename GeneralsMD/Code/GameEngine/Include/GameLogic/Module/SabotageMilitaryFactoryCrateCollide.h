@@ -32,6 +32,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Module.h"
 #include "GameLogic/Module/CrateCollide.h"
@@ -43,7 +45,7 @@ class Thing;
 class SabotageMilitaryFactoryCrateCollideModuleData : public CrateCollideModuleData
 {
 public:
-	UnsignedInt m_sabotageFrames;
+	SimulationFrameValue<UnsignedInt> m_sabotageFrames;
 
 	SabotageMilitaryFactoryCrateCollideModuleData()
 	{

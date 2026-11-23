@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Snapshot.h"
 
@@ -108,7 +110,7 @@ protected:
 	AsciiString			m_name;										///< name of this 2D animation
 	const Image**		m_images;											///< array of image pointers that make up this animation
 	UnsignedShort		m_numFrames;						///< total number of frames in this animation
-	UnsignedShort		m_framesBetweenUpdates;	///< frames between frame updates
+	SimulationFrameValue<UnsignedShort>		m_framesBetweenUpdates;	///< frames between frame updates
 	Anim2DMode			m_animMode;								///< the animation mode
 	Bool						m_randomizeStartFrame;						///< randomize animation instance start frames
 

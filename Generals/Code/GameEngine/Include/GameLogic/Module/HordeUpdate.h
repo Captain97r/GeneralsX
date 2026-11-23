@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 #include "Common/KindOf.h"
@@ -82,7 +84,7 @@ static_assert(ARRAY_SIZE(TheHordeActionTypeNames) == HORDEACTION_COUNT + 1, "Inc
 class HordeUpdateModuleData : public ModuleData
 {
 public:
-  UnsignedInt								m_updateRate;   ///< how often to recheck our horde status
+  SimulationFrameValue<UnsignedInt>								m_updateRate;   ///< how often to recheck our horde status
 	KindOfMaskType						m_kindof;				///< the kind(s) of units that count towards hordeness
 	Int												m_minCount;		  ///< min count to get "horde" status
   Real											m_minDist;      ///< min dist to contribute to hordeness

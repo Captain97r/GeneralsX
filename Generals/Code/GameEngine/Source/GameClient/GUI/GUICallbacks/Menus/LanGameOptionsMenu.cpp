@@ -40,6 +40,7 @@
 #include "GameClient/Shell.h"
 #include "GameClient/KeyDefs.h"
 #include "GameClient/GameWindowManager.h"
+#include "GameClient/SimulationRateControl.h"
 #include "GameClient/GadgetListBox.h"
 #include "GameClient/GadgetComboBox.h"
 #include "GameClient/GadgetTextEntry.h"
@@ -113,6 +114,9 @@ static NameKeyType windowMapID = NAMEKEY_INVALID;
 // Window Pointers ------------------------------------------------------------------------
 static GameWindow *parentLanGameOptions = nullptr;
 static GameWindow *buttonBack = nullptr;
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+static GameWindow *buttonSimulationRate = nullptr;
+#endif
 static GameWindow *buttonStart = nullptr;
 static GameWindow *buttonSelectMap = nullptr;
 static GameWindow *buttonChat = nullptr;
@@ -634,6 +638,9 @@ void InitLanGameGadgets()
 	DEBUG_ASSERTCRASH(buttonStart, ("Could not find the buttonStart"));
 	buttonBack = TheWindowManager->winGetWindowFromId( parentLanGameOptions,  buttonBackID);
 	DEBUG_ASSERTCRASH(buttonBack, ("Could not find the buttonBack"));
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	buttonSimulationRate = createLanSimulationRateButton(buttonStart, buttonBack);
+#endif
 	listboxChatWindowLanGame = TheWindowManager->winGetWindowFromId( parentLanGameOptions, listboxChatWindowLanGameID );
 	DEBUG_ASSERTCRASH(listboxChatWindowLanGame, ("Could not find the listboxChatWindowLanGame"));
 	textEntryChat = TheWindowManager->winGetWindowFromId( parentLanGameOptions, textEntryChatID );
@@ -721,6 +728,9 @@ void InitLanGameGadgets()
 
 void DeinitLanGameGadgets()
 {
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	buttonSimulationRate = nullptr;
+#endif
 	parentLanGameOptions = nullptr;
 	buttonChat = nullptr;
 	buttonSelectMap = nullptr;
@@ -866,6 +876,13 @@ void updateGameOptions()
 	UnicodeString mapDisplayName;
 	if (theGame && AreSlotListUpdatesEnabled())
 	{
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+		if (buttonSimulationRate)
+		{
+			buttonSimulationRate->winEnable(theGame->amIHost());
+			setSimulationRateButtonText(buttonSimulationRate, theGame->getSimulationRate());
+		}
+#endif
 		const GameSlot *localSlot = theGame->getConstSlot(theGame->getLocalSlotNum());
 		const MapMetaData *mapData = TheMapCache->findMap( TheLAN->GetMyGame()->getMap() );
 		if (mapData && localSlot && localSlot->hasMap())
@@ -1119,6 +1136,15 @@ WindowMsgHandledType LanGameOptionsMenuSystem( GameWindow *window, UnsignedInt m
 				GameWindow *control = (GameWindow *)mData1;
 				Int controlID = control->winGetWindowId();
 
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+				if (control == buttonSimulationRate)
+				{
+					LANGameInfo *game = TheLAN->GetMyGame();
+					if (game && game->amIHost())
+						TheLAN->RequestSimulationRate(game->getSimulationRate() == 60 ? 30 : 60);
+					return MSG_HANDLED;
+				}
+#endif
 				if ( controlID == buttonBackID )
 				{
 					if( mapSelectLayout )

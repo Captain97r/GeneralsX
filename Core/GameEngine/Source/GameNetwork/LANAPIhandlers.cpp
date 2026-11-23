@@ -140,7 +140,7 @@ void LANAPI::handleRequestLocations( LANMessage *msg, UnsignedInt senderIP )
 	OnNameChange(player->getIP(), player->getName());
 }
 
-void LANAPI::handleGameAnnounce( LANMessage *msg, UnsignedInt senderIP, Bool compatibleSimulation )
+void LANAPI::handleGameAnnounce( LANMessage *msg, UnsignedInt senderIP, Int simulationRate )
 {
 	/* 	fprintf(stderr, "[LAN86] handleGameAnnounce sender=%d.%d.%d.%d game=%ls inProgress=%d direct=%d\n",
 		PRINTF_IP_AS_4_INTS(senderIP), GetWindowsWideCharAsWchar(msg->GameInfo.gameName),
@@ -168,7 +168,7 @@ void LANAPI::handleGameAnnounce( LANMessage *msg, UnsignedInt senderIP, Bool com
 				game->setName(UnicodeString(GetWindowsWideCharAsWchar(msg->GameInfo.gameName)));
 				addGame(game);
 			}
-			game->setCompatibleSimulation(compatibleSimulation);
+			game->setSimulationRate(simulationRate);
 			Bool success = ParseGameOptionsString(game,AsciiString(msg->GameInfo.options));
 			game->setGameInProgress(msg->GameInfo.inProgress);
 			game->setIsDirectConnect(msg->GameInfo.isDirectConnect);
@@ -187,6 +187,9 @@ void LANAPI::handleGameAnnounce( LANMessage *msg, UnsignedInt senderIP, Bool com
 	{
 		// GeneralsX @bugfix BenderAI 13/02/2026 Wrap WideCharWindows with GetWindowsWideCharAsWchar (fighter19 pattern)
 		LANGameInfo *game = LookupGame(UnicodeString(GetWindowsWideCharAsWchar(msg->GameInfo.gameName)));
+		// Joined rooms receive their authoritative state through host options.
+		if (game && game == m_currentGame)
+			return;
 		if (!game)
 		{
 			game = NEW LANGameInfo;
@@ -194,7 +197,7 @@ void LANAPI::handleGameAnnounce( LANMessage *msg, UnsignedInt senderIP, Bool com
 			game->setName(UnicodeString(GetWindowsWideCharAsWchar(msg->GameInfo.gameName)));
 			addGame(game);
 		}
-		game->setCompatibleSimulation(compatibleSimulation);
+		game->setSimulationRate(simulationRate);
 		Bool success = ParseGameOptionsString(game,AsciiString(msg->GameInfo.options));
 		game->setGameInProgress(msg->GameInfo.inProgress);
 		game->setIsDirectConnect(msg->GameInfo.isDirectConnect);
@@ -322,7 +325,7 @@ static Bool ContainsAnyReadableChars(const WideChar* playerName)
 	return false;
 }
 
-void LANAPI::handleRequestJoin( LANMessage *msg, UnsignedInt senderIP, Bool compatibleSimulation )
+void LANAPI::handleRequestJoin( LANMessage *msg, UnsignedInt senderIP, Int simulationRate )
 {
 	UnsignedInt responseIP = senderIP;	// need this cause the player may or may not be
 																			// in the player list at the sendMessage.
@@ -357,7 +360,7 @@ void LANAPI::handleRequestJoin( LANMessage *msg, UnsignedInt senderIP, Bool comp
 				PRINTF_IP_AS_4_INTS(senderIP), PRINTF_IP_AS_4_INTS(responseIP)); */
 			DEBUG_LOG(("LANAPI::handleRequestJoin - join denied because game already started."));
 		}
-		else if (!compatibleSimulation || msg->messageType != LANMessage::localJoinRequest)
+		else if (!simulationRate || msg->messageType != LANMessage::localJoinRequest)
 		{
 			reply.messageType = LANMessage::MSG_JOIN_DENY;
 			// Original clients understand the existing game-version mismatch reason.
@@ -488,6 +491,7 @@ void LANAPI::handleRequestJoin( LANMessage *msg, UnsignedInt senderIP, Bool comp
 					reply.GameJoined.slotPosition = player;
 					reply.GameJoined.gameIP = replyGameIP;
 					reply.GameJoined.playerIP = senderIP;
+					reply.GameJoined.simulation = m_currentGame->getSimulationStamp();
 
 					LANGameSlot newSlot;
 					// GeneralsX @bugfix BenderAI 13/02/2026 Wrap WideCharWindows with GetWindowsWideCharAsWchar (fighter19 pattern)
@@ -535,7 +539,7 @@ void LANAPI::handleRequestJoin( LANMessage *msg, UnsignedInt senderIP, Bool comp
 	RequestGameOptions(GenerateGameOptionsString(), true);
 }
 
-void LANAPI::handleJoinAccept( LANMessage *msg, UnsignedInt senderIP )
+void LANAPI::handleJoinAccept( LANMessage *msg, UnsignedInt senderIP, Int simulationRate )
 {
 	// GeneralsX @build GitHubCopilot 12/04/2026 Trace directed join-accept processing and pending action transitions for LAN/direct-connect debugging.
 	/* 	fprintf(stderr, "[LAN86] handleJoinAccept sender=%d.%d.%d.%d playerIP=%d.%d.%d.%d localIP=%d.%d.%d.%d pending=%d slot=%d game=%ls\n",
@@ -562,6 +566,11 @@ void LANAPI::handleJoinAccept( LANMessage *msg, UnsignedInt senderIP )
 			{
 				DEBUG_CRASH(("Could not find game to join!"));
 				OnGameJoin(RET_UNKNOWN, nullptr);
+			}
+			else if (!m_currentGame->adoptSimulationRate(simulationRate, msg->GameJoined.simulation, true))
+			{
+				m_currentGame = nullptr;
+				OnGameJoin(RET_SIMULATION_MISMATCH, nullptr);
 			}
 			else
 			{
@@ -716,9 +725,10 @@ void LANAPI::handleRequestLobbyLeave( LANMessage *msg, UnsignedInt senderIP )
 	}
 }
 
-void LANAPI::handleSetAccept( LANMessage *msg, UnsignedInt senderIP )
+void LANAPI::handleSetAccept( LANMessage *msg, UnsignedInt senderIP, Int simulationRate )
 {
-	if (!m_inLobby && m_currentGame && !m_currentGame->isGameInProgress())
+	if (!m_inLobby && m_currentGame && !m_currentGame->isGameInProgress() &&
+		m_currentGame->matchesSimulationRate(simulationRate, msg->Accept.simulation))
 	{
 		int player;
 		for (player = 0; player < MAX_SLOTS; ++player)
@@ -795,31 +805,36 @@ void LANAPI::handleChat( LANMessage *msg, UnsignedInt senderIP )
 	}
 }
 
-void LANAPI::handleGameStart( LANMessage *msg, UnsignedInt senderIP )
+void LANAPI::handleGameStart( LANMessage *msg, UnsignedInt senderIP, Int simulationRate )
 {
-	if (!m_inLobby && m_currentGame && m_currentGame->getIP(0) == senderIP && !m_currentGame->isGameInProgress())
+	if (!m_inLobby && m_currentGame && m_currentGame->getIP(0) == senderIP && !m_currentGame->isGameInProgress() &&
+		m_currentGame->matchesSimulationRate(simulationRate, msg->Start.simulation))
 	{
 		OnGameStart();
 	}
 }
 
-void LANAPI::handleGameStartTimer( LANMessage *msg, UnsignedInt senderIP )
+void LANAPI::handleGameStartTimer( LANMessage *msg, UnsignedInt senderIP, Int simulationRate )
 {
-	if (!m_inLobby && m_currentGame && m_currentGame->getIP(0) == senderIP && !m_currentGame->isGameInProgress())
+	if (!m_inLobby && m_currentGame && m_currentGame->getIP(0) == senderIP && !m_currentGame->isGameInProgress() &&
+		m_currentGame->matchesSimulationRate(simulationRate, msg->StartTimer.simulation))
 	{
 		OnGameStartTimer(msg->StartTimer.seconds);
 	}
 }
 
-void LANAPI::handleGameOptions( LANMessage *msg, UnsignedInt senderIP )
+void LANAPI::handleGameOptions( LANMessage *msg, UnsignedInt senderIP, Int simulationRate )
 {
-	if (!m_inLobby && m_currentGame && !m_currentGame->isGameInProgress())
+	if (simulationRate && !m_inLobby && m_currentGame && !m_currentGame->isGameInProgress())
 	{
 		int player;
 		for (player = 0; player < MAX_SLOTS; ++player)
 		{
 			if (m_currentGame->getIP(player) == senderIP)
 			{
+				if (player == 0 ? !m_currentGame->adoptSimulationRate(simulationRate, msg->GameOptions.simulation)
+					: !m_currentGame->matchesSimulationRate(simulationRate, msg->GameOptions.simulation))
+					return;
 				OnGameOptions(senderIP, player, AsciiString(msg->GameOptions.options));
 				break;
 			}

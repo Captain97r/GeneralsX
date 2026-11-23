@@ -126,5 +126,6 @@
 
 extern Int NET_CRC_INTERVAL;
 extern Int REPLAY_CRC_INTERVAL;
+extern Int ReplayCRCIntervalOverride;
 extern Bool TheDebugIgnoreSyncErrors;
 extern Bool TheDebugIgnoreReplaySyncErrors;

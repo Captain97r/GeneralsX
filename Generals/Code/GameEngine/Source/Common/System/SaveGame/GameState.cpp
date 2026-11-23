@@ -41,6 +41,8 @@
 #include "Common/GameEngine.h"
 #include "Common/GameState.h"
 #include "Common/GameStateMap.h"
+#include "Common/OptionPreferences.h"
+#include "Common/SimulationFileProfile.h"
 #include "Common/LatchRestore.h"
 #include "Common/MapObject.h"
 #include "Common/PlayerList.h"
@@ -84,6 +86,7 @@ static const Int MAX_SAVE_FILE_NUMBER  =  99999999;
 // ------------------------------------------------------------------------------------------------
 SaveGameInfo::SaveGameInfo()
 {
+	simulationRate = BaseFps;
 
 	date.day					= 0;
 	date.dayOfWeek		= 0;
@@ -365,6 +368,7 @@ void GameState::init()
 // ------------------------------------------------------------------------------------------------a
 void GameState::reset()
 {
+	m_missionLoadSimulationRate = 0;
 
 	// clear the post process snapshot list
 	m_snapshotPostProcessList.clear();
@@ -658,14 +662,21 @@ SaveResult GameState::missionSave()
 
 }
 
+Int GameState::takeMissionLoadSimulationRate()
+{
+	const Int rate = m_missionLoadSimulationRate;
+	m_missionLoadSimulationRate = 0;
+	return rate;
+}
+
 // ------------------------------------------------------------------------------------------------
 /** Load the save game pointed to by filename */
 // ------------------------------------------------------------------------------------------------
 SaveCode GameState::loadGame( AvailableGameInfo gameInfo )
 {
 
-	// sanity check for file
-	if( doesSaveGameExist( gameInfo.filename ) == FALSE )
+	const AsciiString filepath = getSaveGamePathForRead(gameInfo.filename);
+	if (!doesSaveGameExist(gameInfo.filename))
 		return SC_FILE_NOT_FOUND;
 
 	// clear game data just like loading from the debug map load screen for mission saves
@@ -677,25 +688,20 @@ SaveCode GameState::loadGame( AvailableGameInfo gameInfo )
 
 	}
 
-	//
-	// clear the save directory of any temporary "scratch pad" maps that were extracted
-	// from any previously loaded save game files
-	//
-	TheGameStateMap->clearScratchPadMaps();
-
-	AsciiString filepath = getSaveGamePathForRead(gameInfo.filename);
-
 	// open the save file
 	XferLoad xferLoad;
 	xferLoad.open( filepath );
 
-	// clear out the game engine
+	// Initialize templates and deadlines on the saved clock before any gameplay blocks are read.
 	TheGameEngine->reset();
+	prepareSimulationRateForGame(gameInfo.saveGameInfo.simulationRate);
+	TheFramePacer->configureGameLogicRate(gameInfo.saveGameInfo.simulationRate);
 
 	// lock creation of new ghost objects
 	TheGhostObjectManager->saveLockGhostObjects( TRUE );
 
 	LatchRestore<Bool> inLoadGame(m_isInLoadGame, TRUE);
+	TheGameStateMap->clearScratchPadMaps();
 
 	// load the save data
 	Bool error = FALSE;
@@ -765,6 +771,7 @@ SaveCode GameState::loadGame( AvailableGameInfo gameInfo )
 
 		InitRandom(0);
 
+		m_missionLoadSimulationRate = gameInfo.saveGameInfo.simulationRate;
 		TheWritableGlobalData->m_pendingFile = getSaveGameInfo()->missionMapName;
 		GameMessage *msg = TheMessageStream->appendMessage( GameMessage::MSG_NEW_GAME );
 		msg->appendIntegerArgument(GAME_SINGLE_PLAYER);
@@ -849,13 +856,11 @@ void GameState::loadQueuedSaveGame()
 }
 
 //-------------------------------------------------------------------------------------------------
-AsciiString GameState::getSaveDirectory() const
+static AsciiString saveDirectoryForRate(Int rate)
 {
 	AsciiString tmp = TheGlobalData->getPath_UserData();
-	// GeneralsX @feature Codex 22/11/2026 Give frame-stamped 60 Hz saves their own directory.
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
-	tmp.concat("60Hz");
-#endif
+	if (rate == 60)
+		tmp.concat("60Hz");
 	// GeneralsX @bugfix copilot 12/03/2026 Use POSIX separator on non-Windows so saves are created inside a real Save directory.
 #ifdef _WIN32
 	tmp.concat("Save\\");
@@ -866,6 +871,13 @@ AsciiString GameState::getSaveDirectory() const
 }
 
 //-------------------------------------------------------------------------------------------------
+AsciiString GameState::getSaveDirectory() const
+{
+	if (m_isInLoadGame || (TheGameLogic && TheGameLogic->isInGame() && !TheGameLogic->isInShellGame()))
+		return saveDirectoryForRate(getSimulationRate());
+	return saveDirectoryForRate(OptionPreferences().getNativeSimulationRate());
+}
+
 AsciiString GameState::getFilePathInSaveDirectory(const AsciiString& leaf) const
 {
 	AsciiString tmp = getSaveDirectory();
@@ -1742,22 +1754,13 @@ void GameState::gameStatePostProcessLoad()
 void GameState::xfer( Xfer *xfer )
 {
 
-	// version
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
-	// GeneralsX @feature Codex 22/11/2026 Stored deadlines and velocities use profile-specific simulation units.
-	XferVersion currentVersion = 0x60;
-#else
-	XferVersion currentVersion = 2;
-#endif
-	XferVersion version = currentVersion;
-	xfer->xferVersion( &version, currentVersion );
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
-	if (version != currentVersion)
-		throw XFER_INVALID_VERSION;
-#endif
-
-	// get structure for our current game info
+	// The GameState block is also read by the load menu before a session is started.
+	XferVersion version = SimulationFileProfile::saveVersion(getSimulationRate());
+	xfer->xferVersion(&version, SimulationFileProfile::nativeSaveVersion);
 	SaveGameInfo *saveGameInfo = getSaveGameInfo();
+	saveGameInfo->simulationRate = SimulationFileProfile::saveRate(version);
+	if (!saveGameInfo->simulationRate || (m_isInLoadGame && saveGameInfo->simulationRate != getSimulationRate()))
+		throw XFER_INVALID_VERSION;
 
 	// version 2
 	if( version >= 2 )

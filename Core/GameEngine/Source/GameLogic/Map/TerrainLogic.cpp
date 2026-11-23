@@ -835,9 +835,8 @@ Drawable *Bridge::pickBridge(const Vector3 &from, const Vector3 &to, Vector3 *po
 //-------------------------------------------------------------------------------------------------
 void Bridge::updateDamageState()
 {
-#if !defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
-	m_bridgeInfo.damageStateChanged = false;
-#endif
+	if (getSimulationRate() == BaseFps)
+		m_bridgeInfo.damageStateChanged = false;
 	if (m_bridgeInfo.bridgeObjectID==0) return;
 	Object *bridge = TheGameLogic->findObjectByID(m_bridgeInfo.bridgeObjectID);
 	if (bridge) {
@@ -987,9 +986,8 @@ void TerrainLogic::update()
 {
 
 	// bridge damage states have not changed this frame now
-#if !defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
-	m_bridgeDamageStatesChanged = false;
-#endif
+	if (getSimulationRate() == BaseFps)
+		m_bridgeDamageStatesChanged = false;
 
 	// update any water tables that we need to
 	if( m_numWaterToUpdate )

@@ -30,7 +30,9 @@
 
 #pragma once
 
-const Int SPAWN_UPDATE_RATE = LOGICFRAMES_PER_SECOND/2; ///< This is a low priority module that only needs to be called every this many frames
+#include "Common/SimulationValue.h"
+
+static inline Int getSpawnUpdateRate() { return LOGICFRAMES_PER_SECOND/2; } ///< This is a low priority module that only needs to be called every this many frames
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/INI.h"
@@ -49,7 +51,7 @@ class SpawnBehaviorModuleData : public BehaviorModuleData
 public:
 	Int m_spawnNumberData;								///< How many spawn I maintain
 	Int m_spawnStartNumberData;				  	///< How many spawn I start with
-	Int m_spawnReplaceDelayData;					///< After this many frames, I can replace one
+	SimulationFrameValue<Int> m_spawnReplaceDelayData;					///< After this many frames, I can replace one
 	Int m_initialBurst;						        ///< How many should I make immediately, ignoring the delay?
 	Bool m_isOneShotData;									///< Do I just spawn once and go dormant?
 	Bool m_canReclaimOrphans;							///< Can I reclaim orphans for purposes of spawning

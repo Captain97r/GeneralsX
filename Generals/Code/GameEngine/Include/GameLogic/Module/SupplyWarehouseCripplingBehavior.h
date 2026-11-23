@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/DamageModule.h"
@@ -39,8 +41,8 @@
 class SupplyWarehouseCripplingBehaviorModuleData : public UpdateModuleData
 {
 public:
-	UnsignedInt m_selfHealSupression; ///< Time since last damage until I can start to heal
-	UnsignedInt m_selfHealDelay;			///< Once I am okay to heal, how often to do so
+	SimulationFrameValue<UnsignedInt> m_selfHealSupression; ///< Time since last damage until I can start to heal
+	SimulationFrameValue<UnsignedInt> m_selfHealDelay;			///< Once I am okay to heal, how often to do so
 	Real m_selfHealAmount;							///< And how much
 
 	SupplyWarehouseCripplingBehaviorModuleData();

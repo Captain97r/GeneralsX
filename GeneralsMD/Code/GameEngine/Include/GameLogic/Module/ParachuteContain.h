@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/OpenContain.h"
 
@@ -36,8 +38,8 @@
 class ParachuteContainModuleData : public OpenContainModuleData
 {
 public:
-	Real m_pitchRateMax;
-	Real m_rollRateMax;
+	SimulationRateValue<Real> m_pitchRateMax;
+	SimulationRateValue<Real> m_rollRateMax;
 	Real m_lowAltitudeDamping;
 	Real m_paraOpenDist;		///< deploy the parachute when we have traveled this far
 	Real m_freeFallDamagePercent;

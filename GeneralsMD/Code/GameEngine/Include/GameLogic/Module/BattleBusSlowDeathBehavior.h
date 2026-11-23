@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/SlowDeathBehavior.h"
@@ -55,7 +57,7 @@ public:
 
 	Real m_throwForce;														///< How hard we are thrown in to the air
 	Real m_percentDamageToPassengers;							///< At the moment we throw up, how hard the people inside are hit
-	UnsignedInt m_emptyHulkDestructionDelay;			///< Another reason this is a BattleBus module, and not a generic two stage death.  If non-zero, time empty before we kill ourselves.
+	SimulationFrameValue<UnsignedInt> m_emptyHulkDestructionDelay;			///< Another reason this is a BattleBus module, and not a generic two stage death.  If non-zero, time empty before we kill ourselves.
 
 };
 

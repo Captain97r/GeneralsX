@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/AIUpdate.h"
 
@@ -46,7 +48,7 @@ public:
 
 	static void buildFieldParse( MultiIniFieldParse &p );
 
-	UnsignedInt m_boredTimeInFrames;		///< after this long we seek out targets in AUTOMATIC mode
+	SimulationFrameValue<UnsignedInt> m_boredTimeInFrames;		///< after this long we seek out targets in AUTOMATIC mode
 	Real m_hangAroundPrisonDistance;		///< this close is considered "at the prison" for purposes of waiting
 
 };

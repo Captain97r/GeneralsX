@@ -966,7 +966,7 @@ StateReturnType AIStateMachine::setTemporaryState( StateID newStateID, Int frame
 			m_temporaryState = nullptr;
 			return ret;
 		}
-		enum {FRAME_COUNT_MAX = 60*LOGICFRAMES_PER_SECOND};
+		const Int FRAME_COUNT_MAX = 60 * LOGICFRAMES_PER_SECOND;
 		// If you need to up this check, ok, but 1 minute seems overly long for a temporary state override.  jba.
 		DEBUG_ASSERTCRASH(frameLimitCoount<=FRAME_COUNT_MAX, ("Unusually long time to set temporary state."));
 		if (frameLimitCoount>FRAME_COUNT_MAX) {
@@ -1279,7 +1279,7 @@ static Bool cannotPossiblyAttackObject( State *thisState, void* userData )
 //----------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------
 
-const UnsignedInt IDLE_COUNTDOWN_DELAY = (LOGICFRAMES_PER_SECOND * 2);
+static inline UnsignedInt getIdleCountdownDelay() { return (LOGICFRAMES_PER_SECOND * 2); }
 
 //----------------------------------------------------------------------------------------------
 AIIdleState::AIIdleState( StateMachine *machine, AIIdleState::AIIdleTargetingType shouldLookForTargets ) :
@@ -1337,7 +1337,7 @@ StateReturnType AIIdleState::onEnter()
 
 	// reset the idle countdown so that we don't do expensive checks too often,
 	// randomized so we avoid spikes
-	m_initialSleepOffset = (UnsignedShort)GameLogicRandomValue(0, IDLE_COUNTDOWN_DELAY);
+	m_initialSleepOffset = (UnsignedShort)GameLogicRandomValue(0, getIdleCountdownDelay());
 
 	// never sleep at the start, since we have to do checkGoalPos first time thru
 	return STATE_CONTINUE;
@@ -1408,7 +1408,7 @@ StateReturnType AIIdleState::update()
 
 	doInitIdleState();
 
-	UnsignedInt timeToSleep = IDLE_COUNTDOWN_DELAY + m_initialSleepOffset;
+	UnsignedInt timeToSleep = getIdleCountdownDelay() + m_initialSleepOffset;
 	UnsignedInt oldSleepOffset = m_initialSleepOffset;
 	m_initialSleepOffset = 0;
 
@@ -7179,7 +7179,7 @@ StateReturnType AIHuntState::onEnter()
 
 	// first time thru, use a random amount so that everyone doesn't scan on the same frame,
 	// to avoid "spikes".
-	UnsignedInt sleepTime = GameLogicRandomValue(0, ENEMY_SCAN_RATE);
+	UnsignedInt sleepTime = GameLogicRandomValue(0, getEnemyScanRate());
 	UnsignedInt now = TheGameLogic->getFrame();
 	m_nextEnemyScanTime = now + sleepTime;
 
@@ -7238,7 +7238,7 @@ StateReturnType AIHuntState::update()
 			return STATE_CONTINUE;
 		}
 
-		m_nextEnemyScanTime = now + ENEMY_SCAN_RATE;
+		m_nextEnemyScanTime = now + getEnemyScanRate();
 
 		const AttackPriorityInfo *info = nullptr;
 		info = ai->getAttackInfo();
@@ -7385,7 +7385,7 @@ StateReturnType AIAttackAreaState::onEnter()
 	// first time thru, use a random amount so that everyone doesn't scan on the same frame,
 	// to avoid "spikes".
 	UnsignedInt now = TheGameLogic->getFrame();
-	m_nextEnemyScanTime = now + GameLogicRandomValue(0, ENEMY_SCAN_RATE);
+	m_nextEnemyScanTime = now + GameLogicRandomValue(0, getEnemyScanRate());
 
 	// initial state of hunt state machine
 	return m_attackMachine->initDefaultState();
@@ -7417,7 +7417,7 @@ StateReturnType AIAttackAreaState::update()
 		// to avoid "spikes". Note that this implementation ensures that this unit checks immediately
 		// upon entering this state, then wait a possibly-longer-than-usual time (due to randomness),
 		// then settle into a regular schedule.
-		m_nextEnemyScanTime = now + ENEMY_SCAN_RATE;
+		m_nextEnemyScanTime = now + getEnemyScanRate();
 
 		AIUpdateInterface *ai = owner->getAI();
 		if (ai->getAreaToGuard() == nullptr)

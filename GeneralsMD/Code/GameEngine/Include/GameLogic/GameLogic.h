@@ -37,6 +37,8 @@
 #include "GameNetwork/NetworkDefs.h"
 #include "GameLogic/AI.h"
 #include "GameLogic/GameMode.h"
+
+Int getSimulationRateForNewGame(GameMode mode);
 #include "GameLogic/Module/UpdateModule.h"	// needed for DIRECT_UPDATEMODULE_ACCESS
 
 /*

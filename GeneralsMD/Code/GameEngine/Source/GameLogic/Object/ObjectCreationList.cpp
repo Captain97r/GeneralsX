@@ -30,6 +30,8 @@
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
+#include "Common/SimulationValue.h"
+
 #define DEFINE_SHADOW_NAMES								// for TheShadowNames[]
 #define DEFINE_WEAPONSLOTTYPE_NAMES
 
@@ -574,7 +576,7 @@ private:
 	Real									m_formationSpacing;
 	Real									m_convergenceFactor;
 	Real									m_errorRadius;
-	UnsignedInt						m_delayDeliveryFramesMax;
+	SimulationFrameValue<UnsignedInt>						m_delayDeliveryFramesMax;
 	UnsignedInt						m_formationSize;
 	Bool									m_startAtPreferredHeight;
 	Bool									m_startAtMaxSpeed;
@@ -676,7 +678,7 @@ public:
 protected:
 
 private:
-	Real											m_spinRate;
+	SimulationRateValue<Real>											m_spinRate;
 	Real											m_minMag, m_maxMag;
 	Real											m_minPitch, m_maxPitch;
 };
@@ -717,13 +719,6 @@ std::vector<AsciiString>	debrisModelNamesGlobalHack;
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-static void parseFrictionPerSec( INI* ini, void * /*instance*/, void *store, const void* /*userData*/ )
-{
-	Real fricPerSec = INI::scanReal(ini->getNextToken());
-	Real fricPerFrame = fricPerSec * SECONDS_PER_LOGICFRAME_REAL;
-	*(Real *)store = fricPerFrame;
-}
-
 //-------------------------------------------------------------------------------------------------
 class GenericObjectCreationNugget : public ObjectCreationNugget
 {
@@ -823,7 +818,7 @@ public:
 			{ "IgnorePrimaryObstacle", INI::parseBool, nullptr, offsetof(GenericObjectCreationNugget, m_ignorePrimaryObstacle) },
 			{ "OrientInForceDirection", INI::parseBool, nullptr, offsetof(GenericObjectCreationNugget, m_orientInForceDirection) },
 			{ "ExtraBounciness",				INI::parseReal,						nullptr, offsetof( GenericObjectCreationNugget, m_extraBounciness ) },
-			{ "ExtraFriction",				parseFrictionPerSec,						nullptr, offsetof( GenericObjectCreationNugget, m_extraFriction ) },
+			{ "ExtraFriction",				INI::parseVelocityReal,						nullptr, offsetof( GenericObjectCreationNugget, m_extraFriction ) },
 			{ "Offset",						INI::parseCoord3D,				nullptr, offsetof( GenericObjectCreationNugget, m_offset ) },
 			{ "Disposition",			INI::parseBitString32,			DebrisDispositionNames, offsetof( GenericObjectCreationNugget, m_disposition ) },
 			{ "DispositionIntensity",	INI::parseReal,						nullptr,	offsetof( GenericObjectCreationNugget, m_dispositionIntensity ) },
@@ -1473,23 +1468,23 @@ private:
 	Int												m_debrisToGenerate;
 	Real											m_mass;
 	Real											m_extraBounciness;
-	Real											m_extraFriction;
+	SimulationRateValue<Real>											m_extraFriction;
 	Coord3D										m_offset;
 	DebrisDisposition					m_disposition;
 	Real											m_dispositionIntensity;
-	Real											m_spinRate;
-	Real											m_yawRate;
-	Real											m_rollRate;
-	Real											m_pitchRate;
+	SimulationRateValue<Real>											m_spinRate;
+	SimulationRateValue<Real>											m_yawRate;
+	SimulationRateValue<Real>											m_rollRate;
+	SimulationRateValue<Real>											m_pitchRate;
 	Real											m_minMag, m_maxMag;
 	Real											m_minPitch, m_maxPitch;
-	UnsignedInt								m_minFrames, m_maxFrames;
+	SimulationFrameValue<UnsignedInt>								m_minFrames, m_maxFrames;
 	ShadowType								m_shadowType;
 	StaticGameLODLevel				m_minLODRequired;
-	UnsignedInt								m_invulnerableTime;
+	SimulationFrameValue<UnsignedInt>								m_invulnerableTime;
 	Real											m_minHealth;
 	Real											m_maxHealth;
-	UnsignedInt								m_fadeFrames;
+	SimulationFrameValue<UnsignedInt>								m_fadeFrames;
 	AsciiString								m_fadeSoundName;
 	Real											m_minDistanceAFormation;
 	Real											m_minDistanceBFormation;

@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -46,11 +48,11 @@ public:
 
 	static void buildFieldParse(MultiIniFieldParse& p);
 
-	Real m_waveDelay;													///< delay in frames to start the wave from when we become enabled
+	SimulationFrameValue<Real> m_waveDelay;													///< delay in frames to start the wave from when we become enabled
 	Real m_ySize;															///< size of object in Y
 	Real m_linearWaveSpacing;									///< linear waves get created at this resolution across the object
 	Real m_waveBendMagnitude;									///< for curved waveshape, larger # = more straight
-	Real m_waterVelocity;											///< (in distance per frame)this amount of force is applied to the water
+	SimulationRateValue<Real> m_waterVelocity;											///< (in distance per frame)this amount of force is applied to the water
 	Real m_preferredHeight;										///< this is our preferred water height after the wave passes
 	Real m_shorelineEffectDistance;						///< this far behind the wave we "hit" the shore
 	Real m_damageRadius;											///< damage distance from sample points to do damage

@@ -26,8 +26,10 @@
 
 #include "Common/crc.h"
 #include "Common/GameState.h"
+#include "Common/OptionPreferences.h"
 #include "Common/Registry.h"
 #include "GameNetwork/LANAPI.h"
+#include "GameNetwork/LANAPICallbacks.h"
 #include "GameNetwork/networkutil.h"
 #include "Common/GlobalData.h"
 #include "Common/RandomValue.h"
@@ -293,6 +295,9 @@ AsciiString GetMessageTypeString(UnsignedInt type)
 		case LANMessage::MSG_LOBBY_ANNOUNCE:
 			returnString.format("Lobby Announce (%d)",type);
 			break;
+		case LANMessage::MSG_REQUEST_JOIN_RUNTIME:
+			returnString = "REQUEST_JOIN_RUNTIME";
+			break;
 		case LANMessage::MSG_REQUEST_JOIN_60HZ:
 			returnString = "REQUEST_JOIN_60HZ";
 			break;
@@ -446,6 +451,7 @@ void LANAPI::update()
 			fflush(stderr); */
 			//DEBUG_LOG(("LAN message type %s from %ls (%s@%s)", GetMessageTypeString(msg->messageType).str(),
 			//	msg->name, msg->userName, msg->hostName));
+			const Int simulationRate = msg->advertisedSimulationRate(m_transport->m_inBuffer[i].length);
 			switch (msg->messageType)
 			{
 				// Location specification
@@ -455,7 +461,7 @@ void LANAPI::update()
 				break;
 			case LANMessage::MSG_GAME_ANNOUNCE:				// Here someone is, and here's his game info!
 				DEBUG_LOG(("LANAPI::update - got a MSG_GAME_ANNOUNCE from %d.%d.%d.%d", PRINTF_IP_AS_4_INTS(senderIP)));
-				handleGameAnnounce(msg, senderIP, msg->matchesSimulationProfile(m_transport->m_inBuffer[i].length));
+				handleGameAnnounce(msg, senderIP, simulationRate);
 				break;
 			case LANMessage::MSG_LOBBY_ANNOUNCE:			// Hey, I'm in the lobby!
 				DEBUG_LOG(("LANAPI::update - got a MSG_LOBBY_ANNOUNCE from %d.%d.%d.%d", PRINTF_IP_AS_4_INTS(senderIP)));
@@ -467,14 +473,15 @@ void LANAPI::update()
 				break;
 
 				// Joining games
+			case LANMessage::MSG_REQUEST_JOIN_RUNTIME:
 			case LANMessage::MSG_REQUEST_JOIN_60HZ:
 			case LANMessage::MSG_REQUEST_JOIN:				// Let me in!  Let me in!
 				DEBUG_LOG(("LANAPI::update - got a MSG_REQUEST_JOIN from %d.%d.%d.%d", PRINTF_IP_AS_4_INTS(senderIP)));
-				handleRequestJoin(msg, senderIP, msg->matchesSimulationProfile(m_transport->m_inBuffer[i].length));
+				handleRequestJoin(msg, senderIP, simulationRate);
 				break;
 			case LANMessage::MSG_JOIN_ACCEPT:					// Okay, you can join.
 				DEBUG_LOG(("LANAPI::update - got a MSG_JOIN_ACCEPT from %d.%d.%d.%d", PRINTF_IP_AS_4_INTS(senderIP)));
-				handleJoinAccept( msg, senderIP );
+				handleJoinAccept(msg, senderIP, simulationRate);
 				break;
 			case LANMessage::MSG_JOIN_DENY:						// Go away!  We don't want any!
 				DEBUG_LOG(("LANAPI::update - got a MSG_JOIN_DENY from %d.%d.%d.%d", PRINTF_IP_AS_4_INTS(senderIP)));
@@ -493,7 +500,7 @@ void LANAPI::update()
 
 				// Game options, chat, etc
 			case LANMessage::MSG_SET_ACCEPT:					// I'm cool with everything as is.
-				handleSetAccept( msg, senderIP );
+				handleSetAccept(msg, senderIP, simulationRate);
 				break;
 			case LANMessage::MSG_MAP_AVAILABILITY:		// Map status
 				handleHasMap( msg, senderIP );
@@ -502,14 +509,14 @@ void LANAPI::update()
 				handleChat( msg, senderIP );
 				break;
 			case LANMessage::MSG_GAME_START:					// Hold on; we're starting!
-				handleGameStart( msg, senderIP );
+				handleGameStart(msg, senderIP, simulationRate);
 				break;
 			case LANMessage::MSG_GAME_START_TIMER:
-				handleGameStartTimer( msg, senderIP );
+				handleGameStartTimer(msg, senderIP, simulationRate);
 				break;
 			case LANMessage::MSG_GAME_OPTIONS:				// Here's some info about the game.
 				DEBUG_LOG(("LANAPI::update - got a MSG_GAME_OPTIONS from %d.%d.%d.%d", PRINTF_IP_AS_4_INTS(senderIP)));
-				handleGameOptions( msg, senderIP );
+				handleGameOptions(msg, senderIP, simulationRate);
 				break;
 			case LANMessage::MSG_INACTIVE:		// someone is telling us that we're inactive.
 				handleInActive( msg, senderIP );
@@ -747,7 +754,7 @@ void LANAPI::RequestGameJoin( LANGameInfo *game, UnsignedInt ip /* = 0 */ )
 		return;
 	}
 
-	if (!game->hasCompatibleSimulation())
+	if (!game->getSimulationRate())
 	{
 		m_pendingAction = ACT_NONE;
 		m_expiration = 0;
@@ -759,6 +766,7 @@ void LANAPI::RequestGameJoin( LANGameInfo *game, UnsignedInt ip /* = 0 */ )
 	LANMessage msg;
 	msg.messageType = LANMessage::localJoinRequest;
 	fillInLANMessage( &msg );
+	msg.setSimulationRate(game->getSimulationRate());
 	msg.GameToJoin.gameIP = game->getSlot(0)->getIP();
 	msg.GameToJoin.exeCRC = TheGlobalData->m_exeCRC;
 	msg.GameToJoin.iniCRC = TheGlobalData->m_iniCRC;
@@ -872,6 +880,7 @@ void LANAPI::RequestAccept()
 	fillInLANMessage( &msg );
 	msg.messageType = LANMessage::MSG_SET_ACCEPT;
 	msg.Accept.isAccepted = true;
+	msg.Accept.simulation = m_currentGame->getSimulationStamp();
 	// GeneralsX @bugfix BenderAI 13/02/2026 Use CopyWcharToWindowsWideChar (fighter19 pattern)
 	CopyWcharToWindowsWideChar(msg.Accept.gameName, m_currentGame->getName().str(), ARRAY_SIZE(msg.Accept.gameName) - 1);
 	sendMessage(&msg);
@@ -937,12 +946,13 @@ void LANAPI::RequestChat( UnicodeString message, ChatType format )
 
 void LANAPI::RequestGameStart()
 {
-	if (m_inLobby || !AmIHost())
+	if (m_inLobby || !AmIHost() || !m_currentGame->areRemotePlayersReady())
 		return;
 
 	LANMessage msg;
 	msg.messageType = LANMessage::MSG_GAME_START;
 	fillInLANMessage( &msg );
+	msg.Start.simulation = m_currentGame->getSimulationStamp();
 	sendMessage(&msg);
 	m_transport->update(); // force a send
 
@@ -957,7 +967,7 @@ void LANAPI::ResetGameStartTimer()
 
 void LANAPI::RequestGameStartTimer( Int seconds )
 {
-	if (m_inLobby || !AmIHost())
+	if (m_inLobby || !AmIHost() || !m_currentGame->areRemotePlayersReady())
 		return;
 
 	UnsignedInt now = timeGetTime();
@@ -967,6 +977,7 @@ void LANAPI::RequestGameStartTimer( Int seconds )
 	LANMessage msg;
 	msg.messageType = LANMessage::MSG_GAME_START_TIMER;
 	msg.StartTimer.seconds = seconds;
+	msg.StartTimer.simulation = m_currentGame->getSimulationStamp();
 	fillInLANMessage( &msg );
 	sendMessage(&msg);
 	m_transport->update(); // force a send
@@ -986,6 +997,7 @@ void LANAPI::RequestGameOptions( AsciiString gameOptions, Bool isPublic, Unsigne
 	LANMessage msg;
 	fillInLANMessage( &msg );
 	msg.messageType = LANMessage::MSG_GAME_OPTIONS;
+	msg.GameOptions.simulation = m_currentGame->getSimulationStamp();
 	strlcpy(msg.GameOptions.options, gameOptions.str(), ARRAY_SIZE(msg.GameOptions.options));
 	sendMessage(&msg, ip);
 
@@ -1004,6 +1016,21 @@ void LANAPI::RequestGameOptions( AsciiString gameOptions, Bool isPublic, Unsigne
 	// We can request game options (side, color, etc) while we don't have a slot yet.  Of course, we don't need to
 	// call OnGameOptions for those, so it's okay to silently fail.
 	//DEBUG_ASSERTCRASH(player != MAX_SLOTS, ("Requested game options, but we're not in slot list!");
+}
+
+void LANAPI::RequestSimulationRate(Int rate)
+{
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	if (!m_currentGame || !AmIHost() || m_currentGame->isGameInProgress() ||
+		(rate != 30 && rate != 60) || m_currentGame->getSimulationRate() == rate)
+		return;
+	m_currentGame->changeSimulationRate(rate);
+	m_currentGame->resetAccepted();
+	RequestGameOptions(GenerateGameOptionsString(), true);
+	RequestGameAnnounce();
+	lanUpdateSlotList();
+	updateGameOptions();
+#endif
 }
 
 void LANAPI::RequestGameCreate( UnicodeString gameName, Bool isDirectConnect )
@@ -1027,6 +1054,7 @@ void LANAPI::RequestGameCreate( UnicodeString gameName, Bool isDirectConnect )
 	// Create the local game object
 	m_inLobby = false;
 	LANGameInfo *myGame = NEW LANGameInfo;
+	myGame->setSimulationRate(OptionPreferences().getNativeSimulationRate());
 
 	myGame->setSeed(GetTickCount());
 
@@ -1219,9 +1247,7 @@ void LANAPI::fillInLANMessage( LANMessage *msg )
 	CopyWcharToWindowsWideChar(msg->name, m_name.str(), ARRAY_SIZE(msg->name) - 1);
 	strlcpy(msg->userName, m_userName.str(), ARRAY_SIZE(msg->userName));
 	strlcpy(msg->hostName, m_hostName.str(), ARRAY_SIZE(msg->hostName));
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	msg->simulationProfile = LANMessage::native60Profile;
-#endif
+	msg->setSimulationRate(m_currentGame ? m_currentGame->getSimulationRate() : 30);
 }
 
 void LANAPI::RequestLobbyLeave( Bool forced )

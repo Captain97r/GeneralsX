@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/OpenContain.h"
 #include "Common/ModelState.h"
@@ -48,7 +50,7 @@ public:
 
 
 	Bool m_doIHealObjects;
-	Real m_framesForFullHeal;
+	SimulationFrameValue<Real> m_framesForFullHeal;
 	Bool m_mobileGarrison;
 	Bool m_immuneToClearBuildingAttacks;
 	InitialRoster		m_initialRoster;

@@ -45,6 +45,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 //-----------------------------------------------------------------------------
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
@@ -105,7 +107,7 @@ public:
 	AsciiString m_name;										///< Current animation name
 	Int m_animType;												///< Type of animation that this will follow
 	ControlBarSchemeImage *m_animImage;		///< Pointer of the image that this animation will act on
-	UnsignedInt m_animDuration;						///< Contians how long the animation should take based off game frames
+	SimulationFrameValue<UnsignedInt> m_animDuration;						///< Contians how long the animation should take based off game frames
 	ICoord2D m_finalPos;									///< The final position when we hit the m_animDuration frame
 
 	UnsignedInt getCurrentFrame() { return m_currentFrame; }

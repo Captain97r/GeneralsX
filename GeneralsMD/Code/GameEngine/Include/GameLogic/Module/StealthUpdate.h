@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -83,16 +85,16 @@ public:
 	ObjectStatusMaskType m_forbiddenStatus;
 	FXList				*m_disguiseRevealFX;
 	FXList				*m_disguiseFX;
-	Real					m_stealthSpeed;
+	SimulationRateValue<Real>					m_stealthSpeed;
 	Real					m_friendlyOpacityMin;
 	Real					m_friendlyOpacityMax;
 	Real					m_revealDistanceFromTarget;
-	UnsignedInt		m_disguiseTransitionFrames;
-	UnsignedInt		m_disguiseRevealTransitionFrames;
-	UnsignedInt		m_pulseFrames;
-	UnsignedInt		m_stealthDelay;
+	SimulationFrameValue<UnsignedInt>		m_disguiseTransitionFrames;
+	SimulationFrameValue<UnsignedInt>		m_disguiseRevealTransitionFrames;
+	SimulationFrameValue<UnsignedInt>		m_pulseFrames;
+	SimulationFrameValue<UnsignedInt>		m_stealthDelay;
 	UnsignedInt		m_stealthLevel;
-	UnsignedInt		m_blackMarketCheckFrames;
+	SimulationFrameValue<UnsignedInt>		m_blackMarketCheckFrames;
   EvaMessage    m_enemyDetectionEvaEvent;
   EvaMessage    m_ownDetectionEvaEvent;
   Bool					m_innateStealth;

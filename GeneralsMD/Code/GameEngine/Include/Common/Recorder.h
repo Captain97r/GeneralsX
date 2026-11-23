@@ -134,6 +134,8 @@ public:
 	Bool replayMatchesGameVersion(AsciiString filename); ///< Returns true if the playback is a valid playback file for this version.
 	static Bool replayMatchesGameVersion(const ReplayHeader& header); ///< Returns true if the playback is a valid playback file for this version.
 	AsciiString getCurrentReplayFilename();			///< valid during playback only
+	Int getPlaybackSimulationRate() const { return m_playbackSimulationRate; }
+	Int getLastRecordingSimulationRate() const { return m_recordingSimulationRate; }
 	UnsignedInt getPlaybackFrameCount() const { return m_playbackFrameCount; }			///< valid during playback only
 	void stopPlayback();															///< Stops playback.  Its fine to call this even if not playing back a file.
 	Bool simulateReplay(AsciiString filename);
@@ -152,6 +154,7 @@ public:
 	struct ReplayHeader
 	{
 		AsciiString filename;
+		Int simulationRate;
 		UnicodeString replayName;
 		SYSTEMTIME timeVal;
 		UnicodeString versionString;
@@ -174,9 +177,10 @@ public:
 	Bool isPlaybackMode() const { return m_mode == RECORDERMODETYPE_PLAYBACK || m_mode == RECORDERMODETYPE_SIMULATION_PLAYBACK; }
 	void initControls();															///< Show or Hide the Replay controls
 
+	static AsciiString getReplayDir(Int simulationRate);
 	static AsciiString getReplayDir();								///< Returns the directory that holds the replay files.
 	static AsciiString getReplayPathForRead(const AsciiString& filenameOrPath); ///< Returns the path to open for a replay filename or absolute replay path.
-	static AsciiString getReplayArchiveDir();					///< Returns the directory that holds the archived replay files.
+	static AsciiString getReplayArchiveDir(Int simulationRate);					///< Returns the directory that holds the archived replay files.
 	static AsciiString getReplayExtention();					///< Returns the file extention for replay files.
 	static AsciiString getLastReplayFileName();				///< Returns the filename used for the default replay.
 
@@ -225,6 +229,8 @@ protected:
 	Int m_currentFilePosition;
 	RecorderModeType m_mode;
 	AsciiString m_currentReplayFilename;							///< valid during playback only
+	Int m_playbackSimulationRate;
+	Int m_recordingSimulationRate;
 	UnsignedInt m_playbackFrameCount;
 	UnsignedInt m_replayWideCharBytes;
 

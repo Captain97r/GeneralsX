@@ -1197,7 +1197,7 @@ InGameUI::InGameUI()
 	m_namedTimerUsedFlashColor = TRUE; // so next one is false
 	m_showNamedTimers = TRUE;
 
-	m_floatingTextTimeOut = DEFAULT_FLOATING_TEXT_TIMEOUT;
+	m_floatingTextTimeOut = getDefaultFloatingTextTimeout();
 	m_floatingTextMoveUpSpeed = 1.0f;
 	m_floatingTextMoveVanishRate = 0.1f;
 
@@ -5223,7 +5223,7 @@ void InGameUI::addFloatingText(const UnicodeString& text,const Coord3D *pos, Col
 
 
 		if(m_floatingTextTimeOut <= 0)
-			newFTD->m_frameTimeOut = TheGameLogic->getFrame() +  DEFAULT_FLOATING_TEXT_TIMEOUT;
+			newFTD->m_frameTimeOut = TheGameLogic->getFrame() +  getDefaultFloatingTextTimeout();
 		else
 			newFTD->m_frameTimeOut = TheGameLogic->getFrame() +  m_floatingTextTimeOut;
 
@@ -5270,7 +5270,7 @@ try_again:
 	newFTD->m_dString->setFont(TheWindowManager->winFindFont( "Arial", POINTSIZE, FALSE ));
 
 	if(m_floatingTextTimeOut <= 0)
-		newFTD->m_frameTimeOut = TheGameLogic->getFrame() +  DEFAULT_FLOATING_TEXT_TIMEOUT;
+		newFTD->m_frameTimeOut = TheGameLogic->getFrame() +  getDefaultFloatingTextTimeout();
 	else
 		newFTD->m_frameTimeOut = TheGameLogic->getFrame() +  m_floatingTextTimeOut;
 
@@ -5563,7 +5563,7 @@ void InGameUI::clearWorldAnimations()
 
 }
 
-static const UnsignedInt FRAMES_BEFORE_EXPIRE_TO_FADE = LOGICFRAMES_PER_SECOND * 1;
+static inline UnsignedInt getFramesBeforeExpireToFade() { return LOGICFRAMES_PER_SECOND * 1; }
 // ------------------------------------------------------------------------------------------------
 /** Update all world animations and draw the visible ones */
 // ------------------------------------------------------------------------------------------------
@@ -5623,11 +5623,11 @@ void InGameUI::updateAndDrawWorldAnimations()
 
 			// see if we should be setting the translucency value
 			UnsignedInt framesTillExpire = wad->m_expireFrame - TheGameLogic->getFrame();
-			if( framesTillExpire < FRAMES_BEFORE_EXPIRE_TO_FADE )
+			if( framesTillExpire < getFramesBeforeExpireToFade() )
 			{
 
 				// compute alpha level so that we're totally gone by the expire frame
-				Real alpha = INT_TO_REAL( framesTillExpire ) / INT_TO_REAL( FRAMES_BEFORE_EXPIRE_TO_FADE );
+				Real alpha = INT_TO_REAL( framesTillExpire ) / INT_TO_REAL( getFramesBeforeExpireToFade() );
 				wad->m_anim->setAlpha( alpha );
 
 			}

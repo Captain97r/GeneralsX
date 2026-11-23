@@ -35,6 +35,8 @@
 #include "Common/GameAudio.h"
 #include "Common/GameEngine.h"
 #include "Common/GlobalData.h"
+#include "Common/GameState.h"
+#include "Common/OptionPreferences.h"
 #include "Common/NameKeyGenerator.h"
 #include "Common/ThingFactory.h"
 #include "Common/Player.h"
@@ -295,6 +297,7 @@ void GameLogic::clearGameData( Bool showScoreScreen )
 
 	TheGameEngine->reset();
 	setGameMode(GAME_NONE);
+	prepareSimulationRateForGame(BaseFps);
 	// GeneralsX @bugfix fbraz3 22/09/2026 Ensure replay playback is terminated when match data is cleared (#315)
 	if (TheRecorder && TheRecorder->isPlaybackMode())
 	{
@@ -876,6 +879,25 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 }
 
+Int getSimulationRateForNewGame(GameMode mode)
+{
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	switch (mode)
+	{
+		case GAME_LAN:
+			return TheNetwork ? TheNetwork->getNativeSimulationRate() : BaseFps;
+		case GAME_REPLAY:
+			return TheRecorder ? TheRecorder->getPlaybackSimulationRate() : BaseFps;
+		case GAME_SKIRMISH:
+		case GAME_SINGLE_PLAYER:
+			return OptionPreferences().getNativeSimulationRate();
+		default:
+			break;
+	}
+#endif
+	return BaseFps;
+}
+
 bool GameLogic::onNewGame(MAYBE_UNUSED GameMessage *msg)
 {
 #if !RETAIL_COMPATIBLE_CRC
@@ -893,6 +915,14 @@ bool GameLogic::onNewGame(MAYBE_UNUSED GameMessage *msg)
 
 	//DEBUG_ASSERTCRASH(msg->getArgumentCount() == 1 || msg->getArgumentCount() == 2, ("%d arguments to MSG_NEW_GAME", msg->getArgumentCount()));
 	GameMode gameMode = (GameMode)msg->getArgument( 0 )->integer;
+	Int nativeRate = getSimulationRateForNewGame(gameMode);
+	if (gameMode == GAME_SINGLE_PLAYER && TheGameState)
+	{
+		const Int savedRate = TheGameState->takeMissionLoadSimulationRate();
+		if (savedRate)
+			nativeRate = savedRate;
+	}
+	prepareSimulationRateForGame(nativeRate);
 	Int rankPoints = 0;
 	GameDifficulty diff = DIFFICULTY_NORMAL;
 	if ( msg->getArgumentCount() >= 2 )

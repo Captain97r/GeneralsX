@@ -47,6 +47,7 @@
 #include "GameLogic/GameLogic.h"
 #include "Common/RandomValue.h"
 #include "Common/CRCDebug.h"
+#include "Common/SimulationFileProfile.h"
 #include "Common/OptionPreferences.h"
 #include "Common/version.h"
 #include <Utility/bit_adapter.h>
@@ -64,15 +65,10 @@ class NGMPGame;
 extern NGMPGame* TheNGMPGame;
 #endif
 
-// GeneralsX @feature Codex 22/11/2026 A replay indexes commands by simulation tick; reject recordings from another clock at the header.
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-constexpr const char s_genrep[] = "GX60RP";
-#else
-constexpr const char s_genrep[] = "GENREP";
-#endif
 constexpr const UnsignedInt replayBufferBytes = 8192;
 
-Int REPLAY_CRC_INTERVAL = logicFramesFromBaseFrames(100);
+Int REPLAY_CRC_INTERVAL = 100;
+Int ReplayCRCIntervalOverride = 0;
 
 const char *replayExtention = ".rep";
 const char *lastReplayFileName = "00000000";	// a name the user is unlikely to ever type, but won't cause panic & confusion
@@ -277,7 +273,7 @@ void RecorderClass::cleanUpReplayFile()
 		strlcat(fname, m_fileName.str(), ARRAY_SIZE(fname));
 		DEBUG_LOG(("Saving replay to %s", fname));
 		AsciiString oldFname;
-		oldFname.format("%s%s", getReplayDir().str(), m_fileName.str());
+		oldFname.format("%s%s", getReplayDir(m_recordingSimulationRate).str(), m_fileName.str());
 		CopyFile(oldFname.str(), fname, TRUE);
 
 #ifdef DEBUG_LOGGING
@@ -354,6 +350,7 @@ RecorderClass::RecorderClass()
 	m_currentFilePosition = 0;
 	m_doingAnalysis = FALSE;
 	m_archiveReplays = FALSE;
+	m_recordingSimulationRate = BaseFps;
 	m_nextFrame = 0;
 	m_wasDesync = FALSE;
 	init(); // just for the heck of it.
@@ -388,6 +385,7 @@ void RecorderClass::init() {
 	m_wasDesync = FALSE;
 	m_doingAnalysis = FALSE;
 	m_playbackFrameCount = 0;
+	m_playbackSimulationRate = BaseFps;
 	m_replayWideCharBytes = sizeof(replay_wide_char_t);
 
 	OptionPreferences optionPref;
@@ -543,8 +541,13 @@ void RecorderClass::startRecording(GameDifficulty diff, GameMode originalGameMod
 
 	m_mode = RECORDERMODETYPE_RECORD;
 	m_originalGameMode = originalGameMode;
+	// The recorder sees MSG_NEW_GAME before the game logic processes it.
+	m_recordingSimulationRate = getSimulationRateForNewGame(originalGameMode);
+	const Int defaultCRCInterval = 100 * m_recordingSimulationRate / BaseFps;
+	REPLAY_CRC_INTERVAL = ReplayCRCIntervalOverride > 0
+		? clamp<Int>(1, ReplayCRCIntervalOverride, defaultCRCInterval) : defaultCRCInterval;
 
-	AsciiString filepath = getReplayDir();
+	AsciiString filepath = getReplayDir(m_recordingSimulationRate);
 
 	// We have to make sure the replay dir exists.
 	TheFileSystem->createDirectory(filepath);
@@ -558,7 +561,7 @@ void RecorderClass::startRecording(GameDifficulty diff, GameMode originalGameMod
 		return;
 	}
 	// TheSuperHackers @info the null terminator needs to be ignored to maintain retail replay file layout
-	m_file->writeFormat("%s", s_genrep);
+	m_file->writeFormat("%s", SimulationFileProfile::replaySignature(m_recordingSimulationRate));
 
 	//
 	// save space for stats to be filled in.
@@ -729,7 +732,7 @@ void RecorderClass::stopRecording() {
 #if defined(SAGE_USE_NGMP) && __has_include("GameNetwork/GeneralsOnline/OnlineServices_Manager.h")
 		if (TheNGMPGame != nullptr)
 		{
-			AsciiString absoluteReplayPath = getReplayDir();
+			AsciiString absoluteReplayPath = getReplayDir(m_recordingSimulationRate);
 			absoluteReplayPath.concat(m_fileName);
 			if (!absoluteReplayPath.endsWith(getReplayExtention())) {
 				absoluteReplayPath.concat(getReplayExtention());
@@ -755,13 +758,13 @@ void RecorderClass::archiveReplay(AsciiString fileName)
 	archiveFileName.format("%04d%02d%02d_%02d%02d%02d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 
 	AsciiString extension = getReplayExtention();
-	AsciiString sourcePath = getReplayDir();
+	AsciiString sourcePath = getReplayDir(m_recordingSimulationRate);
 	sourcePath.concat(fileName);
 
 	if (!sourcePath.endsWith(extension))
 		sourcePath.concat(extension);
 
-	AsciiString destPath = getReplayArchiveDir();
+	AsciiString destPath = getReplayArchiveDir(m_recordingSimulationRate);
 	TheFileSystem->createDirectory(destPath.str());
 
 	destPath.concat(archiveFileName);
@@ -893,11 +896,11 @@ Bool RecorderClass::readReplayHeader(ReplayHeader& header, const AsciiString& fi
 		return FALSE;
 	}
 
-	// Read the replay signature for this simulation rate.
-	char genrep[sizeof(s_genrep) - 1] = {0};
-	m_file->read( &genrep, sizeof(s_genrep) - 1 );
-	if ( strncmp(genrep, s_genrep, sizeof(s_genrep) - 1 ) != 0 ) {
-		DEBUG_LOG(("RecorderClass::readReplayHeader - replay signature does not match this simulation rate."));
+	char signature[SimulationFileProfile::replaySignatureSize];
+	header.simulationRate = m_file->read(signature, sizeof(signature)) == sizeof(signature)
+		? SimulationFileProfile::replayRate(signature) : 0;
+	if (header.simulationRate == 0) {
+		DEBUG_LOG(("RecorderClass::readReplayHeader - unsupported replay signature."));
 		m_file->close();
 		m_file = nullptr;
 		return FALSE;
@@ -1266,6 +1269,7 @@ Bool RecorderClass::playbackFile(AsciiString filename)
 	}
 #endif
 
+	m_playbackSimulationRate = header.simulationRate;
 	REPLAY_CRC_INTERVAL = m_gameInfo.getCRCInterval();
 
 	Int difficulty = 0;
@@ -1321,7 +1325,7 @@ Bool RecorderClass::playbackFile(AsciiString filename)
 	// update dereferenced it, for example when the replay is deleted during the version mismatch prompt.
 	m_mode = RECORDERMODETYPE_PLAYBACK;
 
-	m_currentReplayFilename = filename;
+	m_currentReplayFilename = header.filename;
 	m_playbackFrameCount = header.frameCount;
 	return TRUE;
 }
@@ -1723,12 +1727,16 @@ RecorderClass::CullBadCommandsResult RecorderClass::cullBadCommands() {
  */
 AsciiString RecorderClass::getReplayDir()
 {
+	return getReplayDir(OptionPreferences().getNativeSimulationRate());
+}
+
+AsciiString RecorderClass::getReplayDir(Int simulationRate)
+{
 	AsciiString tmp = TheGlobalData->getPath_UserData();
 	// GeneralsX @bugfix copilot 12/03/2026 Use POSIX separator on non-Windows so replay files are stored in the actual Replays directory.
 	tmp.concat("Replays");
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	tmp.concat("60Hz");
-#endif
+	if (simulationRate == 60)
+		tmp.concat("60Hz");
 #ifdef _WIN32
 	tmp.concat('\\');
 #else
@@ -1753,22 +1761,21 @@ AsciiString RecorderClass::getReplayPathForRead(const AsciiString& filenameOrPat
 		return filenameOrPath;
 	}
 
-	AsciiString tmp = getReplayDir();
-	tmp.concat(filenameOrPath);
-	return tmp;
+	AsciiString path = getReplayDir();
+	path.concat(filenameOrPath);
+	return path;
 }
 
 /**
  * returns the directory that holds the archived replay files.
  */
-AsciiString RecorderClass::getReplayArchiveDir()
+AsciiString RecorderClass::getReplayArchiveDir(Int simulationRate)
 {
 	AsciiString tmp = TheGlobalData->getPath_UserData();
 	// GeneralsX @bugfix copilot 12/03/2026 Use POSIX separator on non-Windows so archived replays are stored in the actual directory.
 	tmp.concat("ArchivedReplays");
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	tmp.concat("60Hz");
-#endif
+	if (simulationRate == 60)
+		tmp.concat("60Hz");
 #ifdef _WIN32
 	tmp.concat('\\');
 #else

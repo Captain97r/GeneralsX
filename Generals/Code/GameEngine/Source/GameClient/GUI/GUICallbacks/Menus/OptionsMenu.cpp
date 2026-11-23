@@ -58,6 +58,7 @@
 #include "GameClient/Shell.h"
 #include "GameClient/KeyDefs.h"
 #include "GameClient/GameWindowManager.h"
+#include "GameClient/SimulationRateControl.h"
 #include "GameClient/Mouse.h"
 #include "GameClient/GameText.h"
 #include "GameClient/Display.h"
@@ -205,9 +206,19 @@ static Bool ignoreSelected = FALSE;
 WindowLayout *OptionsLayout = nullptr;
 
 static OptionPreferences *pref = nullptr;
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+static GameWindow *buttonSimulationRate = nullptr;
+#endif
 
 static void setDefaults()
 {
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	if (buttonSimulationRate && BitIsSet(buttonSimulationRate->winGetStatus(), WIN_STATUS_ENABLED))
+	{
+		pref->setNativeSimulationRate(30);
+		setSimulationRateButtonText(buttonSimulationRate, 30);
+	}
+#endif
 	constexpr const Bool ModifyDisplaySettings = FALSE;
 
 	//-------------------------------------------------------------------------------------------------
@@ -1367,6 +1378,15 @@ void OptionsMenuInit( WindowLayout *layout, void *userData )
 	Bool inGame = (TheGameLogic->isInGame() && TheGameLogic->getGameMode() != GAME_SHELL);
 	Bool inOnlineStaging = (TheGameSpyInfo && TheGameSpyInfo->getCurrentStagingRoom() != nullptr);
 
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	buttonSimulationRate = createOptionsSimulationRateButton(parent);
+	if (buttonSimulationRate)
+	{
+		buttonSimulationRate->winEnable(!inGame && !inOnlineStaging);
+		setSimulationRateButtonText(buttonSimulationRate, inGame ? LOGICFRAMES_PER_SECOND : pref->getNativeSimulationRate());
+	}
+#endif
+
 	if( inGame || inOnlineStaging )
 	{
 		// disable controls that you can't change the options for in game
@@ -1559,6 +1579,15 @@ WindowMsgHandledType OptionsMenuSystem( GameWindow *window, UnsignedInt msg,
 			GameWindow *control = (GameWindow *)mData1;
 			Int controlID = control->winGetWindowId();
 
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+			if (control == buttonSimulationRate)
+			{
+				const Int rate = pref->getNativeSimulationRate() == 60 ? 30 : 60;
+				pref->setNativeSimulationRate(rate);
+				setSimulationRateButtonText(control, rate);
+				return MSG_HANDLED;
+			}
+#endif
 			if( controlID == buttonBack )
 			{
 				// go back one screen

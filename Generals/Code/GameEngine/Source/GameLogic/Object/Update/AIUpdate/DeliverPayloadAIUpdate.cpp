@@ -26,6 +26,7 @@
 // Author: Graham Smallwood, March 2002
 // Desc:   State machine that controls the approach and deployment of airborne cargo
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
+#include "Common/SimulationValueXfer.h"
 
 #define DEFINE_WEAPONSLOTTYPE_NAMES
 
@@ -431,7 +432,7 @@ void DeliverPayloadAIUpdate::xfer( Xfer *xfer )
 	xfer->xferInt(&data.m_maxAttempts);
 	xfer->xferCoord3D(&data.m_dropOffset);
 	xfer->xferCoord3D(&data.m_dropVariance);
-	xfer->xferUnsignedInt(&data.m_dropDelay);
+	xferSimulationValue(xfer, data.m_dropDelay);
 	xfer->xferBool(&data.m_fireWeapon);
 	xfer->xferBool(&data.m_selfDestructObject);
 	xfer->xferInt(&data.m_visibleNumBones);
@@ -441,7 +442,7 @@ void DeliverPayloadAIUpdate::xfer( Xfer *xfer )
 	xfer->xferInt(&data.m_visibleItemsDroppedPerInterval);
 	xfer->xferBool(&data.m_inheritTransportVelocity);
 	xfer->xferBool(&data.m_isParachuteDirectly);
-	xfer->xferReal(&data.m_exitPitchRate);
+	xferSimulationValue(xfer, data.m_exitPitchRate);
 	// const FXList					*m_strafeFX;
 	xfer->xferReal(&data.m_strafeLength);
 	AsciiString weaponTemplateName;

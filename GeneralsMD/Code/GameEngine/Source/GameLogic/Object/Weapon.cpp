@@ -376,32 +376,23 @@ void WeaponTemplate::reset()
 	static const char *MIN_LABEL = "Min";
 	static const char *MAX_LABEL = "Max";
 
-	const char* token = ini->getNextToken(ini->getSepsColon());
-	if( stricmp(token, MIN_LABEL) == 0 )
+	Int minMsec, maxMsec;
+	const char *token = ini->getNextToken(ini->getSepsColon());
+	if (stricmp(token, MIN_LABEL) == 0)
 	{
-		// Two entry min/max
-		self->m_minDelayBetweenShots = INI::scanInt(ini->getNextToken(ini->getSepsColon()));
+		minMsec = INI::scanInt(ini->getNextToken(ini->getSepsColon()));
 		token = ini->getNextToken(ini->getSepsColon());
-		if( stricmp(token, MAX_LABEL) != 0 )
-		{
-			// Messed up double entry
-			self->m_maxDelayBetweenShots = self->m_minDelayBetweenShots;
-		}
-		else
-			self->m_maxDelayBetweenShots = INI::scanInt(ini->getNextToken(ini->getSepsColon()));
+		maxMsec = stricmp(token, MAX_LABEL) == 0
+			? INI::scanInt(ini->getNextToken(ini->getSepsColon())) : minMsec;
 	}
 	else
 	{
-		// single entry, as in no label so the first token is just a number
-		self->m_minDelayBetweenShots = INI::scanInt(token);
-		self->m_maxDelayBetweenShots = self->m_minDelayBetweenShots;
+		minMsec = maxMsec = INI::scanInt(token);
 	}
 
-	// No matter what we have now, we want to convert it to frames from msec.
-	// ShotDelay used to use parseDurationUnsignedInt, and we are expanding on that.
-	self->m_minDelayBetweenShots = WWMath::Ceilf(ConvertDurationFromMsecsToFrames((Real)self->m_minDelayBetweenShots));
-	self->m_maxDelayBetweenShots = WWMath::Ceilf(ConvertDurationFromMsecsToFrames((Real)self->m_maxDelayBetweenShots));
-
+	// Retain the authored delay so rounding takes place on the selected match clock.
+	self->m_minDelayBetweenShots.setMilliseconds(static_cast<Real>(minMsec));
+	self->m_maxDelayBetweenShots.setMilliseconds(static_cast<Real>(maxMsec));
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -150,7 +150,9 @@ public:
 	void setTerrainDrawDistanceScale(Real val);
 	Real getGameWindowTransitionSpeedMultiplier() const;
 	// GeneralsX @feature felipebraz 17/09/2026 Skirmish simulation tick rate configuration (#281)
-	Int getSkirmishTickRate() const;
+	Int getSkirmishTickRate(const UserPreferences *skirmish = nullptr) const;
+	Int getNativeSimulationRate() const;
+	void setNativeSimulationRate(Int rate);
 
 	// GeneralsX @feature fbraz3 08/10/2026 Enhanced graphics & lighting options
 	Bool getAdvancedShadows(Bool defaultVal = TRUE) const;

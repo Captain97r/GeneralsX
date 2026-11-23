@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/StateMachine.h"
 #include "GameLogic/Module/AIUpdate.h"
 
@@ -122,9 +124,9 @@ enum
 class HackInternetAIUpdateModuleData : public AIUpdateModuleData
 {
 public:
-	UnsignedInt		m_unpackTime;
-	UnsignedInt		m_packTime;
-	UnsignedInt		m_cashUpdateDelay;
+	SimulationFrameValue<UnsignedInt>		m_unpackTime;
+	SimulationFrameValue<UnsignedInt>		m_packTime;
+	SimulationFrameValue<UnsignedInt>		m_cashUpdateDelay;
 	UnsignedInt		m_regularCashAmount;
 	UnsignedInt		m_veteranCashAmount;
 	UnsignedInt		m_eliteCashAmount;

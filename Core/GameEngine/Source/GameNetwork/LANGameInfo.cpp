@@ -32,6 +32,7 @@
 #include "GameClient/GameText.h"
 #include "GameClient/GadgetListBox.h"
 #include "GameNetwork/LANGameInfo.h"
+#include "GameNetwork/GUIUtil.h"
 #include "GameNetwork/LANInterfaceDevice.h"
 #include "GameNetwork/LANAPICallbacks.h"
 #include "Common/MultiplayerSettings.h"
@@ -196,6 +197,41 @@ void LANGameInfo::setMap( AsciiString mapName )
 	GameInfo::setMap(mapName);
 }
 
+Bool LANGameInfo::matchesSimulationRate(Int rate, const LANRoomStamp &stamp) const
+{
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	if (stamp.seed != static_cast<uint32_t>(getSeed()) || stamp.revision != m_simulationRevision)
+		return false;
+#endif
+	return rate != 0 && rate == m_simulationRate;
+}
+
+Bool LANGameInfo::adoptSimulationRate(Int rate, const LANRoomStamp &stamp, Bool joining)
+{
+	if (rate == 0)
+		return false;
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	if (stamp.seed != static_cast<uint32_t>(getSeed()))
+		return false;
+	if (!joining && stamp.revision <= m_simulationRevision)
+		return matchesSimulationRate(rate, stamp);
+	m_simulationRevision = stamp.revision;
+#endif
+	setSimulationRate(rate);
+	return true;
+}
+
+Bool LANGameInfo::areRemotePlayersReady() const
+{
+	for (int i = 1; i < MAX_SLOTS; ++i)
+	{
+		const LANGameSlot &slot = m_LANSlot[i];
+		if (slot.isHuman() && !slot.isAccepted())
+			return false;
+	}
+	return true;
+}
+
 void LANGameInfo::setSeed( Int seed )
 {
 	GameInfo::setSeed(seed);
@@ -206,7 +242,7 @@ void LANGameInfo::resetAccepted()
 	if (TheLAN)
 	{
 		TheLAN->ResetGameStartTimer();
-		if (TheLAN->GetMyGame() == this && TheLAN->AmIHost())
+		if (TheLAN->GetMyGame() == this && TheLAN->AmIHost() && AreSlotListUpdatesEnabled())
 			LANEnableStartButton(true);
 	}
 	for(int i = 0; i< MAX_SLOTS; i++)

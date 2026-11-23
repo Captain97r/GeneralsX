@@ -217,7 +217,15 @@ public:
 	virtual void closeOpenSlots();						///< close all slots that are currently unoccupied.
 
 	// CRC checking hack
-	void setCRCInterval( Int val ) { m_crcInterval = (val<100)?val:100; }
+	void setCRCInterval(Int val)
+	{
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+		const Int maxInterval = 200; // Replays can specify 100 retail ticks at 60 Hz.
+#else
+		const Int maxInterval = 100;
+#endif
+		m_crcInterval = clamp<Int>(1, val, maxInterval);
+	}
 	Int getCRCInterval() const { return m_crcInterval; }
 
 	Bool haveWeSurrendered() { return m_surrendered; }

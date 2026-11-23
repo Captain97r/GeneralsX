@@ -5,8 +5,11 @@ set(COREI_GOOGLETEST_SRC
     GameEngine/Common/FileSystemTest.cpp
     GameEngine/Common/FileSystemTestFixture.h
     GameEngine/Common/INITest.cpp
+    GameEngine/Common/SimulationFileProfileTest.cpp
     GameEngine/Common/SimulationTimingTest.cpp
+    GameEngine/Common/SimulationValueTest.cpp
     GameEngine/GameClient/DisplayStringDummyTest.cpp
+    GameEngine/GameNetwork/LANSimulationRateTest.cpp
     GameEngineDevice/StdDevice/Common/StdLocalFileSystemTest.cpp
     Libraries/Compression/CompressionManagerTest.cpp
     Libraries/WWVegas/WW3D2/TextureAtlasTest.cpp

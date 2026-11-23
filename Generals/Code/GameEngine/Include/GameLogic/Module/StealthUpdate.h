@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -71,21 +73,21 @@ static_assert(equalsEnumBitFlagsCount(ARRAY_SIZE(TheStealthLevelNames) - 1, STEA
 class StealthUpdateModuleData : public UpdateModuleData
 {
 public:
-	UnsignedInt		m_stealthDelay;
+	SimulationFrameValue<UnsignedInt>		m_stealthDelay;
 	UnsignedInt		m_stealthLevel;
 	ObjectStatusMaskType	m_hintDetectableStates;
-	Real					m_stealthSpeed;
+	SimulationRateValue<Real>					m_stealthSpeed;
 	Real					m_friendlyOpacityMin;
 	Real					m_friendlyOpacityMax;
-	UnsignedInt		m_pulseFrames;
+	SimulationFrameValue<UnsignedInt>		m_pulseFrames;
 	Bool					m_teamDisguised;
 	Real					m_revealDistanceFromTarget;
 	Bool					m_orderIdleEnemiesToAttackMeUponReveal;
 	FXList				*m_disguiseRevealFX;
 	FXList				*m_disguiseFX;
 	Bool					m_innateStealth;
-	UnsignedInt		m_disguiseTransitionFrames;
-	UnsignedInt		m_disguiseRevealTransitionFrames;
+	SimulationFrameValue<UnsignedInt>		m_disguiseTransitionFrames;
+	SimulationFrameValue<UnsignedInt>		m_disguiseRevealTransitionFrames;
 
 	StealthUpdateModuleData()
 	{

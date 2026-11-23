@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/GameCommon.h"
 #include "Common/GameType.h"
 #include "Common/MessageStream.h"		// for GameMessageTranslator
@@ -262,10 +264,7 @@ public:
 typedef std::list<FloatingTextData *> FloatingTextList;
 typedef FloatingTextList::iterator	FloatingTextListIt;
 
-enum
-{
-	DEFAULT_FLOATING_TEXT_TIMEOUT = LOGICFRAMES_PER_SECOND/3,
-};
+inline Int getDefaultFloatingTextTimeout() { return LOGICFRAMES_PER_SECOND / 3; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -855,7 +854,7 @@ protected:
 	// superweapon timer data
 	SuperweaponMap							m_superweapons[MAX_PLAYER_COUNT];
 	Coord2D											m_superweaponPosition;
-	Real												m_superweaponFlashDuration;
+	SimulationFrameValue<Real>												m_superweaponFlashDuration;
 
 	// superweapon timer font info
 	AsciiString									m_superweaponNormalFont;
@@ -871,7 +870,7 @@ protected:
 
 	NamedTimerMap								m_namedTimers;
 	Coord2D											m_namedTimerPosition;
-	Real												m_namedTimerFlashDuration;
+	SimulationFrameValue<Real>												m_namedTimerFlashDuration;
 	Int													m_namedTimerLastFlashFrame;
 	Color												m_namedTimerFlashColor;
 	Bool												m_namedTimerUsedFlashColor;
@@ -934,9 +933,9 @@ protected:
 
 	//Floating Text Data
 	FloatingTextList						m_floatingTextList;				///< Our list of floating text
-	UnsignedInt									m_floatingTextTimeOut;									///< Ini value of our floating text timeout
-	Real												m_floatingTextMoveUpSpeed;							///< INI value of our Move up speed
-	Real												m_floatingTextMoveVanishRate;					///< INI value of our move vanish rate
+	SimulationFrameValue<UnsignedInt>									m_floatingTextTimeOut;									///< Ini value of our floating text timeout
+	SimulationRateValue<Real>												m_floatingTextMoveUpSpeed;							///< INI value of our Move up speed
+	SimulationRateValue<Real>												m_floatingTextMoveVanishRate;					///< INI value of our move vanish rate
 
 	PopupMessageData *					m_popupMessageData;
 	Color												m_popupMessageColor;

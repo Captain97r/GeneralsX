@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #ifdef ALLOW_DEMORALIZE
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
@@ -51,9 +53,9 @@ public:
 	Real m_baseRange;											///< base range for this special power
 	Real m_bonusRangePerCaptured;					///< additional range we get for each prisoner
 	Real m_maxRange;											///< no matter how many prisoners we have, this is max
-	UnsignedInt m_baseDurationInFrames;		///< duration of the demoralization (in frames)
-	UnsignedInt m_bonusDurationPerCapturedInFrames;	///< additional duration added for each prisoner we have
-	UnsignedInt m_maxDurationInFrames;		///< no matter how many prisoners we have, this is max
+	SimulationFrameValue<UnsignedInt> m_baseDurationInFrames;		///< duration of the demoralization (in frames)
+	SimulationFrameValue<UnsignedInt> m_bonusDurationPerCapturedInFrames;	///< additional duration added for each prisoner we have
+	SimulationFrameValue<UnsignedInt> m_maxDurationInFrames;		///< no matter how many prisoners we have, this is max
 	const FXList *m_fxList;								///< fx list to play
 
 };

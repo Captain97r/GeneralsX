@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/Snapshot.h"
 #include "Common/SubsystemInterface.h"
 #include "Common/GameMemory.h"
@@ -154,7 +156,7 @@ public:
 	Real m_teamSeconds;					// Try to build a team every N seconds.
 	Int m_resourcesWealthy;		// How many resources to be wealthy.
 	Int m_resourcesPoor;			// How few resources to be poor.
-	UnsignedInt m_forceIdleFramesCount;	// How many frames does a unit need to be Idle before it can begin looking for enemies?
+	SimulationFrameValue<UnsignedInt> m_forceIdleFramesCount;	// How many frames does a unit need to be Idle before it can begin looking for enemies?
 	Real m_structuresWealthyMod; // Factor to multiply m_structurFrames by if we are wealthy.
 	Real m_teamWealthyMod;		// Factor to multiply m_teamFrames by if we are wealthy.
 	Real m_structuresPoorMod; // Factor to multiply m_structureFrames by if we are poor.
@@ -164,9 +166,9 @@ public:
 	Real m_guardOuterModifierAI;	// Multiply the AI unit's vision by this much == guard outer circle.
 	Real m_guardInnerModifierHuman;	// Multiply the human unit's vision by this much == guard inner circle
 	Real m_guardOuterModifierHuman;	// Multiply the human unit's vision by this much == guard outer circle
-	UnsignedInt m_guardChaseUnitFrames;		// Number of frames for which a unit should
-	UnsignedInt m_guardEnemyScanRate;		// rate to scan for enemies while guarding
-	UnsignedInt m_guardEnemyReturnScanRate;		// rate to scan for enemies while guarding but returning
+	SimulationFrameValue<UnsignedInt> m_guardChaseUnitFrames;		// Number of frames for which a unit should
+	SimulationFrameValue<UnsignedInt> m_guardEnemyScanRate;		// rate to scan for enemies while guarding
+	SimulationFrameValue<UnsignedInt> m_guardEnemyReturnScanRate;		// rate to scan for enemies while guarding but returning
 
 	Real m_wallHeight;				// Height of special wall units can walk on top of.
 

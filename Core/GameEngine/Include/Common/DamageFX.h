@@ -30,6 +30,7 @@
 #pragma once
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
+#include "Common/SimulationValue.h"
 #include "Common/GameCommon.h"
 #include "Common/NameKeyGenerator.h"
 #include "Common/STLTypedefs.h"
@@ -106,7 +107,7 @@ private:
 		Real									m_amountForMajorFX;				///< if damage done is >= this, use major fx
 		ConstFXListPtr				m_majorDamageFXList;			///< fx to make
 		ConstFXListPtr				m_minorDamageFXList;			///< fx to make
-		UnsignedInt						m_damageFXThrottleTime;
+		SimulationFrameValue<UnsignedInt>						m_damageFXThrottleTime;
 
 		DFX()
 		{

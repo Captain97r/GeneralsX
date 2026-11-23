@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -49,8 +51,8 @@ public:
 
 	const ObjectCreationList *	m_ocl;
 	FactionOCLList							m_factionOCL;
-	UnsignedInt									m_minDelay;
-	UnsignedInt									m_maxDelay;
+	SimulationFrameValue<UnsignedInt>									m_minDelay;
+	SimulationFrameValue<UnsignedInt>									m_maxDelay;
 	Bool												m_isCreateAtEdge;				///< Otherwise, it is created on top of myself
 	Bool												m_isFactionTriggered;		///< Faction has to be present before update will happen
 

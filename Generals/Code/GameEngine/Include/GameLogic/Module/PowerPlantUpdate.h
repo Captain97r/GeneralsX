@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -55,7 +57,7 @@ public:
 
 	}
 
-  UnsignedInt m_rodsExtendTime;  ///< in frames, time it takes the rods to be built
+  SimulationFrameValue<UnsignedInt> m_rodsExtendTime;  ///< in frames, time it takes the rods to be built
 
 };
 

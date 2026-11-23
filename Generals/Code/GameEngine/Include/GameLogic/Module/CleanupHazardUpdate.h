@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/KindOf.h"
 #include "GameLogic/Module/UpdateModule.h"
@@ -44,7 +46,7 @@ class CleanupHazardUpdateModuleData : public ModuleData
 {
 public:
 	WeaponSlotType	m_weaponSlot;
-	UnsignedInt			m_scanFrames;
+	SimulationFrameValue<UnsignedInt>			m_scanFrames;
 	Real						m_scanRange;
 
 	CleanupHazardUpdateModuleData();

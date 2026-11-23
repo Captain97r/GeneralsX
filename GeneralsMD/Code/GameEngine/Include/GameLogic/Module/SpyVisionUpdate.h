@@ -31,6 +31,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 #include "GameLogic/Module/UpgradeModule.h"
@@ -45,8 +47,8 @@ public:
 
 	Bool						m_needsUpgrade;
 	Bool						m_selfPowered;
-	UnsignedInt			m_selfPoweredDuration;
-	UnsignedInt			m_selfPoweredInterval;
+	SimulationFrameValue<UnsignedInt>			m_selfPoweredDuration;
+	SimulationFrameValue<UnsignedInt>			m_selfPoweredInterval;
 	KindOfMaskType	m_spyOnKindof;
 
 	SpyVisionUpdateModuleData()

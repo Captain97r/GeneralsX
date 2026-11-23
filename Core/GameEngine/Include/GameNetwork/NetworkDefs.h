@@ -31,6 +31,9 @@ static const Int WOL_NAME_LEN = 64;
 /// Max number of commands per frame
 static const Int MAX_COMMANDS = 256;
 
+void configureNetworkTiming(Int simulationRate);
+void setNetworkRunAheadOverride(Int minimum, Int maximum);
+
 extern Int MIN_LOGIC_FRAMES;
 extern Int MAX_FRAMES_AHEAD;
 extern Int MIN_RUNAHEAD;

@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/KindOf.h"
 #include "Common/Science.h"
@@ -49,13 +51,13 @@ enum ParticleSystemID CPP_11(: Int);
 class ParticleUplinkCannonUpdateModuleData : public ModuleData
 {
 public:
-	UnsignedInt			m_beginChargeFrames;
-	UnsignedInt			m_raiseAntennaFrames;
-	UnsignedInt			m_readyDelayFrames;
-	UnsignedInt			m_widthGrowFrames;
-	UnsignedInt			m_beamTravelFrames;
-	UnsignedInt			m_totalFiringFrames;
-	UnsignedInt			m_framesBetweenLaunchFXRefresh;
+	SimulationFrameValue<UnsignedInt>			m_beginChargeFrames;
+	SimulationFrameValue<UnsignedInt>			m_raiseAntennaFrames;
+	SimulationFrameValue<UnsignedInt>			m_readyDelayFrames;
+	SimulationFrameValue<UnsignedInt>			m_widthGrowFrames;
+	SimulationFrameValue<UnsignedInt>			m_beamTravelFrames;
+	SimulationFrameValue<UnsignedInt>			m_totalFiringFrames;
+	SimulationFrameValue<UnsignedInt>			m_framesBetweenLaunchFXRefresh;
 
 	AsciiString			m_outerEffectBaseBoneName;
 	UnsignedInt			m_outerEffectNumBones;
@@ -102,7 +104,7 @@ public:
 
   Real					m_manualDrivingSpeed;
   Real					m_manualFastDrivingSpeed;
-  UnsignedInt		m_doubleClickToFastDriveDelay;
+  SimulationFrameValue<UnsignedInt>		m_doubleClickToFastDriveDelay;
 
 	ParticleUplinkCannonUpdateModuleData();
 	static void buildFieldParse(MultiIniFieldParse& p);

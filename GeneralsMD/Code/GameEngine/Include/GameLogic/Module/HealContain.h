@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/OpenContain.h"
 
@@ -43,7 +45,7 @@ public:
 
 	static void buildFieldParse(MultiIniFieldParse& p);
 
-	UnsignedInt m_framesForFullHeal;			///< time (in frames) something becomes fully healed
+	SimulationFrameValue<UnsignedInt> m_framesForFullHeal;			///< time (in frames) something becomes fully healed
 
 };
 

@@ -244,8 +244,8 @@ static void parseCommonStuff(
 	DamageType damageFirst, damageLast;
 	parseCommonStuff(ini, names, vetFirst, vetLast, damageFirst, damageLast);
 
-	UnsignedInt t;
-	INI::parseDurationUnsignedInt(ini, nullptr, &t, nullptr);
+	SimulationFrameValue<UnsignedInt> t;
+	t.setMilliseconds(static_cast<Real>(INI::scanUnsignedInt(ini->getNextToken())));
 
 	for (Int dt = damageFirst; dt <= damageLast; ++dt)
 	{

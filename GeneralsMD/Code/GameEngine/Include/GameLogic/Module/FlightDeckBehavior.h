@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/DieModule.h"
@@ -71,14 +73,14 @@ public:
 	Real					m_landingDeckHeightOffset;
 	Int						m_numRows;
 	Int						m_numCols;
-	UnsignedInt		m_cleanupFrames;
-	UnsignedInt		m_humanFollowFrames;
-	UnsignedInt		m_replacementFrames;
-	UnsignedInt		m_dockAnimationFrames;
-	UnsignedInt		m_launchWaveFrames;
-	UnsignedInt   m_launchRampFrames;
-	UnsignedInt   m_lowerRampFrames;
-	UnsignedInt		m_catapultFireFrames;
+	SimulationFrameValue<UnsignedInt>		m_cleanupFrames;
+	SimulationFrameValue<UnsignedInt>		m_humanFollowFrames;
+	SimulationFrameValue<UnsignedInt>		m_replacementFrames;
+	SimulationFrameValue<UnsignedInt>		m_dockAnimationFrames;
+	SimulationFrameValue<UnsignedInt>		m_launchWaveFrames;
+	SimulationFrameValue<UnsignedInt>   m_launchRampFrames;
+	SimulationFrameValue<UnsignedInt>   m_lowerRampFrames;
+	SimulationFrameValue<UnsignedInt>		m_catapultFireFrames;
 
 	FlightDeckBehaviorModuleData();
 	static void buildFieldParse( MultiIniFieldParse& p );

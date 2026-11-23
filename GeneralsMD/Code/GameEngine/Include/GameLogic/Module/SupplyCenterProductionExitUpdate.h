@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "GameLogic/Module/UpdateModule.h"
 
 class Object;
@@ -40,7 +42,7 @@ class SupplyCenterProductionExitUpdateModuleData : public UpdateModuleData
 public:
 	Coord3D m_unitCreatePoint;
 	Coord3D m_naturalRallyPoint;
-	UnsignedInt m_grantTemporaryStealthFrames;
+	SimulationFrameValue<UnsignedInt> m_grantTemporaryStealthFrames;
 
 	SupplyCenterProductionExitUpdateModuleData()
 	{

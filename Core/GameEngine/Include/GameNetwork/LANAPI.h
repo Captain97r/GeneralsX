@@ -82,6 +82,7 @@ public:
 	virtual void RequestGameStart() = 0;																				///< Tell everyone the game is starting
 	virtual void RequestGameStartTimer( Int seconds ) = 0;
 	virtual void RequestGameOptions( AsciiString gameOptions, Bool isPublic, UnsignedInt ip = 0 ) = 0;		///< Change the game options
+	virtual void RequestSimulationRate(Int rate) = 0;
 	virtual void RequestGameCreate( UnicodeString gameName, Bool isDirectConnect ) = 0;	///< Try to host a game
 	virtual void RequestGameAnnounce() = 0;																			///< Sound out current game info if host
 //	virtual void RequestSlotList() = 0;																					///< Pump out the Slot info.
@@ -183,9 +184,10 @@ struct LANMessage
 		MSG_REQUEST_GAME_INFO,	///< For direct connect, get the game info from a specific IP Address
 		// GeneralsX @feature Codex 22/11/2026 Older hosts must never allocate a slot for a 60 Hz client.
 		MSG_REQUEST_JOIN_60HZ,
+		MSG_REQUEST_JOIN_RUNTIME,
 	} messageType;
 #ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	static constexpr Type localJoinRequest = MSG_REQUEST_JOIN_60HZ;
+	static constexpr Type localJoinRequest = MSG_REQUEST_JOIN_RUNTIME;
 #else
 	static constexpr Type localJoinRequest = MSG_REQUEST_JOIN;
 #endif
@@ -195,13 +197,19 @@ struct LANMessage
 	char hostName[g_lanHostNameLength+1];		///< machine name, for convenience
 
 	// No additional data is required for REQUEST_LOCATIONS, LOBBY_ANNOUNCE,
-	// REQUEST_LOBBY_LEAVE, GAME_START.
+	// REQUEST_LOBBY_LEAVE.
 	union
 	{
+		struct
+		{
+			LANRoomStamp simulation;
+		} Start;
+
 		// StartTimer is sent with GAME_START_TIMER
 		struct
 		{
 			Int seconds;
+			LANRoomStamp simulation;
 		} StartTimer;
 
 		// GameJoined is sent with REQUEST_GAME_LEAVE
@@ -242,6 +250,7 @@ struct LANMessage
 			UnsignedInt gameIP;
 			UnsignedInt playerIP;
 			Int slotPosition;
+			LANRoomStamp simulation;
 		} GameJoined;
 
 		// GameNotJoined is sent with JOIN_DENY
@@ -258,6 +267,7 @@ struct LANMessage
 		{
 			WideCharWindows gameName[g_lanGameNameLength+1];
 			Bool isAccepted;
+			LANRoomStamp simulation;
 		} Accept;
 
 		// Accept is sent with MAP_AVAILABILITY
@@ -280,28 +290,40 @@ struct LANMessage
 		struct
 		{
 			char options[m_lanMaxOptionsLength+1];
+			LANRoomStamp simulation;
 		} GameOptions;
 		static_assert(ARRAY_SIZE(GameOptions.options) > m_lanMaxOptionsLength, "GameOptions.options buffer must be larger than m_lanMaxOptionsLength");
 
 	};
 #ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	// The legacy packet prefix remains intact so older clients can discover the host and receive a join denial.
+	// GeneralsX @feature Codex 23/11/2026 Identify the game, protocol revision and the host's chosen tick rate.
 #if RTS_ZEROHOUR
-	// GeneralsX @bugfix Codex 23/11/2026 Earlier native Zero Hour clients simulate Battle Bus wrecks on a different schedule.
-	static constexpr uint32_t native60Profile = 0x36304802;
+	static constexpr uint32_t runtimeProfile = 0x525A0200;
 #else
-	static constexpr uint32_t native60Profile = 0x36304801; // 60 Hz simulation, revision 1
+	static constexpr uint32_t runtimeProfile = 0x52470200;
 #endif
 	uint32_t simulationProfile;
 #endif
-	Bool matchesSimulationProfile(Int length) const
+
+	void setSimulationRate(Int rate)
 	{
 #ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-		return length == sizeof(*this) && simulationProfile == native60Profile;
-#else
-		// Preserve retail discovery compatibility; the host also validates the join opcode.
-		return true;
+		simulationProfile = runtimeProfile | static_cast<uint32_t>(rate);
 #endif
+	}
+
+	// Zero means the packet belongs to another game, simulation revision or unsupported tick rate.
+	Int advertisedSimulationRate(Int length) const
+	{
+		if (length != sizeof(*this))
+			return 0;
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+		if (simulationProfile == (runtimeProfile | 60))
+			return 60;
+		if (simulationProfile != (runtimeProfile | 30))
+			return 0;
+#endif
+		return 30;
 	}
 };
 #pragma pack(pop)
@@ -338,6 +360,7 @@ public:
 	virtual void RequestGameStart() override;																				///< Tell everyone the game is starting
 	virtual void RequestGameStartTimer( Int seconds ) override;
 	virtual void RequestGameOptions( AsciiString gameOptions, Bool isPublic, UnsignedInt ip = 0 ) override;		///< Change the game options
+	virtual void RequestSimulationRate(Int rate) override;
 	virtual void RequestGameCreate( UnicodeString gameName, Bool isDirectConnect ) override;	///< Try to host a game
 	virtual void RequestGameAnnounce() override;																			///< Send out game info if host
 	virtual void RequestSetName( UnicodeString newName ) override;													///< Pick a new name
@@ -432,20 +455,20 @@ protected:
 
 	// Functions to handle incoming messages -----------------------------------
 	void handleRequestLocations( LANMessage *msg, UnsignedInt senderIP );
-	void handleGameAnnounce( LANMessage *msg, UnsignedInt senderIP, Bool compatibleSimulation );
+	void handleGameAnnounce( LANMessage *msg, UnsignedInt senderIP, Int simulationRate );
 	void handleLobbyAnnounce( LANMessage *msg, UnsignedInt senderIP );
 	void handleRequestGameInfo( LANMessage *msg, UnsignedInt senderIP );
-	void handleRequestJoin( LANMessage *msg, UnsignedInt senderIP, Bool compatibleSimulation );
-	void handleJoinAccept( LANMessage *msg, UnsignedInt senderIP );
+	void handleRequestJoin( LANMessage *msg, UnsignedInt senderIP, Int simulationRate );
+	void handleJoinAccept( LANMessage *msg, UnsignedInt senderIP, Int simulationRate );
 	void handleJoinDeny( LANMessage *msg, UnsignedInt senderIP );
 	void handleRequestGameLeave( LANMessage *msg, UnsignedInt senderIP );
 	void handleRequestLobbyLeave( LANMessage *msg, UnsignedInt senderIP );
-	void handleSetAccept( LANMessage *msg, UnsignedInt senderIP );
+	void handleSetAccept( LANMessage *msg, UnsignedInt senderIP, Int simulationRate );
 	void handleHasMap( LANMessage *msg, UnsignedInt senderIP );
 	void handleChat( LANMessage *msg, UnsignedInt senderIP );
-	void handleGameStart( LANMessage *msg, UnsignedInt senderIP );
-	void handleGameStartTimer( LANMessage *msg, UnsignedInt senderIP );
-	void handleGameOptions( LANMessage *msg, UnsignedInt senderIP );
+	void handleGameStart( LANMessage *msg, UnsignedInt senderIP, Int simulationRate );
+	void handleGameStartTimer( LANMessage *msg, UnsignedInt senderIP, Int simulationRate );
+	void handleGameOptions( LANMessage *msg, UnsignedInt senderIP, Int simulationRate );
 	void handleInActive( LANMessage *msg, UnsignedInt senderIP );
 
 };

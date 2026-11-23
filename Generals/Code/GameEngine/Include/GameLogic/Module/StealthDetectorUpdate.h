@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -39,7 +41,7 @@ class Thing;
 class StealthDetectorUpdateModuleData : public UpdateModuleData
 {
 public:
-	UnsignedInt											m_updateRate;
+	SimulationFrameValue<UnsignedInt>											m_updateRate;
 	Real														m_detectionRange;
 	Bool														m_initiallyDisabled;
 	AudioEventRTS										m_pingSound;

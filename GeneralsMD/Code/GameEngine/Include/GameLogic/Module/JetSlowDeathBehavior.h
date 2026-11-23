@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "Common/AudioEventRTS.h"
 #include "GameLogic/Module/BehaviorModule.h"
@@ -54,14 +56,14 @@ public:
 	const FXList *m_fxInitialDeath;								///< FXList for initial death
 	const ObjectCreationList *m_oclInitialDeath;	///< OCL for initial death
 
-	UnsignedInt m_delaySecondaryFromInitialDeath;	///< delay (in frames) from initial death, to the secondary event
+	SimulationFrameValue<UnsignedInt> m_delaySecondaryFromInitialDeath;	///< delay (in frames) from initial death, to the secondary event
 	const FXList *m_fxSecondary;									///< FXList for secondary event
 	const ObjectCreationList *m_oclSecondary;			///< OCL for secondary event
 
 	const FXList *m_fxHitGround;									///< FXList for hit ground
 	const ObjectCreationList *m_oclHitGround;			///< OCL for hit ground
 
-	UnsignedInt m_delayFinalBlowUpFromHitGround;	///< delay (in frames) from hit ground, to final explosion
+	SimulationFrameValue<UnsignedInt> m_delayFinalBlowUpFromHitGround;	///< delay (in frames) from hit ground, to final explosion
 	const FXList *m_fxFinalBlowUp;								///< FxList for final blow up
 	const ObjectCreationList *m_oclFinalBlowUp;		///< OCL for final blow up
 

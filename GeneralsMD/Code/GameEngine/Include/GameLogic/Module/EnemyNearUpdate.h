@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 #include "Common/KindOf.h"
@@ -38,7 +40,7 @@
 class EnemyNearUpdateModuleData : public UpdateModuleData
 {
 public:
-	UnsignedInt m_enemyScanDelayTime;
+	SimulationFrameValue<UnsignedInt> m_enemyScanDelayTime;
 
 	EnemyNearUpdateModuleData()
 	{

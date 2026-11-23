@@ -10,7 +10,7 @@ option(RTS_BUILD_OPTION_ASAN "Build code with Address Sanitizer." OFF)
 option(RTS_BUILD_OPTION_VC6_FULL_DEBUG "Build VC6 with full debug info." OFF)
 option(RTS_BUILD_OPTION_FFMPEG "Enable FFmpeg support" OFF)
 option(RTS_BUILD_OPTION_DEEP_CRC "Enable deep CRC snapshots on sync mismatch" ON)
-option(RTS_EXPERIMENTAL_60HZ_SIMULATION "Build the separate 60 Hz simulation profile" OFF)
+option(RTS_EXPERIMENTAL_60HZ_SIMULATION "Allow 30 and 60 Hz simulation to be selected between matches" ON)
 
 # Linux/macOS audio and windowing options
 option(SAGE_USE_SDL3 "Use SDL3 for windowing/input (Linux/macOS)" OFF)
@@ -33,7 +33,7 @@ endif()
 # macOS port option (Phase 5)
 option(SAGE_USE_MOLTENVK "Use MoltenVK for Vulkan on macOS (Phase 5 macOS port)" OFF)
 
-# SagePatch — optional QoL features for casual play (screenshot, cursor lock,
+# SagePatch вЂ” optional QoL features for casual play (screenshot, cursor lock,
 # brightness, camera/scroll INI overrides). Compiles to a separate shared lib
 # that is loaded via DYLD_INSERT_LIBRARIES (macOS) / LD_PRELOAD (Linux) at runtime.
 option(RTS_BUILD_OPTION_SAGE_PATCH "Build SagePatch QoL extras (macOS/Linux, requires SDL3)" ON)

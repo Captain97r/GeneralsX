@@ -71,7 +71,7 @@ enum UpdateSleepTime CPP_11(: Int)
 	// note that at 30fps, this is ~414 days...
 	UPDATE_SLEEP_FOREVER	= 0x3fffffff
 };
-#define UPDATE_SLEEP(numFrames)				((UpdateSleepTime)(numFrames))
+#define UPDATE_SLEEP(numFrames)				static_cast<UpdateSleepTime>(static_cast<Int>(numFrames))
 
 // this is used to declare in which "phase" sleepy updates are called.
 // all phase 0 are called before all phase 1 within a given frame, etc.

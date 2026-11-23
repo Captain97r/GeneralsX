@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/AsciiString.h"
 
 enum { MAX_HW_PROVIDERS = 4 };
@@ -63,8 +65,8 @@ struct AudioSettings
 	                                       // The higher the exponent, the sharper the decline at the max range.
 	Int m_globalMinRange;
 	Int m_globalMaxRange;
-	Int m_drawableAmbientFrames;
-	Int m_fadeAudioFrames;
+	SimulationFrameValue<Int> m_drawableAmbientFrames;
+	SimulationFrameValue<Int> m_fadeAudioFrames;
 	UnsignedInt m_maxCacheSize;
 
 	Real m_minVolume;		// At volumes less than this, the sample will be culled.

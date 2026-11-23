@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/SubsystemInterface.h"
 #include "Common/AudioEventRTS.h"
 
@@ -117,8 +119,8 @@ class EvaCheckInfo : public MemoryPoolObject
 
 public:
 	EvaMessage									m_message;
-	UnsignedInt									m_framesBetweenChecks;
-	UnsignedInt									m_framesToExpire;
+	SimulationFrameValue<UnsignedInt>									m_framesBetweenChecks;
+	SimulationFrameValue<UnsignedInt>									m_framesToExpire;
 	UnsignedInt									m_priority;	// higher priority is more important, and will be played in preference to lower preference
 	std::vector<EvaSideSounds>	m_evaSideSounds;
 

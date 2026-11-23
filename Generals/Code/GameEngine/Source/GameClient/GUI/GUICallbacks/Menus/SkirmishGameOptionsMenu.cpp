@@ -334,26 +334,8 @@ void SkirmishPreferences::setStartingCash( const Money & startingCash )
 // GeneralsX @feature felipebraz 17/09/2026 Skirmish simulation tick rate configuration (#281)
 Int SkirmishPreferences::getSkirmishTickRate() const
 {
-	SkirmishPreferences::const_iterator it = find("TickRate");
-	if (it == end())
-	{
-		it = find("GameSpeed");
-	}
-	if (it == end())
-	{
-		it = find("SkirmishTickRate");
-	}
-	if (it != end())
-	{
-		Int rate = atoi(it->second.str());
-		if (rate > 0)
-		{
-			return clamp(5, rate, 120);
-		}
-	}
-
 	OptionPreferences optionPref;
-	return optionPref.getSkirmishTickRate();
+	return optionPref.getSkirmishTickRate(this);
 }
 
 

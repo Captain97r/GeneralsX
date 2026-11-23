@@ -1106,30 +1106,44 @@ Real OptionPreferences::getGameWindowTransitionSpeedMultiplier() const
 	return clamp(1.0f, speed, 1000.0f);
 }
 
-// GeneralsX @feature felipebraz 17/09/2026 Skirmish simulation tick rate configuration (#281)
-Int OptionPreferences::getSkirmishTickRate() const
+// GeneralsX @feature Codex 23/11/2026 Choose the native simulation clock for the next game.
+Int OptionPreferences::getNativeSimulationRate() const
 {
-	OptionPreferences::const_iterator it = find("TickRate");
-	if (it == end())
-	{
-		it = find("GameSpeed");
-	}
-	if (it == end())
-	{
-		it = find("SkirmishTickRate");
-	}
-	if (it == end())
-	{
-		return LOGICFRAMES_PER_SECOND;
-	}
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	const_iterator it = find("NativeSimulationRate");
+	if (it != end() && it->second == "60")
+		return 60;
+#endif
+	return 30;
+}
 
-	Int rate = atoi(it->second.str());
-	if (rate <= 0)
-	{
-		return LOGICFRAMES_PER_SECOND;
-	}
+void OptionPreferences::setNativeSimulationRate(Int rate)
+{
+	(*this)["NativeSimulationRate"] = rate == 60 ? "60" : "30";
+}
 
-	return clamp(5, rate, 120);
+// GeneralsX @feature felipebraz 17/09/2026 Skirmish simulation tick rate configuration (#281)
+static Int readStockSkirmishSpeed(const UserPreferences &prefs)
+{
+	for (const char *key : {"TickRate", "GameSpeed", "SkirmishTickRate"})
+	{
+		UserPreferences::const_iterator it = prefs.find(key);
+		if (it != prefs.end())
+		{
+			Int rate = atoi(it->second.str());
+			return rate > 0 ? clamp(5, rate, 120) : 0;
+		}
+	}
+	return 0;
+}
+
+Int OptionPreferences::getSkirmishTickRate(const UserPreferences *skirmish) const
+{
+	Int speed = skirmish ? readStockSkirmishSpeed(*skirmish) : 0;
+	if (speed == 0)
+		speed = readStockSkirmishSpeed(*this);
+	// Existing profiles express skirmish speed relative to the stock 30 Hz clock.
+	return speed == 0 ? getNativeSimulationRate() : speed * getNativeSimulationRate() / 30;
 }
 
 // GeneralsX @feature fbraz3 08/10/2026 Enhanced graphics & lighting options helpers

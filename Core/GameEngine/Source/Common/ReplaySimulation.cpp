@@ -99,16 +99,17 @@ int ReplaySimulation::simulateReplaysInThisProcess(const std::vector<AsciiString
 		DWORD startTimeMillis = GetTickCount();
 		if (TheRecorder->simulateReplay(filename))
 		{
-			UnsignedInt totalTimeSec = TheRecorder->getPlaybackFrameCount() / LOGICFRAMES_PER_SECOND;
+			const Int replayRate = TheRecorder->getPlaybackSimulationRate();
+			const UnsignedInt totalTimeSec = TheRecorder->getPlaybackFrameCount() / replayRate;
 			while (TheRecorder->isPlaybackInProgress())
 			{
 				TheGameClient->updateHeadless();
 
-				const int progressFrameInterval = 10*60*LOGICFRAMES_PER_SECOND;
+				const int progressFrameInterval = 10*60*replayRate;
 				if (TheGameLogic->getFrame() != 0 && TheGameLogic->getFrame() % progressFrameInterval == 0)
 				{
 					// Print progress report
-					UnsignedInt gameTimeSec = TheGameLogic->getFrame() / LOGICFRAMES_PER_SECOND;
+					UnsignedInt gameTimeSec = TheGameLogic->getFrame() / replayRate;
 					UnsignedInt realTimeSec = (GetTickCount()-startTimeMillis) / 1000;
 					printf("Elapsed Time: %02d:%02d Game Time: %02d:%02d/%02d:%02d\n",
 							realTimeSec/60, realTimeSec%60, gameTimeSec/60, gameTimeSec%60, totalTimeSec/60, totalTimeSec%60);
@@ -121,7 +122,7 @@ int ReplaySimulation::simulateReplaysInThisProcess(const std::vector<AsciiString
 					break;
 				}
 			}
-			UnsignedInt gameTimeSec = TheGameLogic->getFrame() / LOGICFRAMES_PER_SECOND;
+			UnsignedInt gameTimeSec = TheGameLogic->getFrame() / replayRate;
 			UnsignedInt realTimeSec = (GetTickCount()-startTimeMillis) / 1000;
 			printf("Elapsed Time: %02d:%02d Game Time: %02d:%02d/%02d:%02d\n",
 					realTimeSec/60, realTimeSec%60, gameTimeSec/60, gameTimeSec%60, totalTimeSec/60, totalTimeSec%60);

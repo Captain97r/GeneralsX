@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/StateMachine.h"
 #include "GameLogic/Module/AIUpdate.h"
 #include "GameClient/RadiusDecal.h"
@@ -183,10 +185,10 @@ enum
 class DeliverPayloadAIUpdateModuleData : public AIUpdateModuleData
 {
 public:
-	UnsignedInt		m_doorDelay;
+	SimulationFrameValue<UnsignedInt>		m_doorDelay;
 	Real					m_maxDistanceToTarget;				///< How far away from target I can unload, plus how far after target I need to turn around at
 	Int						m_maxNumberAttempts;					///< How many times I can re-approach
-	UnsignedInt		m_dropDelay;									///< How long to wait after entering Deliver state (to allow for doors opening)
+	SimulationFrameValue<UnsignedInt>		m_dropDelay;									///< How long to wait after entering Deliver state (to allow for doors opening)
 	Coord3D				m_dropOffset;									///< where to disgorge the guys, relative to me
 	Coord3D				m_dropVariance;								///< variance in dropping position among guys that I am dropping
 	AsciiString		m_putInContainerName;
@@ -250,7 +252,7 @@ public:
 	Int										m_maxAttempts;
 	Coord3D								m_dropOffset;
 	Coord3D								m_dropVariance;
-	UnsignedInt						m_dropDelay;
+	SimulationFrameValue<UnsignedInt>						m_dropDelay;
 	Bool									m_fireWeapon;
 	Bool									m_selfDestructObject;
 	Int										m_visibleNumBones;						///< The number of visible bones to process.
@@ -260,7 +262,7 @@ public:
 	Int										m_visibleItemsDroppedPerInterval;
 	Bool									m_inheritTransportVelocity;
 	Bool									m_isParachuteDirectly;		///< Instead of parachuting to below the point of exit, go ahead and bunch up on the target
-	Real									m_exitPitchRate;
+	SimulationRateValue<Real>									m_exitPitchRate;
 	const FXList					*m_strafeFX;
 	Real									m_strafeLength;
 	const WeaponTemplate	*m_visiblePayloadWeaponTemplate;

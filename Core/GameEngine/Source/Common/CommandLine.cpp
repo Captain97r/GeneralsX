@@ -336,7 +336,7 @@ Int parseReplayCRCInterval(char *args[], int argc)
 #ifdef DEBUG_CRC
 	if (argc > 1)
 	{
-		REPLAY_CRC_INTERVAL = atoi(args[1]);
+		ReplayCRCIntervalOverride = atoi(args[1]);
 	}
 #endif
 	return 2;
@@ -946,9 +946,7 @@ Int parseRunAhead( char *args[], Int num )
 {
 	if (num > 2)
 	{
-		MIN_RUNAHEAD = atoi(args[1]);
-		MAX_FRAMES_AHEAD = atoi(args[2]);
-		FRAME_DATA_LENGTH = (MAX_FRAMES_AHEAD + 1)*2;
+		setNetworkRunAheadOverride(atoi(args[1]), atoi(args[2]));
 	}
 	return 3;
 }

@@ -28,6 +28,32 @@
 #include "GameNetwork/NetworkInterface.h"
 
 
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+namespace {
+Int nativeRate = BaseFps;
+Real framesPerMillisecond = Real(BaseFps) / MSEC_PER_SECOND;
+Real millisecondsPerFrame = Real(MSEC_PER_SECOND) / BaseFps;
+Real framesPerSecond = Real(BaseFps);
+Real secondsPerFrame = 1.0f / BaseFps;
+}
+Int const& LOGICFRAMES_PER_SECOND = nativeRate;
+Real const& LOGICFRAMES_PER_MSEC_REAL = framesPerMillisecond;
+Real const& MSEC_PER_LOGICFRAME_REAL = millisecondsPerFrame;
+Real const& LOGICFRAMES_PER_SECONDS_REAL = framesPerSecond;
+Real const& SECONDS_PER_LOGICFRAME_REAL = secondsPerFrame;
+#endif
+
+void prepareSimulationRateForGame(Int rate)
+{
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	nativeRate = rate == 60 ? 60 : BaseFps;
+	framesPerMillisecond = Real(nativeRate) / MSEC_PER_SECOND;
+	millisecondsPerFrame = Real(MSEC_PER_SECOND) / nativeRate;
+	framesPerSecond = Real(nativeRate);
+	secondsPerFrame = 1.0f / nativeRate;
+#endif
+}
+
 FramePacer* TheFramePacer = nullptr;
 
 FramePacer::FramePacer()
@@ -189,11 +215,10 @@ void FramePacer::setLogicTimeScaleFps( Int fps )
 void FramePacer::configureGameLogicRate(Int fps)
 {
 	setLogicTimeScaleFps(fps);
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
-	enableLogicTimeScale(TRUE);
-#else
-	enableLogicTimeScale(fps < getFramesPerSecondLimit());
-#endif
+	// One render iteration can service at most one native simulation step.
+	if (getSimulationRate() == 60 && m_maxFPS > 0 && m_maxFPS < getSimulationRate())
+		setFramesPerSecondLimit(getSimulationRate());
+	enableLogicTimeScale(getSimulationRate() == 60 || fps < getFramesPerSecondLimit());
 }
 
 Int FramePacer::getLogicTimeScaleFps() const

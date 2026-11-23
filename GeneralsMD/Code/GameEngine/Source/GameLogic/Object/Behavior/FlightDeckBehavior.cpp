@@ -965,7 +965,7 @@ Bool FlightDeckBehavior::calcBestParkingAssignment( ObjectID id, Coord3D *pos, I
 
 //-------------------------------------------------------------------------------------------------
 // don't really need to autoheal every frame....
-const Int HEAL_RATE_FRAMES = LOGICFRAMES_PER_SECOND / 5;
+static inline Int getHealRateFrames() { return LOGICFRAMES_PER_SECOND / 5; }
 
 //-------------------------------------------------------------------------------------------------
 void FlightDeckBehavior::resetWakeFrame()
@@ -976,7 +976,7 @@ void FlightDeckBehavior::resetWakeFrame()
 	}
 	else
 	{
-		m_nextHealFrame = TheGameLogic->getFrame() + HEAL_RATE_FRAMES;
+		m_nextHealFrame = TheGameLogic->getFrame() + getHealRateFrames();
 	}
 }
 
@@ -1103,7 +1103,7 @@ UpdateSleepTime FlightDeckBehavior::update()
 	UnsignedInt now = TheGameLogic->getFrame();
 	if( now >= m_nextHealFrame )
 	{
-		m_nextHealFrame = now + HEAL_RATE_FRAMES;
+		m_nextHealFrame = now + getHealRateFrames();
 		for (std::list<HealingInfo>::iterator it = m_healing.begin(); it != m_healing.end(); /*++it*/)
 		{
 			if (it->m_gettingHealedID != INVALID_ID)
@@ -1119,7 +1119,7 @@ UpdateSleepTime FlightDeckBehavior::update()
 					healInfo.in.m_damageType = DAMAGE_HEALING;
 					healInfo.in.m_deathType = DEATH_NONE;
 					healInfo.in.m_sourceID = getObject()->getID();
-					healInfo.in.m_amount = HEAL_RATE_FRAMES * data->m_healAmount * SECONDS_PER_LOGICFRAME_REAL;
+					healInfo.in.m_amount = getHealRateFrames() * data->m_healAmount * SECONDS_PER_LOGICFRAME_REAL;
 					BodyModuleInterface *body = objToHeal->getBodyModule();
 					body->attemptHealing( &healInfo );
 					++it;

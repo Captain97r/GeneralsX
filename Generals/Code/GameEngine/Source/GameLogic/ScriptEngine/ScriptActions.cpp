@@ -2602,7 +2602,7 @@ void ScriptActions::doCameoFlash(const AsciiString& name, Int timeInSeconds)
 
 	Int frames = LOGICFRAMES_PER_SECOND * timeInSeconds;
 	// every time the framecount % 20 == 0,  controlbar:: update will do Cameo Flash
-	Int count = frames / DRAWABLE_FRAMES_PER_FLASH;
+	Int count = frames / getDrawableFramesPerFlash();
 	// make sure count is even, so the cameo will return to its original state
 	if( count % 2 == 1 )
 		count++;
@@ -2655,7 +2655,7 @@ void ScriptActions::doNamedFlash(const AsciiString& unitName, Int timeInSeconds,
 		convert this number into a count of how many times to call the doNamedFlash method */
 		Int frames = LOGICFRAMES_PER_SECOND * timeInSeconds;
 		// every time the framecount % 20 == 0, drawable::update will call doNamedFlash
-		Int count = frames / DRAWABLE_FRAMES_PER_FLASH;
+		Int count = frames / getDrawableFramesPerFlash();
 		Color flashy = (color == nullptr) ? obj->getIndicatorColor() : color->getAsInt();
 		drawable->setFlashColor( flashy );
 		drawable->setFlashCount( count );
@@ -2687,7 +2687,7 @@ void ScriptActions::doTeamFlash(const AsciiString& teamName, Int timeInSeconds, 
 			break;
 		Int frames = LOGICFRAMES_PER_SECOND * timeInSeconds;
 
-		Int count = frames / DRAWABLE_FRAMES_PER_FLASH;
+		Int count = frames / getDrawableFramesPerFlash();
 		Color flashy = (color == nullptr) ? obj->getIndicatorColor() : color->getAsInt();
 		draw->setFlashColor( flashy );
 		draw->setFlashCount( count );

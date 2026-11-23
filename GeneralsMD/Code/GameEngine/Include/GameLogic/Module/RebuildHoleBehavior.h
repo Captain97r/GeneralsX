@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/DieModule.h"
@@ -45,7 +47,7 @@ public:
 
 	static void buildFieldParse( MultiIniFieldParse &p );
 
-	Real m_workerRespawnDelay;							///< delay in frames from death of object till respawn of worker
+	SimulationFrameValue<Real> m_workerRespawnDelay;							///< delay in frames from death of object till respawn of worker
 	Real m_holeHealthRegenPercentPerSecond; ///< the hole recovers this % of the max hit points per second
 	AsciiString m_workerTemplateName;				///< name of worker object
 

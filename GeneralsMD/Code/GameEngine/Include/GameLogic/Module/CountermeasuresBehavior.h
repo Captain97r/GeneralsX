@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameClient/ParticleSys.h"
 #include "GameLogic/Module/BehaviorModule.h"
@@ -52,11 +54,11 @@ public:
   UnsignedInt						m_volleySize;
   Real									m_volleyArcAngle;
 	Real									m_volleyVelocityFactor;
-  UnsignedInt						m_framesBetweenVolleys;
+  SimulationFrameValue<UnsignedInt>						m_framesBetweenVolleys;
 	UnsignedInt						m_numberOfVolleys;
-  UnsignedInt						m_reloadFrames;
-	UnsignedInt						m_missileDecoyFrames;
-	UnsignedInt						m_countermeasureReactionFrames;
+  SimulationFrameValue<UnsignedInt>						m_reloadFrames;
+	SimulationFrameValue<UnsignedInt>						m_missileDecoyFrames;
+	SimulationFrameValue<UnsignedInt>						m_countermeasureReactionFrames;
 	Bool									m_mustReloadAtAirfield;
 
 	CountermeasuresBehaviorModuleData()

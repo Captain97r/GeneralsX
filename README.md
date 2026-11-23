@@ -80,17 +80,27 @@ cmake --preset linux64-deploy
 cmake --build build/linux64-deploy --target z_generals
 ```
 
-### Experimental 60 Hz LAN simulation
+### Select the simulation rate between matches
 
-Add `-DRTS_EXPERIMENTAL_60HZ_SIMULATION=ON` to the CMake configure command
-and choose a separate build directory with `-B`. Build `z_generals` for
-Zero Hour and Contra X, or `g_generals` for Generals. A fresh configuration
-uses the standard 30 Hz simulation by default.
+Open **Options**, click **Simulation** to choose **30 Hz** or **60 Hz**, and click
+**Accept**. The selection applies to the next offline game. The default is 30 Hz.
+The 60 Hz setting advances the world twice as often at normal speed. The FPS limit
+controls drawing separately. Existing skirmish speed overrides are relative to
+stock speed. For example, `TickRate = 30` means normal speed with either selection.
 
-All LAN players need the same 60 Hz game build and mod. Open **Multiplayer → Network**.
-Use a render limit of at least 60 FPS to sustain 60 simulation ticks per second.
-The packet router can slow the match when a peer falls behind. Play native replays
-with the 60 Hz executable and retail replays with the standard executable.
+In **Multiplayer** under **Network**, the host can change **Simulation** before starting.
+Other players see the host's selection and confirm readiness again after a change.
+Everyone in the room needs a build with the runtime LAN protocol. The selected rate
+stays fixed throughout the match. The LAN scheduler can slow down for a slower peer.
+Online play uses the standard 30 Hz profile.
+
+Saves and replays carry their simulation rate. The two profiles have separate
+directories. Select the appropriate rate to browse that profile's files from the
+main menu. The executable also recognizes the rate in a replay opened directly.
+
+Build `z_generals` for Zero Hour and Contra X or `g_generals` for Generals. Both
+rates are included by default on this branch. Set
+`-DRTS_EXPERIMENTAL_60HZ_SIMULATION=OFF` for a stock-only build.
 
 For complete prerequisites, Docker workflows, and packaging guides, check the Wiki:
 - 📖 [Building on macOS Guide](https://github.com/fbraz3/GeneralsX/wiki/Building-on-macOS)

@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/DieModule.h"
 #include "Common/INI.h"
@@ -43,7 +45,7 @@ class EjectPilotDieModuleData : public DieModuleData
 public:
 	const ObjectCreationList* m_oclInAir;
 	const ObjectCreationList* m_oclOnGround;
-	UnsignedInt m_invulnerableTime;
+	SimulationFrameValue<UnsignedInt> m_invulnerableTime;
 
 	EjectPilotDieModuleData();
 	static void buildFieldParse(MultiIniFieldParse& p);

@@ -227,7 +227,7 @@ static UnicodeString buildReplayTooltip(RecorderClass::ReplayHeader header, Repl
 //-------------------------------------------------------------------------------------------------
 /** Populate the listbox with the names of the available replay files */
 //-------------------------------------------------------------------------------------------------
-void PopulateReplayFileListbox(GameWindow *listbox)
+void PopulateReplayFileListbox(GameWindow *listbox, const AsciiString &directory)
 {
 	replayTooltipCache.clear();
 
@@ -266,7 +266,7 @@ void PopulateReplayFileListbox(GameWindow *listbox)
 	FilenameList replayFilenames;
 	FilenameListIter it;
 
-	TheFileSystem->getFileListInDirectory(TheRecorder->getReplayDir(), asciisearch, replayFilenames, FALSE);
+	TheFileSystem->getFileListInDirectory(directory, asciisearch, replayFilenames, FALSE);
 
 	TheMapCache->updateCache();
 
@@ -279,7 +279,9 @@ void PopulateReplayFileListbox(GameWindow *listbox)
 		ReplayGameInfo info;
 		const MapMetaData *mapData;
 
-		if (readReplayMapInfo(asciistr, header, info, mapData))
+		AsciiString path = directory;
+		path.concat(asciistr);
+		if (readReplayMapInfo(path, header, info, mapData))
 		{
 			// columns are: name, date, version, map, extra
 
@@ -415,7 +417,7 @@ void ReplayMenuInit( WindowLayout *layout, void *userData )
 
 	//Load the listbox shiznit
 	GadgetListBoxReset(listboxReplayFiles);
-	PopulateReplayFileListbox(listboxReplayFiles);
+	PopulateReplayFileListbox(listboxReplayFiles, TheRecorder->getReplayDir());
 
 #if defined(RTS_DEBUG)
 	WinInstanceData instData;
@@ -551,7 +553,7 @@ static void handleReplayLoadFailure()
 	MessageBoxOk(title, body, nullptr);
 
 	GadgetListBoxReset(listboxReplayFiles);
-	PopulateReplayFileListbox(listboxReplayFiles);
+	PopulateReplayFileListbox(listboxReplayFiles, TheRecorder->getReplayDir());
 }
 
 static void showReplayMapNotFound()
@@ -829,7 +831,7 @@ void deleteReplay()
 	}
 	//Load the listbox shiznit
 	GadgetListBoxReset(listboxReplayFiles);
-	PopulateReplayFileListbox(listboxReplayFiles);
+	PopulateReplayFileListbox(listboxReplayFiles, TheRecorder->getReplayDir());
 }
 
 

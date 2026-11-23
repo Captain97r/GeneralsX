@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/DrawModule.h"
 //#include "WW3D2/Line3D.h"
@@ -48,8 +50,8 @@ public:
 	Real m_scrollRate;
 	Bool m_tile;
   UnsignedInt m_numBeams;
-  UnsignedInt m_maxIntensityFrames;
-  UnsignedInt m_fadeFrames;
+  SimulationFrameValue<UnsignedInt> m_maxIntensityFrames;
+  SimulationFrameValue<UnsignedInt> m_fadeFrames;
 	AsciiString m_textureName;
 	UnsignedInt m_segments;
 	Real m_arcHeight;

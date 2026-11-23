@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/KindOf.h"
 #include "GameLogic/Module/SpecialPowerUpdateModule.h"
@@ -57,9 +59,9 @@ public:
 //  AsciiString           m_howitzerTemplateName;
   RadiusDecalTemplate   m_attackAreaDecalTemplate;
   RadiusDecalTemplate   m_targetingReticleDecalTemplate;
-  UnsignedInt           m_orbitFrames;
-  UnsignedInt           m_howitzerFiringRate;
-  UnsignedInt           m_howitzerFollowLag;
+  SimulationFrameValue<UnsignedInt>           m_orbitFrames;
+  SimulationFrameValue<UnsignedInt>           m_howitzerFiringRate;
+  SimulationFrameValue<UnsignedInt>           m_howitzerFollowLag;
   Real                  m_attackAreaRadius;
   Real                  m_targetingReticleRadius;
   Real                  m_gunshipOrbitRadius;

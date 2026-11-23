@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -55,7 +57,7 @@ public:
 
 	}
 
-  Real m_radarExtendTime;  ///< in frames, time it takes the radar tower to build
+  SimulationFrameValue<Real> m_radarExtendTime;  ///< in frames, time it takes the radar tower to build
 
 };
 

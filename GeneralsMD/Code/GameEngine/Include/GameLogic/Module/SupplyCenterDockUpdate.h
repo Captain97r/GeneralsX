@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/INI.h"
 #include "Common/GameMemory.h"
@@ -42,7 +44,7 @@ public:
   SupplyCenterDockUpdateModuleData();
 	static void buildFieldParse(MultiIniFieldParse& p);
 
-	UnsignedInt m_grantTemporaryStealthFrames;
+	SimulationFrameValue<UnsignedInt> m_grantTemporaryStealthFrames;
 };
 
 // ------------------------------------------------------------------------------------------------

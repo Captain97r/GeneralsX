@@ -46,6 +46,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 //-----------------------------------------------------------------------------
 // SYSTEM INCLUDES ////////////////////////////////////////////////////////////
 //-----------------------------------------------------------------------------
@@ -70,8 +72,8 @@ public:
 
 	KindOfMaskType						m_requiredAffectKindOf;						///< Must be set on target
 	KindOfMaskType						m_forbiddenAffectKindOf;	///< Must be clear on target
-	UnsignedInt								m_bonusDuration;					///< How long a hit lasts on target
-	UnsignedInt								m_bonusDelay;							///< How often to pulse
+	SimulationFrameValue<UnsignedInt>								m_bonusDuration;					///< How long a hit lasts on target
+	SimulationFrameValue<UnsignedInt>								m_bonusDelay;							///< How often to pulse
 	Real											m_bonusRange;							///< How far to affect
 	WeaponBonusConditionType	m_bonusConditionType;			///< Status to give
 

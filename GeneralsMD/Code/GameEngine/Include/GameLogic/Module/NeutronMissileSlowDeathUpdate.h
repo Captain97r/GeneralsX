@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/SlowDeathBehavior.h"
 
@@ -56,8 +58,8 @@ enum NeutronBlast CPP_11(: Int)
 struct BlastInfo
 {
   Bool enabled;					///< this blast is enabled
-	Real delay;						///< delay after death to start the regular blast
-	Real scorchDelay;			///< delay after death to start a scorch blast
+	SimulationFrameValue<Real> delay;						///< delay after death to start the regular blast
+	SimulationFrameValue<Real> scorchDelay;			///< delay after death to start a scorch blast
 	Real innerRadius;			///< inner radius of damage
 	Real outerRadius;			///< outer radius of damage
 	Real maxDamage;				///< max amount

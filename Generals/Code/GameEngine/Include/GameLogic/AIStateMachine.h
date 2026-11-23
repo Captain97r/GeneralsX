@@ -1205,7 +1205,7 @@ protected:
 private:
 	StateMachine* m_huntMachine;					///< state sub-machine for hunt behavior
 	UnsignedInt m_nextEnemyScanTime;			///< time of last enemy scan
-	enum { ENEMY_SCAN_RATE = LOGICFRAMES_PER_SECOND };
+	static Int getEnemyScanRate() { return LOGICFRAMES_PER_SECOND; }
 };
 
 //-----------------------------------------------------------------------------------------------------------
@@ -1235,7 +1235,7 @@ protected:
 private:
 	StateMachine *m_attackMachine;					///< state sub-machine for attack behavior
 	UnsignedInt m_nextEnemyScanTime;			///< time of last enemy scan
-	enum { ENEMY_SCAN_RATE = LOGICFRAMES_PER_SECOND };
+	static Int getEnemyScanRate() { return LOGICFRAMES_PER_SECOND; }
 };
 
 //-----------------------------------------------------------------------------------------------------------

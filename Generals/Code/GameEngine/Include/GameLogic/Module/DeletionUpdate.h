@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -36,8 +38,8 @@
 class DeletionUpdateModuleData : public UpdateModuleData
 {
 public:
-	UnsignedInt m_minFrames;
-	UnsignedInt m_maxFrames;
+	SimulationFrameValue<UnsignedInt> m_minFrames;
+	SimulationFrameValue<UnsignedInt> m_maxFrames;
 
 	DeletionUpdateModuleData()
 	{

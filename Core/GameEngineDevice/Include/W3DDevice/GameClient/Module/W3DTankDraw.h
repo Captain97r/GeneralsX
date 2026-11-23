@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/DrawModule.h"
 #include "GameClient/ParticleSys.h"
@@ -44,7 +46,7 @@ public:
 	AsciiString m_treadDebrisNameLeft;
 	AsciiString m_treadDebrisNameRight;
 
-	Real m_treadAnimationRate;	///<amount of tread texture to scroll per sec.  1.0 == full width.
+	SimulationRateValue<Real> m_treadAnimationRate;	///<amount of tread texture to scroll per sec.  1.0 == full width.
 	Real m_treadPivotSpeedFraction;	///<fraction of locomotor speed below which we allow pivoting.
 	Real m_treadDriveSpeedFraction;	///<fraction of locomotor speed below which treads stop animating.
 
