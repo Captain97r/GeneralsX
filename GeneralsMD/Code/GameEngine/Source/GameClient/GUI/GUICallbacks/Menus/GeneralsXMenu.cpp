@@ -30,6 +30,7 @@
 #include "GameClient/GameWindow.h"
 #include "GameClient/GameWindowManager.h"
 #include "GameClient/Gadget.h"
+#include "GameClient/GadgetComboBox.h"
 #include "GameClient/GadgetSlider.h"
 #include "GameClient/GadgetCheckBox.h"
 #include "GameClient/GadgetStaticText.h"
@@ -74,7 +75,7 @@ static GameWindow *buttonDefaults = nullptr;
 static GameWindow *buttonAccept = nullptr;
 static GameWindow *buttonClose = nullptr;
 #ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-static GameWindow *buttonSimulationRate = nullptr;
+static GameWindow *comboSimulationRate = nullptr;
 #endif
 
 static OptionPreferences *pref = nullptr;
@@ -133,6 +134,16 @@ static void saveOptions()
 {
 	if (!pref)
 		return;
+
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	if (comboSimulationRate && BitIsSet(comboSimulationRate->winGetStatus(), WIN_STATUS_ENABLED))
+	{
+		Int selected = -1;
+		GadgetComboBoxGetSelectedPos(comboSimulationRate, &selected);
+		if (selected == 0 || selected == 1)
+			pref->setNativeSimulationRate(selected == 1 ? 60 : 30);
+	}
+#endif
 
 	if (sliderDrawDistance)
 	{
@@ -226,11 +237,8 @@ static void saveOptions()
 static void setDefaults()
 {
 #ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	if (buttonSimulationRate && BitIsSet(buttonSimulationRate->winGetStatus(), WIN_STATUS_ENABLED))
-	{
-		pref->setNativeSimulationRate(30);
-		setSimulationRateButtonText(buttonSimulationRate, 30);
-	}
+	if (comboSimulationRate && BitIsSet(comboSimulationRate->winGetStatus(), WIN_STATUS_ENABLED))
+		GadgetComboBoxSetSelectedPos(comboSimulationRate, 0);
 #endif
 
 	if (sliderDrawDistance)
@@ -300,10 +308,6 @@ void GeneralsXMenuInit(WindowLayout *layout, void *userData)
 
 	if (!pref)
 		pref = NEW OptionPreferences;
-
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	buttonSimulationRate = createGeneralsXSimulationRateButton(buttonDefaults, buttonAccept, buttonClose, pref->getNativeSimulationRate());
-#endif
 
 	// Populate controls from current engine / preferences values
 	if (sliderDrawDistance)
@@ -393,6 +397,10 @@ void GeneralsXMenuInit(WindowLayout *layout, void *userData)
 
 	layout->hide(FALSE);
 
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	comboSimulationRate = createGeneralsXSimulationRateCombo(buttonDefaults, buttonAccept, buttonClose, pref->getNativeSimulationRate());
+#endif
+
 	if (parentGeneralsXMenu)
 		TheWindowManager->winSetFocus(parentGeneralsXMenu);
 }
@@ -422,7 +430,7 @@ void GeneralsXMenuShutdown(WindowLayout *layout, void *userData)
 	buttonAccept = nullptr;
 	buttonClose = nullptr;
 #ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	buttonSimulationRate = nullptr;
+	comboSimulationRate = nullptr;
 #endif
 	parentGeneralsXMenu = nullptr;
 
@@ -468,15 +476,6 @@ WindowMsgHandledType GeneralsXMenuSystem(GameWindow *window, UnsignedInt msg,
 			GameWindow *control = (GameWindow *)mData1;
 			Int controlID = control->winGetWindowId();
 
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-			if (control == buttonSimulationRate && BitIsSet(control->winGetStatus(), WIN_STATUS_ENABLED))
-			{
-				const Int rate = pref->getNativeSimulationRate() == 60 ? 30 : 60;
-				pref->setNativeSimulationRate(rate);
-				setSimulationRateButtonText(control, rate);
-				return MSG_HANDLED;
-			}
-#endif
 			if (controlID == buttonCloseID)
 			{
 				TheShell->pop();

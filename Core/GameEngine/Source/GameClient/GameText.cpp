@@ -1586,6 +1586,22 @@ UnicodeString GameTextManager::fetch( const Char *label, Bool *exists )
 			return s_ultrawideUI;
 		}
 
+		if ( stricmp(label, "GUI:SimulationSettings") == 0 )
+		{
+			if ( exists )
+				*exists = TRUE;
+			static UnicodeString s_simulationSettings(L"SIMULATION SETTINGS");
+			return s_simulationSettings;
+		}
+
+		if ( stricmp(label, "GUI:SimulationRate") == 0 )
+		{
+			if ( exists )
+				*exists = TRUE;
+			static UnicodeString s_simulationRate(L"SIMULATION RATE");
+			return s_simulationRate;
+		}
+
 		// string not found
 		if( exists )
 			*exists = FALSE;

@@ -82,9 +82,10 @@ cmake --build build/linux64-deploy --target z_generals
 
 ### Select the simulation rate between matches
 
-From the main menu, open **GeneralsX**, choose **30 Hz** or **60 Hz** for the
-simulation rate, and click **Accept**. The selection applies to your next offline
-game and to new LAN rooms you host. The default is 30 Hz.
+From the main menu, open **GeneralsX** and find **Simulation settings**. Choose
+**30 Hz** or **60 Hz** from the **Simulation rate** dropdown, then click
+**Accept**. The selection applies to your next offline game and to new LAN
+rooms you host. The default is 30 Hz.
 The 60 Hz setting advances the world twice as often at normal speed. The FPS limit
 controls drawing separately. Existing skirmish speed overrides are relative to
 stock speed. For example, `TickRate = 30` means normal speed with either selection.

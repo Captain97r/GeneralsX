@@ -3,5 +3,4 @@
 
 class GameWindow;
 
-GameWindow *createGeneralsXSimulationRateButton(GameWindow *defaults, GameWindow *accept, GameWindow *cancel, int preferredRate);
-void setSimulationRateButtonText(GameWindow *button, int rate);
+GameWindow *createGeneralsXSimulationRateCombo(GameWindow *defaults, GameWindow *accept, GameWindow *cancel, int preferredRate);
