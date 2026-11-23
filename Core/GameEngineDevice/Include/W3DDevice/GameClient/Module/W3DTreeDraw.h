@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/DrawModule.h"
 #include "WW3D2/line3d.h"
@@ -40,8 +42,8 @@ public:
 	AsciiString m_modelName;
 	AsciiString m_textureName;
 	// Push aside parameters. [5/29/2003]
-	UnsignedInt	m_framesToMoveOutward;
-	UnsignedInt	m_framesToMoveInward;
+	SimulationFrameValue<UnsignedInt>	m_framesToMoveOutward;
+	SimulationFrameValue<UnsignedInt>	m_framesToMoveInward;
 	Real				m_maxOutwardMovement;
 	Real				m_darkening;
 
@@ -55,7 +57,7 @@ public:
   Real m_minimumToppleSpeed;
 	Bool m_killWhenToppled;
 	Bool m_doTopple;
-	UnsignedInt m_sinkFrames; // How long it takes to sink after toppling. [7/11/2003]
+	SimulationFrameValue<UnsignedInt> m_sinkFrames; // How long it takes to sink after toppling. [7/11/2003]
 	Real m_sinkDistance;		// How far it sinks.
 
 	Bool m_doShadow;

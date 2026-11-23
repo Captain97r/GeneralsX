@@ -99,16 +99,17 @@ int ReplaySimulation::simulateReplaysInThisProcess(const std::vector<AsciiString
 		DWORD startTimeMillis = GetTickCount();
 		if (TheRecorder->simulateReplay(filename))
 		{
-			UnsignedInt totalTimeSec = TheRecorder->getPlaybackFrameCount() / LOGICFRAMES_PER_SECOND;
+			const Int replayRate = TheRecorder->getPlaybackSimulationRate();
+			const UnsignedInt totalTimeSec = TheRecorder->getPlaybackFrameCount() / replayRate;
 			while (TheRecorder->isPlaybackInProgress())
 			{
 				TheGameClient->updateHeadless();
 
-				const int progressFrameInterval = 10*60*LOGICFRAMES_PER_SECOND;
+				const int progressFrameInterval = 10*60*replayRate;
 				if (TheGameLogic->getFrame() != 0 && TheGameLogic->getFrame() % progressFrameInterval == 0)
 				{
 					// Print progress report
-					UnsignedInt gameTimeSec = TheGameLogic->getFrame() / LOGICFRAMES_PER_SECOND;
+					UnsignedInt gameTimeSec = TheGameLogic->getFrame() / replayRate;
 					UnsignedInt realTimeSec = (GetTickCount()-startTimeMillis) / 1000;
 					printf("Elapsed Time: %02d:%02d Game Time: %02d:%02d/%02d:%02d\n",
 							realTimeSec/60, realTimeSec%60, gameTimeSec/60, gameTimeSec%60, totalTimeSec/60, totalTimeSec%60);
@@ -121,7 +122,7 @@ int ReplaySimulation::simulateReplaysInThisProcess(const std::vector<AsciiString
 					break;
 				}
 			}
-			UnsignedInt gameTimeSec = TheGameLogic->getFrame() / LOGICFRAMES_PER_SECOND;
+			UnsignedInt gameTimeSec = TheGameLogic->getFrame() / replayRate;
 			UnsignedInt realTimeSec = (GetTickCount()-startTimeMillis) / 1000;
 			printf("Elapsed Time: %02d:%02d Game Time: %02d:%02d/%02d:%02d\n",
 					realTimeSec/60, realTimeSec%60, gameTimeSec/60, gameTimeSec%60, totalTimeSec/60, totalTimeSec%60);
@@ -257,7 +258,7 @@ std::vector<AsciiString> ReplaySimulation::resolveFilenameWildcards(const std::v
 		if (filename->find('*') || filename->find('?'))
 		{
 			// An absolute path is searched as is, a relative path is searched in the replay directory.
-			AsciiString dir1 = isAbsolutePath(filename->str()) ? AsciiString::TheEmptyString : TheRecorder->getReplayDir();
+			const Bool absolute = isAbsolutePath(filename->str());
 			AsciiString dir2 = *filename;
 			AsciiString wildcard = *filename;
 			{
@@ -276,13 +277,14 @@ std::vector<AsciiString> ReplaySimulation::resolveFilenameWildcards(const std::v
 			}
 
 			FilenameList files;
-			TheLocalFileSystem->getFileListInDirectory(dir2.str(), dir1.str(), wildcard, files, FALSE);
-			for (FilenameList::iterator it = files.begin(); it != files.end(); ++it)
+			if (absolute)
+				TheLocalFileSystem->getFileListInDirectory(dir2, AsciiString::TheEmptyString, wildcard, files, FALSE);
+			else
 			{
-				AsciiString file;
-				file.set(it->str() + dir1.getLength());
-				filenamesResolved.push_back(file);
+				TheLocalFileSystem->getFileListInDirectory(dir2, TheRecorder->getReplayDir(30), wildcard, files, FALSE);
+				TheLocalFileSystem->getFileListInDirectory(dir2, TheRecorder->getReplayDir(60), wildcard, files, FALSE);
 			}
+			filenamesResolved.insert(filenamesResolved.end(), files.begin(), files.end());
 		}
 		else
 			filenamesResolved.push_back(*filename);

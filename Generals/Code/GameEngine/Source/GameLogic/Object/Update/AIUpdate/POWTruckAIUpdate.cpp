@@ -378,7 +378,7 @@ void POWTruckAIUpdate::updateWaiting()
 
 }
 
-static const UnsignedInt FIND_DELAY = LOGICFRAMES_PER_SECOND * 1;
+static inline UnsignedInt getFindDelay() { return LOGICFRAMES_PER_SECOND * 1; }
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
 void POWTruckAIUpdate::updateFindTarget()
@@ -390,7 +390,7 @@ void POWTruckAIUpdate::updateFindTarget()
 		return;
 
 	// don't do this too often
-	if( TheGameLogic->getFrame() - m_lastFindFrame < FIND_DELAY )
+	if( TheGameLogic->getFrame() - m_lastFindFrame < getFindDelay() )
 		return;
 
 	// we've now done a find

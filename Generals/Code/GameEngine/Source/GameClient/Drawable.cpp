@@ -234,7 +234,7 @@ static DrawableIconType drawableIconNameToIndex( const char *iconName )
 
 // ------------------------------------------------------------------------------------------------
 // constants
-const UnsignedInt HEALING_ICON_DISPLAY_TIME	= LOGICFRAMES_PER_SECOND * 3;
+static inline UnsignedInt getHealingIconDisplayTime() { return LOGICFRAMES_PER_SECOND * 3; }
 const UnsignedInt DEFAULT_HEAL_ICON_WIDTH		= 32;
 const UnsignedInt DEFAULT_HEAL_ICON_HEIGHT	= 32;
 const RGBColor SICKLY_GREEN_POISONED_COLOR	= {-1.0f,  1.0f, -1.0f};
@@ -1214,7 +1214,7 @@ void Drawable::updateDrawable(Real timeScale)
 
 	{
 
-		if (m_flashCount > 0  && (TheGameClient->getFrame() % DRAWABLE_FRAMES_PER_FLASH) == 0)
+		if (m_flashCount > 0  && (TheGameClient->getFrame() % getDrawableFramesPerFlash()) == 0)
 		{
 			RGBColor tmp;
 			tmp.setFromInt(m_flashColor);
@@ -3169,12 +3169,12 @@ void Drawable::drawHealing(const IRegion2D* healthBarRegion)
 	{
 //		const DamageInfo* lastDamage = body->getLastDamageInfo();
 //		if( lastDamage != nullptr && lastDamage->in.m_damageType == DAMAGE_HEALING
-//			&&(TheGameLogic->getFrame() - body->getLastHealingTimestamp()) <= HEALING_ICON_DISPLAY_TIME
+//			&&(TheGameLogic->getFrame() - body->getLastHealingTimestamp()) <= getHealingIconDisplayTime()
 //			)
 		const UnsignedInt *lastHealingTimestamp = body->getLastHealingTimestamp();
-		if ( TheGameLogic->getFrame() > HEALING_ICON_DISPLAY_TIME && // because so many things init health early in game
+		if ( TheGameLogic->getFrame() > getHealingIconDisplayTime() && // because so many things init health early in game
 			lastHealingTimestamp != nullptr &&
-			(TheGameLogic->getFrame() - *lastHealingTimestamp <= HEALING_ICON_DISPLAY_TIME) )
+			(TheGameLogic->getFrame() - *lastHealingTimestamp <= getHealingIconDisplayTime()) )
 
 			showHealing = TRUE;
 	}

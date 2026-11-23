@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 #include "GameLogic/Weapon.h"
@@ -38,8 +40,8 @@ class FireWeaponUpdateModuleData : public UpdateModuleData
 {
 public:
 	const WeaponTemplate* m_weaponTemplate;
-  UnsignedInt m_initialDelayFrames;
-	UnsignedInt m_exclusiveWeaponDelay;	///< If non-zero, any other weapon having fired this recently will keep us from doing anything
+  SimulationFrameValue<UnsignedInt> m_initialDelayFrames;
+	SimulationFrameValue<UnsignedInt> m_exclusiveWeaponDelay;	///< If non-zero, any other weapon having fired this recently will keep us from doing anything
 
 	FireWeaponUpdateModuleData();
 

@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -36,9 +38,9 @@
 class EMPUpdateModuleData : public UpdateModuleData
 {
 public:
-	UnsignedInt m_lifeFrames;
-	UnsignedInt m_startFadeFrame;
-	UnsignedInt m_disabledDuration;
+	SimulationFrameValue<UnsignedInt> m_lifeFrames;
+	SimulationFrameValue<UnsignedInt> m_startFadeFrame;
+	SimulationFrameValue<UnsignedInt> m_disabledDuration;
 	Real				m_startScale; ///< how big I start drawing
 	Real				m_targetScaleMin; ///< how big I change to by the time I'm done
 	Real				m_targetScaleMax; ///< how big I change to by the time I'm done

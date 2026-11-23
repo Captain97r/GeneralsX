@@ -46,13 +46,6 @@
 #include "GameLogic/Module/PhysicsUpdate.h"
 
 
-enum
-{
-	// GeneralsX @bugfix Codex 23/11/2026 The strict landing check first permits contact on the eleventh retail tick.
-	GROUND_CHECK_DELAY = logicFramesFromBaseFrames(11) - 1,
-	EMPTY_HULK_CHECK_DELAY = logicFramesFromBaseFrames(15)
-};
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,7 +137,8 @@ void BattleBusSlowDeathBehavior::beginSlowDeath( const DamageInfo *damageInfo )
 	{
 		// We can intercept and do our extra slow death if this is not from a real onDie
 		m_isInFirstDeath = TRUE;
-		m_groundCheckFrame = TheGameLogic->getFrame() + GROUND_CHECK_DELAY;
+		// GeneralsX @bugfix Codex 23/11/2026 The strict landing check first permits contact on the eleventh retail tick.
+		m_groundCheckFrame = TheGameLogic->getFrame() + logicFramesFromBaseFrames(11) - 1;
 
 		// First do the special effects
 		FXList::doFXObj(data->m_fxStartUndeath, me );
@@ -248,7 +242,7 @@ UpdateSleepTime BattleBusSlowDeathBehavior::update()
 			if( contain->getContainCount() > 0 )
 			{
 				m_penaltyDeathFrame = 0;
-				return UPDATE_SLEEP(EMPTY_HULK_CHECK_DELAY);
+				return UPDATE_SLEEP(logicFramesFromBaseFrames(15));
 			}
 			else if( TheGameLogic->getFrame() > m_penaltyDeathFrame )
 			{
@@ -259,7 +253,7 @@ UpdateSleepTime BattleBusSlowDeathBehavior::update()
 			}
 			else
 			{
-				return UPDATE_SLEEP(EMPTY_HULK_CHECK_DELAY);
+				return UPDATE_SLEEP(logicFramesFromBaseFrames(15));
 			}
 		}
 		else
@@ -269,7 +263,7 @@ UpdateSleepTime BattleBusSlowDeathBehavior::update()
 			{
 				m_penaltyDeathFrame = TheGameLogic->getFrame() + data->m_emptyHulkDestructionDelay;
 			}
-			return UPDATE_SLEEP(EMPTY_HULK_CHECK_DELAY);// Stay awake regardless
+			return UPDATE_SLEEP(logicFramesFromBaseFrames(15));// Stay awake regardless
 		}
 	}
 }

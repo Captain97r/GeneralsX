@@ -64,17 +64,22 @@
 enum
 {
 	BaseFps = 30, // The historic base frame rate for this game. This value must never change.
-	// GeneralsX @feature Codex 22/11/2026 Run native simulation steps independently of the W3D asset frame rate.
-	LOGICFRAMES_PER_SECOND = 60,
+	NativeFps = 60, // Normal simulation rate for new offline and LAN games.
 	MSEC_PER_SECOND = 1000
 };
-const Real LOGICFRAMES_PER_MSEC_REAL = (((Real)LOGICFRAMES_PER_SECOND) / ((Real)MSEC_PER_SECOND));
-const Real MSEC_PER_LOGICFRAME_REAL = (((Real)MSEC_PER_SECOND) / ((Real)LOGICFRAMES_PER_SECOND));
-const Real LOGICFRAMES_PER_SECONDS_REAL = (Real)LOGICFRAMES_PER_SECOND;
-const Real SECONDS_PER_LOGICFRAME_REAL = 1.0f / LOGICFRAMES_PER_SECONDS_REAL;
+
+// GeneralsX @feature Codex 23/11/2026 Select the native step only at a world boundary.
+extern Int const& LOGICFRAMES_PER_SECOND;
+extern Real const& LOGICFRAMES_PER_MSEC_REAL;
+extern Real const& MSEC_PER_LOGICFRAME_REAL;
+extern Real const& LOGICFRAMES_PER_SECONDS_REAL;
+extern Real const& SECONDS_PER_LOGICFRAME_REAL;
+
+inline Int getSimulationRate() { return LOGICFRAMES_PER_SECOND; }
+void prepareSimulationRateForGame(Int rate);
 
 // GeneralsX @feature Codex 22/11/2026 Convert quantities authored in retail simulation frames at their point of use.
-constexpr Int logicFramesFromBaseFrames(Int frames)
+inline Int logicFramesFromBaseFrames(Int frames)
 {
 	return frames * (LOGICFRAMES_PER_SECOND / BaseFps);
 }

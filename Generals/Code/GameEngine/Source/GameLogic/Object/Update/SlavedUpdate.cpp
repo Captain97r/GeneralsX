@@ -120,7 +120,7 @@ UpdateSleepTime SlavedUpdate::update()
 		{
 			return UPDATE_SLEEP_NONE;
 		}
-		m_framesToWait = SLAVED_UPDATE_RATE;
+		m_framesToWait = getSlavedUpdateRate();
 	}
 
 	if( m_slaver == INVALID_ID )
@@ -517,7 +517,7 @@ void SlavedUpdate::endRepair()
 	{
 		//Remove the state so we can start using the update timer again.
 		m_repairState = REPAIRSTATE_NONE;
-		m_framesToWait = SLAVED_UPDATE_RATE;
+		m_framesToWait = getSlavedUpdateRate();
 		m_repairing = false;
 
 		//Set the packing state and clear any other states (to force the arm to fully retract)
@@ -635,7 +635,8 @@ void SlavedUpdate::setRepairState( RepairStates repairState )
 							}
 
 							weldingSys->setPosition( &pos );
-							Real time = (Real)(m_framesToWait * LOGICFRAMES_PER_SECOND);
+							// GeneralsX @bugfix Codex 23/11/2026 Welding particle keyframes are authored at the retail rate.
+							const Real time = logicRateFromBaseRate(static_cast<Real>(m_framesToWait)) * BaseFps;
 							weldingSys->setLifetimeRange( time, time );
 
 							AudioEventRTS soundToPlay = TheAudio->getMiscAudio()->m_repairSparks;

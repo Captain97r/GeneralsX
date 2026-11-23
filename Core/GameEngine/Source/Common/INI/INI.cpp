@@ -33,6 +33,7 @@
 
 #include "WWMath/wwmath.h"
 #include "Common/INI.h"
+#include "Common/SimulationValue.h"
 #include "Common/INIException.h"
 
 #include "Common/DamageFX.h"
@@ -689,7 +690,7 @@ void INI::parseAngularVelocityReal( INI *ini, void * /*instance*/,
 	const char *token = ini->getNextToken();
 
 	// scan the int and convert to radian and store as a real
-	*(Real *)store = ConvertAngularVelocityInDegreesPerSecToRadsPerFrame(scanReal( token ));
+	static_cast<SimulationRateValue<Real> *>(store)->setPerSecond(scanReal(token), PI / 180.0f);
 
 }
 
@@ -1968,7 +1969,7 @@ void INI::parseGameClientRandomVariable( INI* ini, void * /*instance*/, void *st
 void INI::parseDurationReal( INI *ini, void * /*instance*/, void *store, const void* /*userData*/ )
 {
 	Real val = scanReal(ini->getNextToken());
-	*(Real *)store = ConvertDurationFromMsecsToFrames(val);
+	static_cast<SimulationFrameValue<Real> *>(store)->setMilliseconds(val);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1976,7 +1977,12 @@ void INI::parseDurationReal( INI *ini, void * /*instance*/, void *store, const v
 void INI::parseDurationUnsignedInt( INI *ini, void * /*instance*/, void *store, const void* /*userData*/ )
 {
 	UnsignedInt val = scanUnsignedInt(ini->getNextToken());
-	*(UnsignedInt *)store = (UnsignedInt)WWMath::Ceilf(ConvertDurationFromMsecsToFrames((Real)val));
+	// Some legacy duration fields use signed Int. Both representations share the same
+	// positive canonical tick count. Copy its bytes without aliasing their object types.
+	SimulationFrameValue<UnsignedInt> duration;
+	duration.setMilliseconds(static_cast<Real>(val));
+	static_assert(sizeof(duration) == sizeof(SimulationFrameValue<Int>), "frame storage mismatch");
+	std::memcpy(store, &duration, sizeof(duration));
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -1984,7 +1990,7 @@ void INI::parseDurationUnsignedInt( INI *ini, void * /*instance*/, void *store, 
 void INI::parseDurationUnsignedShort( INI *ini, void * /*instance*/, void *store, const void* /*userData*/ )
 {
 	UnsignedInt val = scanUnsignedInt(ini->getNextToken());
-	*(UnsignedShort *)store = (UnsignedShort)WWMath::Ceilf(ConvertDurationFromMsecsToFrames((Real)val));
+	static_cast<SimulationFrameValue<UnsignedShort> *>(store)->setMilliseconds(static_cast<Real>(val));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1993,7 +1999,7 @@ void INI::parseVelocityReal( INI *ini, void * /*instance*/, void *store, const v
 {
 	const char *token = ini->getNextToken();
 	Real val = scanReal(token);
-	*(Real *)store = ConvertVelocityInSecsToFrames(val);
+	static_cast<SimulationRateValue<Real> *>(store)->setPerSecond(val);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -2002,7 +2008,7 @@ void INI::parseAccelerationReal( INI *ini, void * /*instance*/, void *store, con
 {
 	const char *token = ini->getNextToken();
 	Real val = scanReal(token);
-	*(Real *)store = ConvertAccelerationInSecsToFrames(val);
+	static_cast<SimulationAccelerationValue<Real> *>(store)->setPerSecond(val);
 }
 
 //-------------------------------------------------------------------------------------------------

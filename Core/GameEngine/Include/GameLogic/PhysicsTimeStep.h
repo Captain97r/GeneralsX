@@ -12,5 +12,7 @@ inline Real physicsFrictionForStep(Real frictionPerStep, Real baseMinimum, Real 
 	if (baseFriction > baseMaximum) baseFriction = baseMaximum;
 	// Two 60 Hz steps must retain the same velocity as one 30 Hz step.
 	// f / (1 + sqrt(1 - f)) is stable even for small f.
-	return baseFriction / (1.0f + WWMath::Sqrt(1.0f - baseFriction));
+	if (getSimulationRate() == 60)
+		return baseFriction / (1.0f + WWMath::Sqrt(1.0f - baseFriction));
+	return baseFriction;
 }

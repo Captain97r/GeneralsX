@@ -26,6 +26,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
+#include "Common/SimulationValueXfer.h"
 
 #define DEFINE_SHADOW_NAMES
 
@@ -104,7 +105,7 @@ void RadiusDecalTemplate::xferRadiusDecalTemplate( Xfer *xfer )
 	xfer->xferUser(&m_shadowType, sizeof(m_shadowType));
 	xfer->xferReal(&m_minOpacity);
   xfer->xferReal(&m_maxOpacity);
-	xfer->xferUnsignedInt(&m_opacityThrobTime);
+	xferSimulationValue(xfer, m_opacityThrobTime);
 	xfer->xferColor(&m_color);
 	xfer->xferBool(&m_onlyVisibleToOwningPlayer);
 }

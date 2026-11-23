@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -39,8 +41,8 @@ class FireSpreadUpdateModuleData : public UpdateModuleData
 {
 public:
 	const ObjectCreationList *m_oclEmbers;
-	UnsignedInt m_minSpreadTryDelayData;
-	UnsignedInt m_maxSpreadTryDelayData;
+	SimulationFrameValue<UnsignedInt> m_minSpreadTryDelayData;
+	SimulationFrameValue<UnsignedInt> m_maxSpreadTryDelayData;
 	Real m_spreadTryRange;
 
 	FireSpreadUpdateModuleData();

@@ -51,11 +51,11 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-const Int DEFAULT_MAX_LIFESPAN = 10 * LOGICFRAMES_PER_SECOND;
+static inline Int getDefaultMaxLifespan() { return 10 * LOGICFRAMES_PER_SECOND; }
 
 //-----------------------------------------------------------------------------
 DumbProjectileBehaviorModuleData::DumbProjectileBehaviorModuleData() :
-	m_maxLifespan(DEFAULT_MAX_LIFESPAN),
+	m_maxLifespan(getDefaultMaxLifespan()),
 	m_detonateCallsKill(FALSE),
 	m_orientToFlightPath(TRUE),
 	m_tumbleRandomly(FALSE),

@@ -280,11 +280,11 @@ struct LANMessage
 
 	};
 	// The legacy packet prefix remains intact so older clients can discover the host and receive a join denial.
+	// GeneralsX @feature Codex 23/11/2026 Native profiles identify the edition and its deterministic rules.
 #if RTS_ZEROHOUR
-	// GeneralsX @bugfix Codex 23/11/2026 Earlier native Zero Hour clients simulate Battle Bus wrecks on a different schedule.
-	static constexpr uint32_t native60Profile = 0x36304802;
+	static constexpr uint32_t native60Profile = 0x5A483603; // Zero Hour.
 #else
-	static constexpr uint32_t native60Profile = 0x36304801; // 60 Hz simulation, revision 1
+	static constexpr uint32_t native60Profile = 0x474E3602; // Generals.
 #endif
 	uint32_t simulationProfile;
 	Bool matchesSimulationProfile(Int length) const

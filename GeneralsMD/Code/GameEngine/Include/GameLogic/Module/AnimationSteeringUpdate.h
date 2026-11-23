@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -56,7 +58,7 @@ public:
 
 	}
 
-	UnsignedInt m_transitionFrames;
+	SimulationFrameValue<UnsignedInt> m_transitionFrames;
 };
 
 //-------------------------------------------------------------------------------------------------

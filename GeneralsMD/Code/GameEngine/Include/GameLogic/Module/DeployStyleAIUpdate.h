@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/StateMachine.h"
 #include "GameLogic/Module/AIUpdate.h"
 
@@ -46,8 +48,8 @@ enum DeployStateTypes CPP_11(: Int)
 class DeployStyleAIUpdateModuleData : public AIUpdateModuleData
 {
 public:
-	UnsignedInt			m_unpackTime;
-	UnsignedInt			m_packTime;
+	SimulationFrameValue<UnsignedInt>			m_unpackTime;
+	SimulationFrameValue<UnsignedInt>			m_packTime;
 	Bool						m_resetTurretBeforePacking;
 	Bool						m_turretsFunctionOnlyWhenDeployed;
 	Bool						m_turretsMustCenterBeforePacking;

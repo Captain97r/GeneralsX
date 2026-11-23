@@ -35,6 +35,7 @@
 #include "Common/GameAudio.h"
 #include "Common/GameEngine.h"
 #include "Common/GlobalData.h"
+#include "Common/GameState.h"
 #include "Common/NameKeyGenerator.h"
 #include "Common/ThingFactory.h"
 #include "Common/Player.h"
@@ -295,6 +296,7 @@ void GameLogic::clearGameData( Bool showScoreScreen )
 
 	TheGameEngine->reset();
 	setGameMode(GAME_NONE);
+	prepareSimulationRateForGame(NativeFps);
 	// GeneralsX @bugfix fbraz3 22/09/2026 Ensure replay playback is terminated when match data is cleared (#315)
 	if (TheRecorder && TheRecorder->isPlaybackMode())
 	{
@@ -876,6 +878,22 @@ void GameLogic::logicMessageDispatcher( GameMessage *msg, void *userData )
 
 }
 
+// GeneralsX @feature Codex 23/11/2026 Run new offline and LAN games at 60 Hz. Online peers and legacy recordings use retail timing.
+Int getSimulationRateForNewGame(GameMode mode)
+{
+	if (mode == GAME_REPLAY && TheRecorder)
+		return TheRecorder->getPlaybackSimulationRate();
+	if ((mode == GAME_SINGLE_PLAYER || mode == GAME_SKIRMISH) && TheGameState)
+	{
+		const Int rate = TheGameState->getPendingSimulationRate();
+		if (rate)
+			return rate;
+	}
+	if (mode == GAME_INTERNET)
+		return BaseFps;
+	return NativeFps;
+}
+
 bool GameLogic::onNewGame(MAYBE_UNUSED GameMessage *msg)
 {
 #if !RETAIL_COMPATIBLE_CRC
@@ -893,6 +911,10 @@ bool GameLogic::onNewGame(MAYBE_UNUSED GameMessage *msg)
 
 	//DEBUG_ASSERTCRASH(msg->getArgumentCount() == 1 || msg->getArgumentCount() == 2, ("%d arguments to MSG_NEW_GAME", msg->getArgumentCount()));
 	GameMode gameMode = (GameMode)msg->getArgument( 0 )->integer;
+	const Int nativeRate = getSimulationRateForNewGame(gameMode);
+	if (TheGameState)
+		TheGameState->setPendingSimulationRate(0);
+	prepareSimulationRateForGame(nativeRate);
 	Int rankPoints = 0;
 	GameDifficulty diff = DIFFICULTY_NORMAL;
 	if ( msg->getArgumentCount() >= 2 )
@@ -914,14 +936,8 @@ bool GameLogic::onNewGame(MAYBE_UNUSED GameMessage *msg)
 	if (gameMode == GAME_SKIRMISH)
 	{
 		Int tickRate = TheGlobalData->m_skirmishTickRate;
-		if (tickRate <= 0)
-			tickRate = LOGICFRAMES_PER_SECOND;
-
-		// Ensure render FPS limit is at least equal to logic tick rate so simulation is not starved
-		if (TheFramePacer->getFramesPerSecondLimit() < tickRate)
-		{
-			TheFramePacer->setFramesPerSecondLimit(tickRate);
-		}
+		if (tickRate <= 0 || nativeRate == BaseFps)
+			tickRate = nativeRate;
 
 		TheFramePacer->configureGameLogicRate(tickRate);
 

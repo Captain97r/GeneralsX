@@ -30,6 +30,7 @@
 #include "Common/AudioEventRTS.h"
 #include "Common/CRCDebug.h"
 #include "Common/Debug.h"
+#include "Common/FramePacer.h"
 #include "Common/file.h"
 #include "Common/FileSystem.h"
 #include "Common/GameAudio.h"
@@ -386,7 +387,7 @@ void ConnectionManager::reset()
 #endif
 	m_packetRouterSlot = -1;
 
-	// GeneralsX @bugfix Codex 22/11/2026 Reset per-player metrics using the slot count when starting another match.
+	// GeneralsX @bugfix Codex 22/11/2026 Reset one entry per player slot. The INI history lengths count samples per player.
 	for (i = 0; i < (UnsignedInt)MAX_SLOTS; ++i) {
 		m_fpsAverages[i] = -1;
 		m_latencyAverages[i] = 0.0;
@@ -1378,10 +1379,11 @@ void ConnectionManager::updateRunAhead(Int oldRunAhead, Int frameRate, Bool didS
 			}
 
 			// GeneralsX @bugfix Codex 21/11/2026 Keep network logic at game speed when clients render faster than the simulation.
-			const Int renderLimit = TheGlobalData->m_framesPerSecondLimit;
+			const Int nativeRate = TheNetwork->getNativeSimulationRate();
+			const Int renderLimit = TheFramePacer->getFramesPerSecondLimit();
 			const Int maxNetworkFps = renderLimit > 0
-				? clamp<Int>(MIN_LOGIC_FRAMES, renderLimit, LOGICFRAMES_PER_SECOND)
-				: LOGICFRAMES_PER_SECOND;
+				? clamp<Int>(MIN_LOGIC_FRAMES, renderLimit, nativeRate)
+				: nativeRate;
 			minFps = clamp<Int>(MIN_LOGIC_FRAMES, minFps, maxNetworkFps);
 			DEBUG_LOG_LEVEL(DEBUG_LEVEL_NET, ("ConnectionManager::updateRunAhead - minFps after adjustment is %d", minFps));
 
@@ -1455,8 +1457,8 @@ void ConnectionManager::updateRunAhead(Int oldRunAhead, Int frameRate, Bool didS
 			if (newMinFps == minFps) {
 				newMinFps = minFps + 1;
 			}
-			if (newMinFps > LOGICFRAMES_PER_SECOND) {
-				newMinFps = LOGICFRAMES_PER_SECOND;
+			if (newMinFps > nativeRate) {
+				newMinFps = nativeRate;
 			}
 			msg2->setRunAhead(newRunAhead);
 			msg2->setFrameRate(newMinFps);

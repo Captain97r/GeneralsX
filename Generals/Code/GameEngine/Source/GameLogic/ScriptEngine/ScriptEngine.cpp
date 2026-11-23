@@ -126,9 +126,9 @@ enum { MAX_SPIN_COUNT = 20 };
 #define NONE_STRING "<none>"
 
 // GeneralsX @feature Codex 22/11/2026 Keep WorldBuilder durations and the win/lose window in authored time.
-static const Int FRAMES_TO_SHOW_WIN_LOSE_MESSAGE = logicFramesFromBaseFrames(120);
+static inline Int getFramesToShowWinLoseMessage() { return logicFramesFromBaseFrames(120); }
 
-static const Int FRAMES_TO_FADE_IN_AT_START = logicFramesFromBaseFrames(33);
+static inline Int getFramesToFadeInAtStart() { return logicFramesFromBaseFrames(33); }
 
 
 //------------------------------------------------------------------------------ Performance Timers
@@ -4777,7 +4777,7 @@ void ScriptEngine::newMap()
 	m_maxFade = 0.0f;
 	m_fadeFramesIncrease = 0;
 	m_fadeFramesHold = 0;
-	m_fadeFramesDecrease = FRAMES_TO_FADE_IN_AT_START;
+	m_fadeFramesDecrease = getFramesToFadeInAtStart();
 	m_curFadeValue = 0.0f;
 
 }
@@ -4843,9 +4843,12 @@ void ScriptEngine::update()
 	}
 
 	// GeneralsX @feature Codex 22/11/2026 WorldBuilder scripts run on the authored clock, including while world time is frozen.
-	m_countdownHalfTick = !m_countdownHalfTick;
-	if (!m_countdownHalfTick)
-		return;
+	if (getSimulationRate() == 60)
+	{
+		m_countdownHalfTick = !m_countdownHalfTick;
+		if (!m_countdownHalfTick)
+			return;
+	}
 	if (TheScriptActions) {
 		TheScriptActions->update();
 	}
@@ -4893,7 +4896,8 @@ void ScriptEngine::update()
 	// update all sequential stuff.
 	evaluateAndProgressAllSequentialScripts();
 	// GeneralsX @feature Codex 22/11/2026 Consume bridge events after the scripts have observed both native ticks.
-	TheTerrainLogic->clearBridgeScriptEvents();
+	if (getSimulationRate() == 60)
+		TheTerrainLogic->clearBridgeScriptEvents();
 
 	// Script debugger stuff
 	st_CurrentFrame++;
@@ -5002,7 +5006,7 @@ void ScriptEngine::startQuickEndGameTimer()
 //-------------------------------------------------------------------------------------------------
 void ScriptEngine::startEndGameTimer()
 {
-	m_endGameTimer = FRAMES_TO_SHOW_WIN_LOSE_MESSAGE;
+	m_endGameTimer = getFramesToShowWinLoseMessage();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -5010,7 +5014,7 @@ void ScriptEngine::startEndGameTimer()
 //-------------------------------------------------------------------------------------------------
 void ScriptEngine::startCloseWindowTimer()
 {
-	m_closeWindowTimer = FRAMES_TO_SHOW_WIN_LOSE_MESSAGE;
+	m_closeWindowTimer = getFramesToShowWinLoseMessage();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -8182,7 +8186,7 @@ void ScriptEngine::xfer( Xfer *xfer )
 	Int i;
 
 	// version
-	const XferVersion currentVersion = 7;
+	const XferVersion currentVersion = getSimulationRate() == 60 ? 7 : (RETAIL_COMPATIBLE_XFER_SAVE ? 5 : 6);
 	XferVersion version = currentVersion;
 	xfer->xferVersion( &version, currentVersion );
 
@@ -8667,7 +8671,7 @@ void ScriptEngine::xfer( Xfer *xfer )
 			m_maxFade = 0.0f;
 			m_fadeFramesIncrease = 0;
 			m_fadeFramesHold = 0;
-			m_fadeFramesDecrease = FRAMES_TO_FADE_IN_AT_START;
+			m_fadeFramesDecrease = getFramesToFadeInAtStart();
 			m_curFadeValue = 0.0f;
 		}
 	}

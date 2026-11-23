@@ -667,7 +667,7 @@ GlobalData::GlobalData()
 	m_dumpAssetUsage = FALSE;
 	m_framesPerSecondLimit = 60;
 	// GeneralsX @feature felipebraz 17/09/2026 Skirmish simulation tick rate configuration (#281)
-	m_skirmishTickRate = LOGICFRAMES_PER_SECOND;
+	m_skirmishTickRate = NativeFps;
 	m_chipSetType = 0;
 	m_headless = FALSE;
 	// GeneralsX @feature BenderAI 21/04/2026 Default to TRUE; user can override via Options.ini

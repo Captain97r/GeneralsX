@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/KindOf.h"
 #include "GameLogic/Module/SpecialPowerUpdateModule.h"
@@ -48,10 +50,10 @@ class BattlePlanUpdateModuleData : public ModuleData
 public:
 	SpecialPowerTemplate *m_specialPowerTemplate;
 
-  UnsignedInt m_bombardmentPlanAnimationFrames;
-  UnsignedInt m_holdTheLinePlanAnimationFrames;
-  UnsignedInt m_searchAndDestroyPlanAnimationFrames;
-	UnsignedInt m_transitionIdleFrames;
+  SimulationFrameValue<UnsignedInt> m_bombardmentPlanAnimationFrames;
+  SimulationFrameValue<UnsignedInt> m_holdTheLinePlanAnimationFrames;
+  SimulationFrameValue<UnsignedInt> m_searchAndDestroyPlanAnimationFrames;
+	SimulationFrameValue<UnsignedInt> m_transitionIdleFrames;
 
 	AsciiString	m_bombardmentUnpackName;
 	AsciiString	m_bombardmentPackName;
@@ -67,7 +69,7 @@ public:
 	AsciiString m_holdTheLineMessageLabel;
 	AsciiString m_holdTheLineAnnouncementName;
 
-	UnsignedInt m_battlePlanParalyzeFrames;
+	SimulationFrameValue<UnsignedInt> m_battlePlanParalyzeFrames;
 	KindOfMaskType m_validMemberKindOf;
 	KindOfMaskType m_invalidMemberKindOf;
 

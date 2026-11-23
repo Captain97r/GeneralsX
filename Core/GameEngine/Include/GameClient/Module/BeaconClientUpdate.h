@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/ClientUpdateModule.h"
 
@@ -40,8 +42,8 @@ class ParticleSystem;
 class BeaconClientUpdateModuleData : public ClientUpdateModuleData
 {
 public:
-	UnsignedInt m_framesBetweenRadarPulses;
-	UnsignedInt m_radarPulseDuration;
+	SimulationFrameValue<UnsignedInt> m_framesBetweenRadarPulses;
+	SimulationFrameValue<UnsignedInt> m_radarPulseDuration;
 
 	BeaconClientUpdateModuleData();
 	virtual ~BeaconClientUpdateModuleData() override;

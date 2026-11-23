@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "Common/GameCommon.h"	// ensure we get DUMP_PERF_STATS, or not
 #include "Common/AsciiString.h"
 #include "Common/GameType.h"
@@ -250,9 +252,9 @@ public:
 	Real m_unitReallyDamagedThresh;
 	Real m_groundStiffness;
 	Real m_structureStiffness;
-	Real m_gravity;	// acceleration due to gravity, in dist/frame^2
+	SimulationAccelerationValue<Real> m_gravity;	// acceleration due to gravity, in dist/frame^2
 	Real m_stealthFriendlyOpacity;
-	UnsignedInt m_defaultOcclusionDelay;	///<time to delay building occlusion after object is created.
+	SimulationFrameValue<UnsignedInt> m_defaultOcclusionDelay;	///<time to delay building occlusion after object is created.
 
 	Bool m_preloadAssets;
 	Bool m_preloadEverything;			///< Preload everything, everywhere (for debugging only)
@@ -267,7 +269,7 @@ public:
 	Real m_ammoPipScaleFactor;
 	Real m_containerPipScaleFactor;
 
-	UnsignedInt m_historicDamageLimit;
+	SimulationFrameValue<UnsignedInt> m_historicDamageLimit;
 
 	//Settings for terrain tracks left by vehicles with treads or wheels
 	Int m_maxTerrainTracks; ///<maximum number of objects allowed to generate tracks.
@@ -496,7 +498,7 @@ public:
 
 	Real m_sellPercentage;						///< when objects are sold, you get this much of the cost it would take to build it back
 	Real m_baseRegenHealthPercentPerSecond;	///< auto healing for bases
-	UnsignedInt m_baseRegenDelay;			///< delay in frames we must be damage free before we can auto heal
+	SimulationFrameValue<UnsignedInt> m_baseRegenDelay;			///< delay in frames we must be damage free before we can auto heal
 
 #ifdef ALLOW_SURRENDER
 	Real m_prisonBountyMultiplier;		///< the cost of the unit is multiplied by this and given to the player when prisoners are returned to the a prison with KINDOF_COLLECTS_PRISON_BOUNTY
@@ -526,7 +528,7 @@ public:
 	Int m_powerBarYellowRange;						///< Red if consumption exceeds production, yellow if consumption this close but under, green if further under
 	Real m_displayGamma;									///<display gamma that's adjusted with "brightness" control on options screen.
 
-	UnsignedInt m_unlookPersistDuration;	///< How long after unlook until the sighting info executes the undo
+	SimulationFrameValue<UnsignedInt> m_unlookPersistDuration;	///< How long after unlook until the sighting info executes the undo
 
 	Bool m_shouldUpdateTGAToDDS;					///< Should we attempt to update old TGAs to DDS stuff on loadup?
 

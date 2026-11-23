@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/PrisonBehavior.h"
 
@@ -50,7 +52,7 @@ public:
 
 	static void buildFieldParse( MultiIniFieldParse &p );
 
-	UnsignedInt m_brainwashDuration;			///< how long (in frames) it takes to become brainwashed
+	SimulationFrameValue<UnsignedInt> m_brainwashDuration;			///< how long (in frames) it takes to become brainwashed
 
 };
 

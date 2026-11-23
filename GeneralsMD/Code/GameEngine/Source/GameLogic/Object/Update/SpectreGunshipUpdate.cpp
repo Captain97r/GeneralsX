@@ -89,6 +89,7 @@ SpectreGunshipUpdateModuleData::SpectreGunshipUpdateModuleData()
 /*************/  m_gunshipOrbitRadius           = 250.0f;
   m_strafingIncrement = 20.0f;
   m_orbitInsertionSlope = 0.7f;
+  // GeneralsX @feature Codex 23/11/2026 Preserve the USA Spectre Gunship firing interval at both rates.
   m_howitzerFiringRate = logicFramesFromBaseFrames(10);
   m_howitzerFollowLag = 0;
   m_randomOffsetForHowitzer = 20.0f;

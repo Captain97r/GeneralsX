@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/CollideModule.h"
@@ -53,8 +55,8 @@ public:
 	Bool									m_stopsRegenAfterCreatorDies;
 	Bool									m_regenerates;										///< if t, can't be killed normally
 	Bool									m_workersDetonate;								///< if f, workers don't detonate mines
-	UnsignedInt						m_creatorDeathCheckRate;					///< if above is true, how often to check
-	UnsignedInt						m_scootFromStartingPointTime;			///< if nonzero, gradually scoot to dest pt
+	SimulationFrameValue<UnsignedInt>						m_creatorDeathCheckRate;					///< if above is true, how often to check
+	SimulationFrameValue<UnsignedInt>						m_scootFromStartingPointTime;			///< if nonzero, gradually scoot to dest pt
 	UnsignedInt						m_numVirtualMines;								///< num of "virtual" mines we have
 	Real									m_repeatDetonateMoveThresh;
 	Real									m_healthPercentToDrainPerSecond;

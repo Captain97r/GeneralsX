@@ -56,7 +56,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-enum { MUZZLE_FLASH_LIFETIME = LOGICFRAMES_PER_SECOND / 7 };
+static Int getMuzzleFlashLifetime() { return LOGICFRAMES_PER_SECOND / 7; }
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
@@ -890,7 +890,7 @@ void GarrisonContain::updateEffects()
 
 		if( m_garrisonPointData[ i ].effect &&
 				m_garrisonPointData[ i ].lastEffectFrame != 0 &&
-				currentFrame - m_garrisonPointData[ i ].lastEffectFrame > MUZZLE_FLASH_LIFETIME  )
+				currentFrame - m_garrisonPointData[ i ].lastEffectFrame > getMuzzleFlashLifetime()  )
 		{
 
 			// clear the model condition

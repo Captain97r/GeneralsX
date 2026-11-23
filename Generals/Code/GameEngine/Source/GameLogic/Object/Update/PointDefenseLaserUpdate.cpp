@@ -121,7 +121,7 @@ void PointDefenseLaserUpdate::onObjectCreated()
 /** The update callback. */
 //-------------------------------------------------------------------------------------------------
 // GeneralsX @feature Codex 22/11/2026 The scan or shot itself occupies the last tick after its countdown.
-static constexpr Int extraCountdownTicks = logicFramesFromBaseFrames(1) - 1;
+static inline Int getExtraCountdownTicks() { return logicFramesFromBaseFrames(1) - 1; }
 
 UpdateSleepTime PointDefenseLaserUpdate::update()
 {
@@ -146,7 +146,7 @@ UpdateSleepTime PointDefenseLaserUpdate::update()
 		fireWhenReady(); //Only happens if something is tracked.
 		return UPDATE_SLEEP_NONE;
 	}
-	m_nextScanFrames = data->m_scanFrames + extraCountdownTicks;
+	m_nextScanFrames = data->m_scanFrames + getExtraCountdownTicks();
 
 	//Periodic scanning (expensive)
 	if( scanClosestTarget() )
@@ -187,7 +187,7 @@ void PointDefenseLaserUpdate::fireWhenReady()
 				if( !m_nextScanFrames )
 				{
 					scanClosestTarget();
-					m_nextScanFrames = data->m_scanFrames + extraCountdownTicks;
+					m_nextScanFrames = data->m_scanFrames + getExtraCountdownTicks();
 					target = nullptr; //Set target to nullptr so we don't shoot at it (might be out of range)
 				}
 			}
@@ -222,7 +222,7 @@ void PointDefenseLaserUpdate::fireWhenReady()
 				deleteInstance(w);
 
 				// And now that we have shot, set our internal reload timer.
-				m_nextShotAvailableInFrames = wt->getDelayBetweenShots(bonus) + extraCountdownTicks;
+				m_nextShotAvailableInFrames = wt->getDelayBetweenShots(bonus) + getExtraCountdownTicks();
 			}
 
 			if( target->isEffectivelyDead() )
@@ -232,7 +232,7 @@ void PointDefenseLaserUpdate::fireWhenReady()
 				if( !m_nextScanFrames )
 				{
 					scanClosestTarget();
-					m_nextScanFrames = data->m_scanFrames + extraCountdownTicks;
+					m_nextScanFrames = data->m_scanFrames + getExtraCountdownTicks();
 				}
 			}
 		}

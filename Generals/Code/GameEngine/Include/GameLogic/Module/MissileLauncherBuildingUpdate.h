@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/AudioEventRTS.h"
 #include "Common/INI.h"
@@ -43,9 +45,9 @@ class MissileLauncherBuildingUpdateModuleData : public UpdateModuleData
 {
 public:
 	SpecialPowerTemplate *m_specialPowerTemplate;		///< pointer to the special power template
-	UnsignedInt m_doorOpenTime;							///< in frames, time we should take to open the door
-	UnsignedInt m_doorWaitOpenTime;					///< in frames, time we should leave the door open after firing the superweapon
-	UnsignedInt m_doorClosingTime;					///< in frames, time it takes to close the door
+	SimulationFrameValue<UnsignedInt> m_doorOpenTime;							///< in frames, time we should take to open the door
+	SimulationFrameValue<UnsignedInt> m_doorWaitOpenTime;					///< in frames, time we should leave the door open after firing the superweapon
+	SimulationFrameValue<UnsignedInt> m_doorClosingTime;					///< in frames, time it takes to close the door
 
 	const FXList *m_openingFX;
 	const FXList *m_openFX;

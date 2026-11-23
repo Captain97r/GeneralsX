@@ -232,7 +232,7 @@ UpdateSleepTime SpawnBehavior::update()
 		return UPDATE_SLEEP_NONE;
 	}
 
-	m_framesToWait = SPAWN_UPDATE_RATE;
+	m_framesToWait = getSpawnUpdateRate();
 
 	//Go through the list and make a spawn for each number that is less than now's frame
 	if( shouldTryToSpawn() )

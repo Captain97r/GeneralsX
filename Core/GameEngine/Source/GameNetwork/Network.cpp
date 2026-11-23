@@ -103,7 +103,7 @@ class Network : public NetworkInterface
 public:
 	//---------------------------------------------------------------------------------------
 	// Setup / Teardown functions
-	Network();
+	explicit Network(Int nativeSimulationRate);
 	virtual ~Network() override;
 	virtual void init() override;																				///< Initialize or re-initialize the instance
 	virtual void reset() override;																				///< Reinitialize the network
@@ -260,9 +260,9 @@ Bool Network::isPlayerConnected( Int playerID ) {
 /**
  * This creates a network object and returns it.
  */
-NetworkInterface *NetworkInterface::createNetwork()
+NetworkInterface *NetworkInterface::createNetwork(Int nativeSimulationRate)
 {
-	return NEW Network;
+	return NEW Network(nativeSimulationRate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -270,7 +270,7 @@ NetworkInterface *NetworkInterface::createNetwork()
 /**
  * The constructor.
  */
-Network::Network()
+Network::Network(Int nativeSimulationRate) : NetworkInterface(nativeSimulationRate)
 {
 	m_checkCRCsThisFrame = FALSE;
 	m_didSelfSlug = FALSE;
@@ -330,12 +330,14 @@ void Network::init()
 		return;
 	}
 
+	// Size the frame and latency rings before constructing the new connection manager.
+	configureNetworkTiming(getNativeSimulationRate());
 	m_conMgr = NEW ConnectionManager;
 	m_conMgr->init();
 
 	m_lastFrame = 0;
 	// GeneralsX @feature Codex 22/11/2026 Start all peers with the same one-second command horizon and tick rate.
-	m_frameRate = LOGICFRAMES_PER_SECOND;
+	m_frameRate = getNativeSimulationRate();
 	m_runAhead = clamp<Int>(MIN_RUNAHEAD, m_frameRate, MAX_FRAMES_AHEAD / 2);
 	m_lastExecutionFrame = m_runAhead - 1; // subtract 1 since we're starting on frame 0
 	m_lastFrameCompleted = m_runAhead - 1; // subtract 1 since we're starting on frame 0

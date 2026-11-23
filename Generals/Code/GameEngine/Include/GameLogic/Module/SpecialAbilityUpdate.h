@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/AudioEventRTS.h"
 #include "Common/INI.h"
@@ -57,13 +59,13 @@ public:
 	Int										m_effectValue;
 	Int										m_awardXPForTriggering;
 	Int										m_skillPointsForTriggering;
-	UnsignedInt						m_preparationFrames;
-	UnsignedInt						m_persistentPrepFrames;
-	UnsignedInt						m_effectDuration;
+	SimulationFrameValue<UnsignedInt>						m_preparationFrames;
+	SimulationFrameValue<UnsignedInt>						m_persistentPrepFrames;
+	SimulationFrameValue<UnsignedInt>						m_effectDuration;
 	UnsignedInt						m_maxSpecialObjects;
-	UnsignedInt						m_packTime;
-	UnsignedInt						m_unpackTime;
-	UnsignedInt						m_preTriggerUnstealthFrames;
+	SimulationFrameValue<UnsignedInt>						m_packTime;
+	SimulationFrameValue<UnsignedInt>						m_unpackTime;
+	SimulationFrameValue<UnsignedInt>						m_preTriggerUnstealthFrames;
 	Bool									m_skipPackingWithNoTarget;
 	Bool									m_specialObjectsPersistent;
 	Bool									m_uniqueSpecialObjectTargets;

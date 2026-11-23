@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/DockUpdate.h"
 
@@ -43,9 +45,9 @@ public:
 
 	static void buildFieldParse( MultiIniFieldParse &p );
 
-	UnsignedInt m_pullInsideDurationInFrames;		/**< how long it takes to pull object inside
+	SimulationFrameValue<UnsignedInt> m_pullInsideDurationInFrames;		/**< how long it takes to pull object inside
 																									 once they're at the dock action point */
-	UnsignedInt m_pushOutsideDurationInFrames;	/**< how long it takes to push object outside
+	SimulationFrameValue<UnsignedInt> m_pushOutsideDurationInFrames;	/**< how long it takes to push object outside
 																									 when we're unloading */
 
 	Real m_toleranceDistance;	///< The maximum distance the docking unit must be within in order to cheat and dock.

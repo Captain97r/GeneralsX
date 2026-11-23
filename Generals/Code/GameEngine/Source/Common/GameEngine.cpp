@@ -248,7 +248,6 @@ static void updateWindowTitle()
 GameEngine::GameEngine()
 {
 	// initialize to non garbage values
-	m_logicTimeAccumulator = 0.0f;
 	m_quitting = FALSE;
 	m_isActive = FALSE;
 }
@@ -774,79 +773,29 @@ void GameEngine::resetSubsystems()
 }
 
 /// -----------------------------------------------------------------------------------------------
-Bool GameEngine::canUpdateGameLogic(UnsignedInt logicTimeQueryFlags)
+void GameEngine::prepareLogicFrame()
 {
-	// This updates the paused game status of the game logic.
 	TheGameLogic->preUpdate();
-
 	TheFramePacer->setTimeFrozen(isTimeFrozen());
 	TheFramePacer->setGameHalted(isGameHalted());
+}
 
+/// -----------------------------------------------------------------------------------------------
+Int GameEngine::getPendingLogicFrames()
+{
 	if (TheNetwork != nullptr)
 	{
-		return canUpdateNetworkGameLogic();
+		if (!TheNetwork->isFrameDataReady())
+			return 0;
+		TheFramePacer->setGameHalted(FALSE);
+		return 1;
 	}
-	else
-	{
-		return canUpdateRegularGameLogic(logicTimeQueryFlags);
-	}
-}
-
-/// -----------------------------------------------------------------------------------------------
-Bool GameEngine::canUpdateNetworkGameLogic()
-{
-	DEBUG_ASSERTCRASH(TheNetwork != nullptr, ("TheNetwork is null"));
-
-	if (TheNetwork->isFrameDataReady())
-	{
-		// Important: The Network is definitely no longer stalling.
-		TheFramePacer->setGameHalted(false);
-
-		return true;
-	}
-
-	return false;
-}
-
-/// -----------------------------------------------------------------------------------------------
-Bool GameEngine::canUpdateRegularGameLogic(UnsignedInt logicTimeQueryFlags)
-{
-	const Int logicTimeScaleFps = TheFramePacer->getActualLogicTimeScaleFps(logicTimeQueryFlags);
-
-	if (logicTimeScaleFps <= 0)
-	{
-		return false;
-	}
-
-	const Bool enabled = TheFramePacer->isLogicTimeScaleEnabled();
-	const Int maxRenderFps = TheFramePacer->getActualFramesPerSecondLimit();
-
 #if defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
-	const Bool useFastMode = TheGlobalData->m_TiVOFastMode;
-#else	//always allow this cheat key if we're in a replay game.
-	const Bool useFastMode = TheGlobalData->m_TiVOFastMode && TheGameLogic->isInReplayGame();
+	const Bool fastMode = TheGlobalData->m_TiVOFastMode;
+#else
+	const Bool fastMode = TheGlobalData->m_TiVOFastMode && TheGameLogic->isInReplayGame();
 #endif
-
-	if (useFastMode || !enabled || logicTimeScaleFps >= maxRenderFps)
-	{
-		// Logic time scale is uncapped or larger equal Render FPS. Update straight away.
-		return true;
-	}
-	else
-	{
-		// TheSuperHackers @tweak xezon 06/08/2025
-		// The logic time step is now decoupled from the render update.
-		const Real targetFrameTime = 1.0f / logicTimeScaleFps;
-		m_logicTimeAccumulator += min(TheFramePacer->getUpdateTime(), targetFrameTime);
-
-		if (m_logicTimeAccumulator >= targetFrameTime)
-		{
-			m_logicTimeAccumulator -= targetFrameTime;
-			return true;
-		}
-	}
-
-	return false;
+	return TheFramePacer->takeOfflineLogicFrames(fastMode);
 }
 
 /// -----------------------------------------------------------------------------------------------
@@ -877,15 +826,29 @@ void GameEngine::update()
 			}
 		}	// end VERIFY_CRC block
 
-		// TheSuperHackers @info Ignores frozen time because the script engine needs updating in the logic update regardless.
-		if (canUpdateGameLogic(FramePacer::IgnoreFrozenTime))
+		// GeneralsX @feature Codex 23/11/2026 Let offline simulation catch up between renders; lockstep grants one tick at a time.
+		prepareLogicFrame();
+		const Int frames = getPendingLogicFrames();
+		const GameMode mode = TheGameLogic->getGameMode();
+		for (Int i = 0; i < frames; ++i)
 		{
-			TheGameLogic->UPDATE();
-
-			if (!TheFramePacer->isTimeFrozen())
+			if (i > 0)
 			{
-				TheGameClient->step();
+				// The next render handles the last tick's particles. Service intervening ticks here.
+				if (TheGameLogic->hasUpdated())
+					TheParticleSystemManager->UPDATE();
+				TheMessageStream->propagateMessages();
+				prepareLogicFrame();
+				if (TheFramePacer->isGameHalted())
+					break;
 			}
+			TheGameLogic->UPDATE();
+			if (!TheFramePacer->isTimeFrozen())
+				TheGameClient->step();
+
+			if (m_quitting || TheGameLogic->getGameMode() != mode || TheNetwork != nullptr ||
+				(!TheGameLogic->hasUpdated() && !TheFramePacer->isTimeFrozen()))
+				break;
 		}
 	}
 }

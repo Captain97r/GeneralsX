@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/DieModule.h"
@@ -72,14 +74,14 @@ class SlowDeathBehaviorModuleData : public UpdateModuleData
 {
 public:
 	DieMuxData				m_dieMuxData;
-	Real							m_sinkRate;
+	SimulationRateValue<Real>							m_sinkRate;
 	Int								m_probabilityModifier;
 	Real							m_modifierBonusPerOverkillPercent;
-	UnsignedInt				m_sinkDelay;
-	UnsignedInt				m_sinkDelayVariance;
+	SimulationFrameValue<UnsignedInt>				m_sinkDelay;
+	SimulationFrameValue<UnsignedInt>				m_sinkDelayVariance;
 	Real							m_destructionAltitude;
-	UnsignedInt				m_destructionDelay;
-	UnsignedInt				m_destructionDelayVariance;
+	SimulationFrameValue<UnsignedInt>				m_destructionDelay;
+	SimulationFrameValue<UnsignedInt>				m_destructionDelayVariance;
 	FXListVec					m_fx[SD_PHASE_COUNT];
 	OCLVec						m_ocls[SD_PHASE_COUNT];
 	WeaponTemplateVec	m_weapons[SD_PHASE_COUNT];

@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/UpdateModule.h"
@@ -85,8 +87,8 @@ class StructureToppleUpdateModuleData : public UpdateModuleData
 {
 public:
 	DieMuxData m_dieMuxData;
-	Int m_minToppleDelay;
-	Int m_maxToppleDelay;
+	SimulationFrameValue<Int> m_minToppleDelay;
+	SimulationFrameValue<Int> m_maxToppleDelay;
 	Real m_structuralIntegrity;
 	Real m_structuralDecay;
 	DamageTypeFlags m_damageFXTypes;		///< flags used to play or not play the effects
@@ -96,8 +98,8 @@ public:
 	FXList *m_toppleDoneFXList;
 	FXList *m_crushingFXList;
 	AsciiString	m_crushingWeaponName;
-	Int m_minToppleBurstDelay;
-	Int m_maxToppleBurstDelay;
+	SimulationFrameValue<Int> m_minToppleBurstDelay;
+	SimulationFrameValue<Int> m_maxToppleBurstDelay;
 	OCLVec m_ocls[ST_PHASE_COUNT];
 	UnsignedInt m_oclCount[ST_PHASE_COUNT];
 	FXBoneInfoVector fxbones;			///< Bone names and attached particle systems.

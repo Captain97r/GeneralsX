@@ -143,8 +143,7 @@ void FrameRateLimit::reset()
 // advances on its own clock. A higher cap (60/120/...) does not speed up the game; it only
 // makes input more responsive. (Root cause of a long "mouse input is delayed" investigation.)
 const UnsignedInt RenderFpsPreset::s_fpsValues[] = {
-	// GeneralsX @feature Codex 22/11/2026 Offer render rates that can service every simulation tick.
-	60, 65, 70, 72, 75, 80, 85, 90, 100, 110, 120, 144, 240, 480, UncappedFpsValue };
+	30, 50, 56, 60, 65, 70, 72, 75, 80, 85, 90, 100, 110, 120, 144, 240, 480, UncappedFpsValue };
 
 UnsignedInt RenderFpsPreset::getNextFpsValue(UnsignedInt value)
 {
@@ -194,7 +193,7 @@ UnsignedInt LogicTimeScaleFpsPreset::getNextFpsValue(UnsignedInt value)
 
 UnsignedInt LogicTimeScaleFpsPreset::getPrevFpsValue(UnsignedInt value)
 {
-	if (value - StepFpsValue < MinFpsValue)
+	if (value < MinFpsValue + StepFpsValue)
 	{
 		return MinFpsValue;
 	}

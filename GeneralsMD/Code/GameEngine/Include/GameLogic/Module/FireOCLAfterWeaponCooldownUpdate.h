@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 class UpgradeMuxData;
 
 #include "GameLogic/Module/UpdateModule.h"
@@ -44,7 +46,7 @@ public:
 	WeaponSlotType			m_weaponSlot;
 	UnsignedInt					m_minShotsRequired;
 	UnsignedInt					m_oclLifetimePerSecond;
-	UnsignedInt					m_oclMaxFrames;
+	SimulationFrameValue<UnsignedInt>					m_oclMaxFrames;
 
 	FireOCLAfterWeaponCooldownUpdateModuleData();
 	static void buildFieldParse(MultiIniFieldParse& p);

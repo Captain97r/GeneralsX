@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
 #include "Common/AudioEventRTS.h"
 #include "Common/GameAudio.h"
 #include "GameLogic/Module/BehaviorModule.h"
@@ -48,15 +49,15 @@ class PhysicsBehaviorModuleData : public UpdateModuleData
 {
 public:
 	Real	m_mass;
-	Real	m_forwardFriction;
-	Real	m_lateralFriction;
-	Real	m_ZFriction;
-	Real	m_aerodynamicFriction;	// The percent of the wind resistance effect you suffer from
+	SimulationRateValue<Real>	m_forwardFriction;
+	SimulationRateValue<Real>	m_lateralFriction;
+	SimulationRateValue<Real>	m_ZFriction;
+	SimulationRateValue<Real>	m_aerodynamicFriction;	// The percent of the wind resistance effect you suffer from
 	Real	m_centerOfMassOffset;	// Distance the center of mass is from the center of geometry, to control pitch rate
 	Bool	m_killWhenRestingOnGround;	// when airborne==false and vel==0, kill it.
 	Bool	m_allowBouncing;
 	Bool	m_allowCollideForce;
-	Real	m_minFallSpeedForDamage;
+	SimulationRateValue<Real>	m_minFallSpeedForDamage;
 	Real	m_fallHeightDamageFactor;
 	Real	m_pitchRollYawFactor;
 	const WeaponTemplate* m_vehicleCrashesIntoBuildingWeaponTemplate;

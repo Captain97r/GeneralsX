@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "Common/StateMachine.h"
 #include "GameLogic/Module/AIUpdate.h"
@@ -68,10 +70,10 @@ public:
 	// !!!
 	Int m_maxBoxesData;
 	Real m_repairHealthPercentPerSecond;	///< how many health points per second the dozer repairs at
-	Real m_boredTime;											///< after this many frames, a dozer will try to find something to do on its own
+	SimulationFrameValue<Real> m_boredTime;											///< after this many frames, a dozer will try to find something to do on its own
 	Real m_boredRange;										///< range the dozers try to auto repair when they're bored
-	UnsignedInt m_centerDelay;
-	UnsignedInt m_warehouseDelay;
+	SimulationFrameValue<UnsignedInt> m_centerDelay;
+	SimulationFrameValue<UnsignedInt> m_warehouseDelay;
 	Real m_warehouseScanDistance;
  	AudioEventRTS m_suppliesDepletedVoice;						///< Sound played when I take the last box.
 	Int m_upgradedSupplyBoost;

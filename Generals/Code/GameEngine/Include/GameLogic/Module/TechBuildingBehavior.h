@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/DieModule.h"
 #include "GameLogic/Module/UpdateModule.h"
@@ -45,7 +47,7 @@ public:
 	static void buildFieldParse( MultiIniFieldParse &p );
 
 	const FXList*		m_pulseFX;										///< FXList to play when bldg is owned is updated
-	UnsignedInt			m_pulseFXRate;								///< how frequently to play it
+	SimulationFrameValue<UnsignedInt>			m_pulseFXRate;								///< how frequently to play it
 
 };
 

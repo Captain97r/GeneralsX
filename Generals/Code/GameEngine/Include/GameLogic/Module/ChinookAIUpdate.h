@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "GameLogic/AIStateMachine.h"
 #include "GameLogic/Module/SupplyTruckAIUpdate.h"
 
@@ -43,17 +45,17 @@ class ChinookAIUpdateModuleData : public SupplyTruckAIUpdateModuleData
 {
 public:
 	AsciiString		m_ropeName;
-	Real					m_rappelSpeed;
-	Real					m_ropeDropSpeed;
+	SimulationRateValue<Real>					m_rappelSpeed;
+	SimulationRateValue<Real>					m_ropeDropSpeed;
 	Real					m_ropeWidth;
 	Real					m_ropeFinalHeight;
 	Real					m_ropeWobbleLen;
 	Real					m_ropeWobbleAmp;
-	Real					m_ropeWobbleRate;
+	SimulationRateValue<Real>					m_ropeWobbleRate;
 	RGBColor			m_ropeColor;
 	UnsignedInt		m_numRopes;
-	UnsignedInt		m_perRopeDelayMin;
-	UnsignedInt		m_perRopeDelayMax;
+	SimulationFrameValue<UnsignedInt>		m_perRopeDelayMin;
+	SimulationFrameValue<UnsignedInt>		m_perRopeDelayMax;
 	Real					m_minDropHeight;
 	Bool					m_waitForRopesToDrop;
 

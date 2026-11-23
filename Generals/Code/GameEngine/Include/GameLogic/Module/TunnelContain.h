@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/OpenContain.h"
 #include "GameLogic/Module/HealContain.h"
@@ -43,7 +45,7 @@ class TunnelContainModuleData : public OpenContainModuleData
 {
 public:
 
-	Real m_framesForFullHeal;			///< time (in frames) something becomes fully healed
+	SimulationFrameValue<Real> m_framesForFullHeal;			///< time (in frames) something becomes fully healed
 
 	TunnelContainModuleData()
 	{

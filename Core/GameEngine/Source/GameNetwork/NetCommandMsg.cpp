@@ -26,6 +26,7 @@
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "GameNetwork/NetCommandMsg.h"
+#include "GameNetwork/NetworkInterface.h"
 #include "GameNetwork/NetPacketStructs.h"
 #include "GameNetwork/GameMessageParser.h"
 #include "Common/GameState.h"
@@ -472,8 +473,8 @@ NetCommandMsg::Select NetRunAheadMetricsCommandMsg::getSmallNetPacketSelect() co
 // NetRunAheadCommandMsg
 //-------------------------
 NetRunAheadCommandMsg::NetRunAheadCommandMsg() {
-	m_runAhead = clamp<Int>(MIN_RUNAHEAD, logicFramesFromBaseFrames(20), MAX_FRAMES_AHEAD / 2);
-	m_frameRate = LOGICFRAMES_PER_SECOND;
+	m_frameRate = TheNetwork ? TheNetwork->getNativeSimulationRate() : BaseFps;
+	m_runAhead = clamp<Int>(MIN_RUNAHEAD, 20 * m_frameRate / BaseFps, MAX_FRAMES_AHEAD / 2);
 	m_commandType = NETCOMMANDTYPE_RUNAHEAD;
 }
 

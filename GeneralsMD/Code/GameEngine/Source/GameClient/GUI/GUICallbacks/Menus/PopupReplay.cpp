@@ -73,9 +73,8 @@ static time_t s_fileSavePopupStartTime = 0;
 static const time_t s_fileSavePopupDuration = 1000;
 
 // PUBLIC FUNCTIONS ///////////////////////////////////////////////////////////////////////////////
-extern void PopulateReplayFileListbox(GameWindow *listbox);
+extern void PopulateReplayFileListbox(GameWindow *listbox, const AsciiString &directory);
 extern void ScoreScreenEnableControls(Bool enable);
-extern UnicodeString GetReplayFilenameFromListbox(GameWindow *listbox, Int index);
 extern std::string LastReplayFileName;
 
 //-------------------------------------------------------------------------------------------------
@@ -138,7 +137,7 @@ void PopupReplayInit( WindowLayout *layout, void *userData )
 	DEBUG_ASSERTCRASH( listboxGames != nullptr, ("PopupReplayInit - Unable to find games listbox") );
 
 	// populate the listbox with the save games on disk
-	PopulateReplayFileListbox(listboxGames);
+	PopulateReplayFileListbox(listboxGames, TheRecorder->getReplayDir(TheRecorder->getLastRecordingSimulationRate()));
 
 	GameWindow *textEntryReplayName = TheWindowManager->winGetWindowFromId( parent, textEntryReplayNameKey );
 	GadgetTextEntrySetText(textEntryReplayName, UnicodeString::TheEmptyString);
@@ -251,7 +250,7 @@ static void saveReplay( UnicodeString filename )
 		translated.translate(filename);
 	}
 
-	AsciiString fullPath = TheRecorder->getReplayDir();
+	AsciiString fullPath = TheRecorder->getReplayDir(TheRecorder->getLastRecordingSimulationRate());
 	fullPath.concat(translated);
 	fullPath.concat(TheRecorder->getReplayExtention());
 
@@ -271,7 +270,7 @@ void reallySaveReplay()
 	AsciiString filename = replayPath.c_str();
 
 	AsciiString oldFilename;
-	oldFilename = TheRecorder->getReplayDir();
+	oldFilename = TheRecorder->getReplayDir(TheRecorder->getLastRecordingSimulationRate());
 	oldFilename.concat(LastReplayFileName.c_str());
 	oldFilename.concat(TheRecorder->getReplayExtention());
 
@@ -299,7 +298,7 @@ void reallySaveReplay()
 			DEBUG_ASSERTCRASH( listboxGames != nullptr, ("reallySaveReplay - Unable to find games listbox") );
 
 			// populate the listbox with the save games on disk
-			PopulateReplayFileListbox(listboxGames);
+			PopulateReplayFileListbox(listboxGames, TheRecorder->getReplayDir(TheRecorder->getLastRecordingSimulationRate()));
 			return;
 		}
 	}
@@ -326,7 +325,7 @@ void reallySaveReplay()
 	DEBUG_ASSERTCRASH( listboxGames != nullptr, ("reallySaveReplay - Unable to find games listbox") );
 
 	// populate the listbox with the save games on disk
-	PopulateReplayFileListbox(listboxGames);
+	PopulateReplayFileListbox(listboxGames, TheRecorder->getReplayDir(TheRecorder->getLastRecordingSimulationRate()));
 
 	ShowReplaySavedPopup(TRUE);
 	s_fileSavePopupStartTime = timeGetTime();

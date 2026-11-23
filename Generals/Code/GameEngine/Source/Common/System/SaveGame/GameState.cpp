@@ -41,6 +41,7 @@
 #include "Common/GameEngine.h"
 #include "Common/GameState.h"
 #include "Common/GameStateMap.h"
+#include "Common/SimulationFileProfile.h"
 #include "Common/LatchRestore.h"
 #include "Common/MapObject.h"
 #include "Common/PlayerList.h"
@@ -84,6 +85,7 @@ static const Int MAX_SAVE_FILE_NUMBER  =  99999999;
 // ------------------------------------------------------------------------------------------------
 SaveGameInfo::SaveGameInfo()
 {
+	simulationRate = BaseFps;
 
 	date.day					= 0;
 	date.dayOfWeek		= 0;
@@ -365,6 +367,7 @@ void GameState::init()
 // ------------------------------------------------------------------------------------------------a
 void GameState::reset()
 {
+	m_pendingSimulationRate = 0;
 
 	// clear the post process snapshot list
 	m_snapshotPostProcessList.clear();
@@ -439,7 +442,7 @@ static void findHighFileNumber( AsciiString filename, void *userData )
 		return;
 
 	// strip off the extension at the end of the filename
-	AsciiString nameOnly = filename;
+	AsciiString nameOnly = getFileName(filename.str());
 	nameOnly.truncateBy( strlen( SAVE_GAME_EXTENSION ) );
 
 	// convert filename (which is only numbers) to a number
@@ -506,7 +509,7 @@ AsciiString GameState::findNextSaveFilename( UnicodeString desc )
 
 		// iterate all the save files in the directory and find the highest file number
 		Int highFileNumber = -1;
-		iterateSaveFiles( findHighFileNumber, &highFileNumber );
+		iterateSaveFiles( getSaveDirectory(), findHighFileNumber, &highFileNumber );
 
 		// check for a filename that is too big (this is unlikely but theoretically possible)
 		if( highFileNumber + 1 > MAX_SAVE_FILE_NUMBER )
@@ -664,8 +667,8 @@ SaveResult GameState::missionSave()
 SaveCode GameState::loadGame( AvailableGameInfo gameInfo )
 {
 
-	// sanity check for file
-	if( doesSaveGameExist( gameInfo.filename ) == FALSE )
+	const AsciiString filepath = getSaveGamePathForRead(gameInfo.filename);
+	if (!doesSaveGameExist(gameInfo.filename))
 		return SC_FILE_NOT_FOUND;
 
 	// clear game data just like loading from the debug map load screen for mission saves
@@ -677,25 +680,20 @@ SaveCode GameState::loadGame( AvailableGameInfo gameInfo )
 
 	}
 
-	//
-	// clear the save directory of any temporary "scratch pad" maps that were extracted
-	// from any previously loaded save game files
-	//
-	TheGameStateMap->clearScratchPadMaps();
-
-	AsciiString filepath = getSaveGamePathForRead(gameInfo.filename);
-
 	// open the save file
 	XferLoad xferLoad;
 	xferLoad.open( filepath );
 
-	// clear out the game engine
+	// Initialize templates and deadlines on the saved clock before any gameplay blocks are read.
 	TheGameEngine->reset();
+	prepareSimulationRateForGame(gameInfo.saveGameInfo.simulationRate);
+	TheFramePacer->configureGameLogicRate(gameInfo.saveGameInfo.simulationRate);
 
 	// lock creation of new ghost objects
 	TheGhostObjectManager->saveLockGhostObjects( TRUE );
 
 	LatchRestore<Bool> inLoadGame(m_isInLoadGame, TRUE);
+	TheGameStateMap->clearScratchPadMaps();
 
 	// load the save data
 	Bool error = FALSE;
@@ -765,6 +763,7 @@ SaveCode GameState::loadGame( AvailableGameInfo gameInfo )
 
 		InitRandom(0);
 
+		m_pendingSimulationRate = gameInfo.saveGameInfo.simulationRate;
 		TheWritableGlobalData->m_pendingFile = getSaveGameInfo()->missionMapName;
 		GameMessage *msg = TheMessageStream->appendMessage( GameMessage::MSG_NEW_GAME );
 		msg->appendIntegerArgument(GAME_SINGLE_PLAYER);
@@ -849,11 +848,11 @@ void GameState::loadQueuedSaveGame()
 }
 
 //-------------------------------------------------------------------------------------------------
-AsciiString GameState::getSaveDirectory() const
+static AsciiString saveDirectoryForRate(Int rate)
 {
 	AsciiString tmp = TheGlobalData->getPath_UserData();
-	// GeneralsX @feature Codex 22/11/2026 Give frame-stamped 60 Hz saves their own directory.
-	tmp.concat("60Hz");
+	if (rate == 60)
+		tmp.concat("60Hz");
 	// GeneralsX @bugfix copilot 12/03/2026 Use POSIX separator on non-Windows so saves are created inside a real Save directory.
 #ifdef _WIN32
 	tmp.concat("Save\\");
@@ -864,6 +863,13 @@ AsciiString GameState::getSaveDirectory() const
 }
 
 //-------------------------------------------------------------------------------------------------
+AsciiString GameState::getSaveDirectory() const
+{
+	if (m_isInLoadGame || (TheGameLogic && TheGameLogic->isInGame() && !TheGameLogic->isInShellGame()))
+		return saveDirectoryForRate(getSimulationRate());
+	return saveDirectoryForRate(60);
+}
+
 AsciiString GameState::getFilePathInSaveDirectory(const AsciiString& leaf) const
 {
 	AsciiString tmp = getSaveDirectory();
@@ -879,7 +885,13 @@ AsciiString GameState::getSaveGamePathForRead(const AsciiString& filenameOrPath)
 		return filenameOrPath;
 	}
 
-	return getFilePathInSaveDirectory(filenameOrPath);
+	AsciiString path = getFilePathInSaveDirectory(filenameOrPath);
+	if (TheFileSystem->doesFileExist(path.str()))
+		return path;
+	const AsciiString retailDir = saveDirectoryForRate(30);
+	path = getSaveDirectory() == retailDir ? saveDirectoryForRate(60) : retailDir;
+	path.concat(filenameOrPath);
+	return path;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -1284,7 +1296,13 @@ void GameState::populateSaveGameListbox( GameWindow *listbox, SaveLoadLayoutType
 	clearAvailableGames();
 
 	// iterate all the save files in the directory and populate the listbox
-	iterateSaveFiles( addGameToAvailableList, &m_availableGames );
+	if (layoutType == SLLT_SAVE_ONLY)
+		iterateSaveFiles(getSaveDirectory(), addGameToAvailableList, &m_availableGames);
+	else
+	{
+		iterateSaveFiles(saveDirectoryForRate(30), addGameToAvailableList, &m_availableGames);
+		iterateSaveFiles(saveDirectoryForRate(60), addGameToAvailableList, &m_availableGames);
+	}
 
 	// add all games found to the list box
 	AvailableGameInfo *info;
@@ -1324,6 +1342,9 @@ void GameState::populateSaveGameListbox( GameWindow *listbox, SaveLoadLayoutType
 				displayLabel.format( L"%S", saveGameInfo->mapLabel.str() );
 
 		}
+
+		if (layoutType != SLLT_SAVE_ONLY)
+			displayLabel.concat(saveGameInfo->simulationRate == 60 ? L" (60 Hz)" : L" (30 Hz)");
 
 		// pick color for text (we alternate it each game)
 		Color color;
@@ -1368,129 +1389,12 @@ void GameState::populateSaveGameListbox( GameWindow *listbox, SaveLoadLayoutType
 // ------------------------------------------------------------------------------------------------
 /** Iterate the save game files */
 // ------------------------------------------------------------------------------------------------
-void GameState::iterateSaveFiles( IterateSaveFileCallback callback, void *userData )
+void GameState::iterateSaveFiles(const AsciiString &directory, IterateSaveFileCallback callback, void *userData)
 {
-
-	// sanity
-	if( callback == nullptr )
-		return;
-
-	// save the current directory
-#ifdef _WIN32
-	char currentDirectory[ _MAX_PATH ];
-	GetCurrentDirectory( _MAX_PATH, currentDirectory );
-
-	// switch into the save directory
-	SetCurrentDirectory( getSaveDirectory().str() );
-
-	// iterate all items in the directory
-	WIN32_FIND_DATA item;  // search item
-	HANDLE hFile = INVALID_HANDLE_VALUE;  // handle for search resources
-#else
-	// GeneralsX @bugfix Copilot 02/04/2026 Add robust save-file iteration on macOS/Linux.
-	std::filesystem::path currentDirectory;
-	Bool changedDirectory = FALSE;
-	AsciiString saveDirPath = getSaveDirectory();
-
-	try {
-		currentDirectory = std::filesystem::current_path();
-		const char *saveDir = saveDirPath.str();
-		std::filesystem::current_path( saveDir );
-		changedDirectory = TRUE;
-
-		for( const auto &entry : std::filesystem::directory_iterator(".") ) {
-			if( entry.is_regular_file() ) {
-				std::string filename_str = entry.path().filename().string();
-
-				// See if there is a ".sav" at end of this filename
-				const char *c = strrchr( filename_str.c_str(), '.' );
-				if( c && stricmp( c, ".sav" ) == 0 ) {
-					AsciiString filename;
-					filename.set( filename_str.c_str() );
-					callback( filename, userData );
-				}
-			}
-		}
-	} catch( const std::filesystem::filesystem_error &e ) {
-#ifdef _DEBUG
-		DEBUG_LOG(( "GameState::iterateSaveFiles failed while iterating save directory '%s': %s\r\n", saveDirPath.str(), e.what() ));
-#endif
-	} catch( ... ) {
-#ifdef _DEBUG
-		DEBUG_LOG(( "GameState::iterateSaveFiles failed with unknown exception while iterating save directory '%s'\r\n", saveDirPath.str() ));
-#endif
-	}
-
-	if( changedDirectory ) {
-		try {
-			std::filesystem::current_path( currentDirectory );
-		} catch( const std::filesystem::filesystem_error &e ) {
-#ifdef _DEBUG
-			DEBUG_LOG(( "GameState::iterateSaveFiles failed to restore current directory '%s': %s\r\n", currentDirectory.string().c_str(), e.what() ));
-#endif
-		} catch( ... ) {
-#ifdef _DEBUG
-			DEBUG_LOG(( "GameState::iterateSaveFiles failed with unknown exception while restoring current directory\r\n" ));
-#endif
-		}
-	}
-	return;
-#endif
-
-#ifdef _WIN32
-	Bool done = FALSE;
-	Bool first = TRUE;
-	while( done == FALSE )
-	{
-
-		// if our first time through we need to start the search
-		if( first )
-		{
-
-			// start search
-			hFile = FindFirstFile( "*", &item );
-			if( hFile == INVALID_HANDLE_VALUE )
-				return;
-
-			// we are no longer on our first item
-			first = FALSE;
-
-		}
-
-		// see if this is a file, and therefore a possible save file
-		if( !(item.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) )
-		{
-
-			// see if there is a ".sav" at end of this filename
-			Char *c = strrchr( item.cFileName, '.' );
-			if( c && stricmp( c, ".sav" ) == 0 )
-			{
-
-				// construction asciistring filename
-				AsciiString filename;
-				filename.set( item.cFileName );
-
-				// call the callback
-				callback( filename, userData );
-
-			}
-
-		}
-
-		// on to the next file
-		if( FindNextFile( hFile, &item ) == 0 )
-			done = TRUE;
-
-	}
-
-	// close search resources
-	FindClose( hFile );
-
-	// restore the current directory
-	SetCurrentDirectory( currentDirectory );
-
-#endif
-
+	FilenameList paths;
+	TheFileSystem->getFileListInDirectory(directory, "*.sav", paths, FALSE);
+	for (const AsciiString &path : paths)
+		callback(path, userData);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -1735,21 +1639,24 @@ void GameState::gameStatePostProcessLoad()
 /** Xfer method for the game state itself
 	* Version Info:
 	* 1: Initial version
-	* 2: Added save file type and mission map name (regular save vs automatic mission save) */
+	* 2: Added save file type and mission map name (regular save vs automatic mission save)
+	* 0x61: Current native 60 Hz simulation timeline. Frame-stamped snapshots use this clock. */
 // ------------------------------------------------------------------------------------------------
 void GameState::xfer( Xfer *xfer )
 {
 
-	// version
-	// GeneralsX @feature Codex 22/11/2026 Stored deadlines and velocities use profile-specific simulation units.
-	XferVersion currentVersion = 0x60;
-	XferVersion version = currentVersion;
-	xfer->xferVersion( &version, currentVersion );
-	if (version != currentVersion)
-		throw XFER_INVALID_VERSION;
-
-	// get structure for our current game info
+	// The GameState block is also read by the load menu before a session is started.
+	XferVersion version = SimulationFileProfile::saveVersion(getSimulationRate());
+	xfer->xferVersion(&version, SimulationFileProfile::nativeSaveVersion);
 	SaveGameInfo *saveGameInfo = getSaveGameInfo();
+	saveGameInfo->simulationRate = SimulationFileProfile::saveRate(version);
+	if (!saveGameInfo->simulationRate)
+	{
+		std::fprintf(stderr, "Unsupported GameState version 0x%02x in save file.\n", version);
+		throw XFER_INVALID_VERSION;
+	}
+	if (m_isInLoadGame && saveGameInfo->simulationRate != getSimulationRate())
+		throw XFER_INVALID_VERSION;
 
 	// version 2
 	if( version >= 2 )

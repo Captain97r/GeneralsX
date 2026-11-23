@@ -137,22 +137,13 @@ static void parseFXLocInfo( INI *ini, void *instance, BoneLocInfo *locInfo )
 //-------------------------------------------------------------------------------------------------
 /** Parse a random delay.  This is a number pair, where the numbers are a min and max time in milliseconds. */
 //-------------------------------------------------------------------------------------------------
-static void parseGameClientRandomDelay( INI *ini, void *instance, GameClientRandomVariable *delay)
+template <typename RandomVariable>
+static void parseRandomDelay(INI *ini, RandomVariable *delay)
 {
-	Real min, max;
-	INI::parseDurationReal(ini, instance, &min, nullptr);
-	INI::parseDurationReal(ini, instance, &max, nullptr);
-
-	delay->setRange(min, max, GameClientRandomVariable::DistributionType::UNIFORM);
-}
-
-static void parseGameLogicRandomDelay( INI *ini, void *instance, GameLogicRandomVariable *delay)
-{
-	Real min, max;
-	INI::parseDurationReal(ini, instance, &min, nullptr);
-	INI::parseDurationReal(ini, instance, &max, nullptr);
-
-	delay->setRange(min, max, GameLogicRandomVariable::DistributionType::UNIFORM);
+	const Real retailTicksPerMs = static_cast<Real>(BaseFps) / MSEC_PER_SECOND;
+	const Real min = INI::scanReal(ini->getNextToken()) * retailTicksPerMs;
+	const Real max = INI::scanReal(ini->getNextToken()) * retailTicksPerMs;
+	delay->setRange(min, max, RandomVariable::DistributionType::UNIFORM);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -180,7 +171,7 @@ void BoneFXUpdateModuleData::parseFXList( INI *ini, void *instance,
 
 	ini->parseBool( ini, instance, &info->onlyOnce, nullptr);
 
-	parseGameLogicRandomDelay( ini, instance, &info->gameLogicDelay);
+	parseRandomDelay(ini, &info->gameLogicDelay);
 
 	// make sure we have an "FXList:" token
 	token = ini->getNextToken( ini->getSepsColon() );
@@ -222,7 +213,7 @@ void BoneFXUpdateModuleData::parseObjectCreationList( INI *ini, void *instance,
 
 	ini->parseBool( ini, instance, &info->onlyOnce, nullptr );
 
-	parseGameLogicRandomDelay(ini, instance, &info->gameLogicDelay);
+	parseRandomDelay(ini, &info->gameLogicDelay);
 
 	// make sure we have an "OCL:" token
 	token = ini->getNextToken( ini->getSepsColon() );
@@ -264,7 +255,7 @@ void BoneFXUpdateModuleData::parseParticleSystem( INI *ini, void *instance,
 
 	ini->parseBool( ini, instance, &info->onlyOnce, nullptr );
 
-	parseGameClientRandomDelay(ini, instance, &info->gameClientDelay);
+	parseRandomDelay(ini, &info->gameClientDelay);
 
 	// make sure we have an "PSys:" token
 	token = ini->getNextToken( ini->getSepsColon() );
@@ -321,17 +312,17 @@ void BoneFXUpdate::initTimes() {
 
 	for (i = 0; i < BONE_FX_MAX_BONES; ++i) {
 		if (d->m_fxList[m_curBodyState][i].locInfo.boneName.compare(AsciiString::TheEmptyString) != 0) {
-			m_nextFXFrame[m_curBodyState][i] = now + REAL_TO_INT(d->m_fxList[m_curBodyState][i].gameLogicDelay.getValue());
+			m_nextFXFrame[m_curBodyState][i] = now + d->m_fxList[m_curBodyState][i].sampleLogicDelay();
 		} else {
 			m_nextFXFrame[m_curBodyState][i] = -1;
 		}
 		if (d->m_OCL[m_curBodyState][i].locInfo.boneName.compare(AsciiString::TheEmptyString) != 0) {
-			m_nextOCLFrame[m_curBodyState][i] = now + REAL_TO_INT(d->m_OCL[m_curBodyState][i].gameLogicDelay.getValue());
+			m_nextOCLFrame[m_curBodyState][i] = now + d->m_OCL[m_curBodyState][i].sampleLogicDelay();
 		} else {
 			m_nextOCLFrame[m_curBodyState][i] = -1;
 		}
 		if (d->m_particleSystem[m_curBodyState][i].locInfo.boneName.compare(AsciiString::TheEmptyString) != 0) {
-			m_nextParticleSystemFrame[m_curBodyState][i] = now + REAL_TO_INT(d->m_particleSystem[m_curBodyState][i].gameClientDelay.getValue());
+			m_nextParticleSystemFrame[m_curBodyState][i] = now + d->m_particleSystem[m_curBodyState][i].sampleClientDelay();
 		} else {
 			m_nextParticleSystemFrame[m_curBodyState][i] = -1;
 		}
@@ -464,7 +455,7 @@ void BoneFXUpdate::computeNextClientFXTime(const BaseBoneListInfo *info, Int &ne
 		nextFrame = -1;
 		return;
 	}
-	nextFrame = TheGameLogic->getFrame() + REAL_TO_INT(info->gameClientDelay.getValue());
+	nextFrame = TheGameLogic->getFrame() + info->sampleClientDelay();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -475,7 +466,7 @@ void BoneFXUpdate::computeNextLogicFXTime(const BaseBoneListInfo *info, Int &nex
 		nextFrame = -1;
 		return;
 	}
-	nextFrame = TheGameLogic->getFrame() + REAL_TO_INT(info->gameLogicDelay.getValue());
+	nextFrame = TheGameLogic->getFrame() + info->sampleLogicDelay();
 }
 
 //-------------------------------------------------------------------------------------------------

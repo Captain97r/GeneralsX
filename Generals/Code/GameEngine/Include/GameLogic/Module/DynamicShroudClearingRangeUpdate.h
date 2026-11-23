@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpdateModule.h"
 #include "GameClient/RadiusDecal.h"///< For the pseudo-wireframe decal effect
@@ -40,14 +42,14 @@
 class DynamicShroudClearingRangeUpdateModuleData : public UpdateModuleData
 {
 public:
-	UnsignedInt m_shrinkDelay;	///< wait until
-	UnsignedInt m_shrinkTime;		///< then shrink this fast
-	UnsignedInt m_growDelay;    ///< wait until
-	UnsignedInt m_growTime;     ///< then grow this fast
+	SimulationFrameValue<UnsignedInt> m_shrinkDelay;	///< wait until
+	SimulationFrameValue<UnsignedInt> m_shrinkTime;		///< then shrink this fast
+	SimulationFrameValue<UnsignedInt> m_growDelay;    ///< wait until
+	SimulationFrameValue<UnsignedInt> m_growTime;     ///< then grow this fast
 
 	Real m_finalVision;										///< Then change to this
-	UnsignedInt m_changeInterval;			///< And update my Object every this long
-	UnsignedInt m_growInterval;				///< Update evey this long while growing
+	SimulationFrameValue<UnsignedInt> m_changeInterval;			///< And update my Object every this long
+	SimulationFrameValue<UnsignedInt> m_growInterval;				///< Update evey this long while growing
 	Bool m_doSpySatFX;										///< Do I do the pseudo-wireframe decal and blip effects?
 	RadiusDecalTemplate m_gridDecalTemplate;///< For the pseudo-wireframe decal effect
 

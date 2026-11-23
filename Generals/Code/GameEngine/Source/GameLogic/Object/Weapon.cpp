@@ -362,32 +362,23 @@ void WeaponTemplate::reset()
 	static const char *MIN_LABEL = "Min";
 	static const char *MAX_LABEL = "Max";
 
-	const char* token = ini->getNextToken(ini->getSepsColon());
-	if( stricmp(token, MIN_LABEL) == 0 )
+	Int minMsec, maxMsec;
+	const char *token = ini->getNextToken(ini->getSepsColon());
+	if (stricmp(token, MIN_LABEL) == 0)
 	{
-		// Two entry min/max
-		self->m_minDelayBetweenShots = INI::scanInt(ini->getNextToken(ini->getSepsColon()));
+		minMsec = INI::scanInt(ini->getNextToken(ini->getSepsColon()));
 		token = ini->getNextToken(ini->getSepsColon());
-		if( stricmp(token, MAX_LABEL) != 0 )
-		{
-			// Messed up double entry
-			self->m_maxDelayBetweenShots = self->m_minDelayBetweenShots;
-		}
-		else
-			self->m_maxDelayBetweenShots = INI::scanInt(ini->getNextToken(ini->getSepsColon()));
+		maxMsec = stricmp(token, MAX_LABEL) == 0
+			? INI::scanInt(ini->getNextToken(ini->getSepsColon())) : minMsec;
 	}
 	else
 	{
-		// single entry, as in no label so the first token is just a number
-		self->m_minDelayBetweenShots = INI::scanInt(token);
-		self->m_maxDelayBetweenShots = self->m_minDelayBetweenShots;
+		minMsec = maxMsec = INI::scanInt(token);
 	}
 
-	// No matter what we have now, we want to convert it to frames from msec.
-	// ShotDelay used to use parseDurationUnsignedInt, and we are expanding on that.
-	self->m_minDelayBetweenShots = WWMath::Ceilf(ConvertDurationFromMsecsToFrames((Real)self->m_minDelayBetweenShots));
-	self->m_maxDelayBetweenShots = WWMath::Ceilf(ConvertDurationFromMsecsToFrames((Real)self->m_maxDelayBetweenShots));
-
+	// GeneralsX @feature Codex 23/11/2026 Keep the authored range until the retail shot delay is rolled.
+	self->m_minDelayBetweenShots.setMilliseconds(static_cast<Real>(minMsec));
+	self->m_maxDelayBetweenShots.setMilliseconds(static_cast<Real>(maxMsec));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -488,33 +479,24 @@ Real WeaponTemplate::getUnmodifiedAttackRange() const
 //-------------------------------------------------------------------------------------------------
 Int WeaponTemplate::getDelayBetweenShots(const WeaponBonus& bonus) const
 {
-	// yes, divide, not multiply; the larger the rate-of-fire bonus, the shorter
-	// we want the delay time to be.
-	Int delayToUse;
-	if( m_minDelayBetweenShots == m_maxDelayBetweenShots )
-		delayToUse = m_minDelayBetweenShots; // Random number thing doesn't like this case
-	else
-		delayToUse = GameLogicRandomValue( m_minDelayBetweenShots, m_maxDelayBetweenShots );
-
-	Real bonusROF = bonus.getField(WeaponBonus::RATE_OF_FIRE);
-	//CRCDEBUG_LOG(("WeaponTemplate::getDelayBetweenShots() - min:%d max:%d val:%d, bonusROF=%g/%8.8X",
-		//m_minDelayBetweenShots, m_maxDelayBetweenShots, delayToUse, bonusROF, AS_INT(bonusROF)));
-
-	return REAL_TO_INT_FLOOR(delayToUse / bonusROF);
+	// GeneralsX @feature Codex 23/11/2026 Roll and round the firing interval in retail ticks before scaling it.
+	const Int minimum = m_minDelayBetweenShots.atRate(BaseFps);
+	const Int maximum = m_maxDelayBetweenShots.atRate(BaseFps);
+	const Int delay = minimum == maximum ? minimum : GameLogicRandomValue(minimum, maximum);
+	return weaponCooldownInLogicFrames(delay, bonus.getField(WeaponBonus::RATE_OF_FIRE));
 }
 
 //-------------------------------------------------------------------------------------------------
 Int WeaponTemplate::getClipReloadTime(const WeaponBonus& bonus) const
 {
-	// yes, divide, not multiply; the larger the rate-of-fire bonus, the shorter
-	// we want the reload time to be.
-	return REAL_TO_INT_FLOOR(m_clipReloadTime / bonus.getField(WeaponBonus::RATE_OF_FIRE));
+	return weaponCooldownInLogicFrames(m_clipReloadTime.atRate(BaseFps), bonus.getField(WeaponBonus::RATE_OF_FIRE));
 }
 
 //-------------------------------------------------------------------------------------------------
 Int WeaponTemplate::getPreAttackDelay( const WeaponBonus& bonus ) const
 {
-	return m_preAttackDelay * bonus.getField( WeaponBonus::PRE_ATTACK );
+	const Int baseDelay = static_cast<Int>(m_preAttackDelay.atRate(BaseFps) * bonus.getField(WeaponBonus::PRE_ATTACK));
+	return logicFramesFromBaseFrames(baseDelay);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -2660,6 +2642,7 @@ WeaponStatus Weapon::getStatus() const
 	}
 	if( now >= m_whenWeCanFireAgain )
 	{
+		// GeneralsX @feature Codex 23/11/2026 Keep automatic fire with zero delay on the retail firing cadence.
 		if (m_ammoInClip > 0 && weaponIsBetweenZeroDelayShots(now, m_lastFireFrame, m_whenWeCanFireAgain))
 			return BETWEEN_FIRING_SHOTS;
 		if (m_ammoInClip > 0)

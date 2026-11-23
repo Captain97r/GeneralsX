@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/DamageModule.h"
@@ -39,8 +41,8 @@
 class PoisonedBehaviorModuleData : public UpdateModuleData
 {
 public:
-	UnsignedInt m_poisonDamageIntervalData; // How often I retake poison damage dealt me
-	UnsignedInt m_poisonDurationData;				// And how long after the last poison dose I am poisoned
+	SimulationFrameValue<UnsignedInt> m_poisonDamageIntervalData; // How often I retake poison damage dealt me
+	SimulationFrameValue<UnsignedInt> m_poisonDurationData;				// And how long after the last poison dose I am poisoned
 
 	PoisonedBehaviorModuleData();
 

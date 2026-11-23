@@ -141,10 +141,6 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/BuildVersion.h
 )
 
 if(MSVC)
-    # GeneralsX @build Codex 22/11/2026 Give the x86 client the address space required by large asset sets.
-    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-        target_link_options(z_generals PRIVATE "/LARGEADDRESSAWARE")
-    endif()
     target_link_options(z_generals PRIVATE "/NODEFAULTLIB:libci.lib")
 endif()
 

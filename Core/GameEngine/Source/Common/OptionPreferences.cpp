@@ -1120,13 +1120,13 @@ Int OptionPreferences::getSkirmishTickRate() const
 	}
 	if (it == end())
 	{
-		return LOGICFRAMES_PER_SECOND;
+		return NativeFps;
 	}
 
 	Int rate = atoi(it->second.str());
 	if (rate <= 0)
 	{
-		return LOGICFRAMES_PER_SECOND;
+		return NativeFps;
 	}
 
 	return clamp(5, rate, 120);

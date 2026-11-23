@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/KindOf.h"
 #include "GameLogic/Module/UpdateModule.h"
@@ -43,7 +45,7 @@ class WeaponTemplate;
 class AutoFindHealingUpdateModuleData : public ModuleData
 {
 public:
-	UnsignedInt			m_scanFrames;
+	SimulationFrameValue<UnsignedInt>			m_scanFrames;
 	Real						m_scanRange;
 	Real						m_neverHeal;
 	Real						m_alwaysHeal;

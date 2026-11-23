@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Geometry.h"
 #include "GameLogic/Module/UpdateModule.h"
@@ -38,7 +40,7 @@ class DynamicGeometryInfoUpdateModuleData : public ModuleData
 {
 public:
 
-	UnsignedInt m_initialDelay;
+	SimulationFrameValue<UnsignedInt> m_initialDelay;
 
 	Real m_initialHeight;
 	Real m_initialMajorRadius;
@@ -48,7 +50,7 @@ public:
 	Real m_finalMajorRadius;
 	Real m_finalMinorRadius;
 
-	UnsignedInt m_transitionTime;
+	SimulationFrameValue<UnsignedInt> m_transitionTime;
 
 	Bool m_reverseAtTransitionTime;		///< reverse directions once transition time is reached
 

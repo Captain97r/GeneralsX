@@ -18,7 +18,7 @@
 
 ---
 
-**GeneralsX** lets you run **Command & Conquer: Generals** and **Zero Hour** natively on **macOS, Linux, and Windows**. Built on a modern open-source engine stack, it brings back smooth gameplay, seamless cross-platform online multiplayer, and full compatibility with original campaigns, mods, and replays on modern computers.
+**GeneralsX** lets you run **Command & Conquer: Generals** and **Zero Hour** natively on **macOS, Linux, and Windows**. Built on a modern open-source engine stack, it brings back smooth gameplay, seamless cross-platform online multiplayer, and support for original campaigns, mods, and replays on modern computers.
 
 ## ✨ Highlights
 
@@ -26,7 +26,7 @@
 - 💻 **Native Modern Performance**: Runs natively on **macOS** (Apple Silicon), **Linux** (x86_64), and **Windows**. No legacy 32-bit baggage.
 - 🌋 **Modern Graphics**: Replaces the ancient DirectX 8 backend with Vulkan translation via DXVK for smooth performance on modern monitors and GPUs.
 - 🔊 **Updated Audio & Video**: Crystal-clear cross-platform audio powered by **MiniAudio** and full video cinematics support via FFmpeg.
-- 🎯 **100% Retail Compatibility**: Full support for original singleplayer campaigns, Skirmish vs AI, replays, and community mods.
+- 🎯 **Retail game content**: Play the original campaigns, skirmishes against AI and community mods, or watch retail replays at their original simulation rate.
 - 📦 **Generals & Zero Hour**: Play both the base game and the expansion from a unified, modern codebase.
 - 🌍 **Play in Your Browser**: Play **Command & Conquer: Generals Zero Hour** single-player (campaigns and Skirmish vs AI) directly in a WebGPU-capable browser at **[play.generalsx.org](https://play.generalsx.org/)** (WebAssembly + WebGPU) — no desktop installer required.
 
@@ -49,6 +49,18 @@ Ready-to-run releases are available for macOS, Linux, and Windows:
 
 ### 🌐 Cross-Platform Multiplayer
 GeneralsX includes integrated multiplayer powered by **GeneralsOnline**. Players on macOS, Linux, and Windows can host, join lobbies, and battle against each other online with zero network configuration hurdles.
+
+### Simulation rate and compatibility
+
+New campaigns, skirmishes and LAN matches run at 60 simulation ticks per game
+second in both Generals and Zero Hour. This updates moving units twice as often
+at normal game speed. GeneralsOnline matches use the retail 30 Hz clock.
+
+The load and replay menus accept retail 30 Hz files and files created by the
+current 60 Hz simulation. Each file selects its own clock. New 60 Hz files go
+into separate save and replay directories. Stock clients cannot open them.
+All LAN participants need the same simulation revision and matching game data.
+Earlier experimental 60 Hz saves, replays and LAN clients are incompatible.
 
 ### 📂 Asset Paths & Launcher Workspaces
 GeneralsX automatically resolves game assets from multiple sources, preferring complete local workspaces (e.g., [GenHub](https://github.com/community-outpost/GenHub) profiles or portable setups) over the system registry. You can also specify asset paths explicitly:
@@ -79,19 +91,6 @@ cmake --build build/macos-vulkan --target z_generals
 cmake --preset linux64-deploy
 cmake --build build/linux64-deploy --target z_generals
 ```
-
-### Native 60 Hz simulation
-
-The standard build on this branch runs Generals and Zero Hour at 60 simulation
-ticks per game second. Build `g_generals` for Generals or `z_generals` for Zero
-Hour using the normal CMake commands above. For normal-speed skirmishes, omit
-the `TickRate` override or set it to `60`. An explicit `TickRate = 30` runs
-skirmishes at half speed. Use a render limit of at least 60 FPS.
-
-For multiplayer, choose **Multiplayer → Network**. All players need a matching
-60 Hz build and game data. LAN can slow the match for a slower peer. This branch
-uses the fixed-rate experiment's save and replay formats and directories.
-Retail 30 Hz saves and replays require a stock build.
 
 For complete prerequisites, Docker workflows, and packaging guides, check the Wiki:
 - 📖 [Building on macOS Guide](https://github.com/fbraz3/GeneralsX/wiki/Building-on-macOS)

@@ -57,9 +57,11 @@ public:
 	Bool isTimeFrozen() const;
 	Bool isGameHalted() const;
 
-	void setLogicTimeScaleFps( Int fps ); ///< Set the logic time scale fps and therefore scale the simulation time. Is capped by the max render fps and does not apply to network matches.
+	void setLogicTimeScaleFps( Int fps ); ///< Set the logic time scale fps and therefore scale the simulation time. Offline pacing is independent of the render cap. Network matches use their negotiated rate.
 	Int  getLogicTimeScaleFps() const; ///< Get the raw logic time scale fps value.
 	void configureGameLogicRate(Int fps);
+	void changeOfflineLogicTimeScale(FpsValueChange change); ///< Apply a game-speed hotkey in an offline match.
+	Int takeOfflineLogicFrames(Bool fastMode); ///< Simulation ticks due in this render iteration. Network pacing is independent.
 	void enableLogicTimeScale( Bool enable ); ///< Enable or disable the logic time scale setup. If disabled, the simulation time scale is bound to the render frame time or network update time.
 	Bool isLogicTimeScaleEnabled() const; ///< Check whether the logic time scale setup is enabled.
 	Int  getActualLogicTimeScaleFps(LogicTimeQueryFlags flags = 0) const; ///< Get the real logic time scale fps, depending on the max render fps, network state and enabled state.
@@ -72,7 +74,9 @@ public:
 
 protected:
 
+	enum { MaxCatchUpFrames = 8 };
 	FrameRateLimit m_frameRateLimit;
+	double m_pendingOfflineFrames; ///< Fraction of the next offline logic tick already elapsed.
 
 	Int m_maxFPS; ///< Maximum frames per second for rendering
 	Int m_logicTimeScaleFPS; ///< Maximum frames per second for logic time scale

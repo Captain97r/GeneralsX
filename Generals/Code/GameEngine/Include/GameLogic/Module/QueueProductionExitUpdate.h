@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 #include "GameLogic/Module/UpdateModule.h"
 #include "Common/INI.h"
 #include "Lib/BaseType.h"
@@ -42,7 +44,7 @@ class QueueProductionExitUpdateModuleData : public UpdateModuleData
 public:
 	Coord3D m_unitCreatePoint;
 	Coord3D m_naturalRallyPoint;
-	UnsignedInt m_exitDelayData;
+	SimulationFrameValue<UnsignedInt> m_exitDelayData;
 	Bool m_allowAirborneCreationData;
 	UnsignedInt m_initialBurst;
 

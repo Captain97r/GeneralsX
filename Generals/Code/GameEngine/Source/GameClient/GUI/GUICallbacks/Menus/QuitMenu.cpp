@@ -172,6 +172,7 @@ static void restartMissionMenu()
 	// destroy the quit menu
 	destroyQuitMenu();
 
+	const Int simulationRate = getSimulationRate();
 	GameMode gameMode = TheGameLogic->getGameMode();
 	AsciiString mapName = TheGlobalData->m_mapName;
 
@@ -207,6 +208,8 @@ static void restartMissionMenu()
 	}
 	else
 	{
+		// Keep a restarted save on its original clock.
+		TheGameState->setPendingSimulationRate(simulationRate);
 		// send a message to the logic for a new game
 		TheWritableGlobalData->m_pendingFile = mapName;
 		GameMessage *msg = TheMessageStream->appendMessage( GameMessage::MSG_NEW_GAME );

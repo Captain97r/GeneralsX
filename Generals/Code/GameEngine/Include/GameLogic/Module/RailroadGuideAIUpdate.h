@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/AIUpdate.h"
 #include "GameLogic/Module/PhysicsUpdate.h"
@@ -87,7 +89,7 @@ public:
 	Real m_acceleration;
 	Real m_braking;
 	Real m_friction;
-	UnsignedInt m_waitAtStationTime;
+	SimulationFrameValue<UnsignedInt> m_waitAtStationTime;
 	AudioEventRTS			m_runningSound;
 	AudioEventRTS			m_clicketyClackSound;
 	AudioEventRTS				m_bigMetalImpactDefaultSound;

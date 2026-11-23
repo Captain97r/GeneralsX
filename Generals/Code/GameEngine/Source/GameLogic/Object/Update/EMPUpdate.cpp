@@ -258,7 +258,9 @@ void EMPUpdate::doDisableAttack()
 
 							sys->attachToObject(curVictim);
 							sys->setPosition( &offs );
-							sys->setSystemLifetime(MAX(0, data->m_disabledDuration - 30));
+							// GeneralsX @bugfix Codex 23/11/2026 EMP emitters use retail particle frames; leave one second for the sparks to fade.
+							const UnsignedInt duration = data->m_disabledDuration.atRate(BaseFps);
+							sys->setSystemLifetime(duration > BaseFps ? duration - BaseFps : 0);
 							sys->setInitialDelay(GameLogicRandomValue(1,100));
 						}
 					}

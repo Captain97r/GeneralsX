@@ -61,7 +61,7 @@ const Real MAX_FRICTION = 0.99f;
 
 #include "Common/CRCDebug.h"
 
-const Int MOTIVE_FRAMES = LOGICFRAMES_PER_SECOND / 3;
+static inline Int getMotiveFrames() { return LOGICFRAMES_PER_SECOND / 3; }
 
 #define SLEEPY_PHYSICS
 
@@ -133,15 +133,7 @@ static void parseHeightToSpeed( INI* ini, void * /*instance*/, void *store, cons
 	// don't bother trying to remember how far we've fallen; instead,
 	// back-calc it from our speed & gravity... v = WWMath::Sqrt(2*g*h)
 	Real height = INI::scanReal(ini->getNextToken());
-	*(Real *)store = heightToSpeed(height);
-}
-
-//-------------------------------------------------------------------------------------------------
-static void parseFrictionPerSec( INI* ini, void * /*instance*/, void *store, const void* /*userData*/ )
-{
-	Real fricPerSec = INI::scanReal(ini->getNextToken());
-	Real fricPerFrame = fricPerSec * SECONDS_PER_LOGICFRAME_REAL;
-	*(Real *)store = fricPerFrame;
+	*static_cast<SimulationRateValue<Real> *>(store) = heightToSpeed(height);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -153,10 +145,10 @@ static void parseFrictionPerSec( INI* ini, void * /*instance*/, void *store, con
 	{
 		{ "Mass",								INI::parsePositiveNonZeroReal,		nullptr, offsetof( PhysicsBehaviorModuleData, m_mass ) },
 
-		{ "ForwardFriction",			parseFrictionPerSec,		nullptr, offsetof( PhysicsBehaviorModuleData, m_forwardFriction ) },
-		{ "LateralFriction",			parseFrictionPerSec,		nullptr, offsetof( PhysicsBehaviorModuleData, m_lateralFriction ) },
-		{ "ZFriction",						parseFrictionPerSec,		nullptr, offsetof( PhysicsBehaviorModuleData, m_ZFriction ) },
-		{ "AerodynamicFriction",	parseFrictionPerSec,		nullptr, offsetof( PhysicsBehaviorModuleData, m_aerodynamicFriction ) },
+		{ "ForwardFriction",			INI::parseVelocityReal,		nullptr, offsetof( PhysicsBehaviorModuleData, m_forwardFriction ) },
+		{ "LateralFriction",			INI::parseVelocityReal,		nullptr, offsetof( PhysicsBehaviorModuleData, m_lateralFriction ) },
+		{ "ZFriction",						INI::parseVelocityReal,		nullptr, offsetof( PhysicsBehaviorModuleData, m_ZFriction ) },
+		{ "AerodynamicFriction",	INI::parseVelocityReal,		nullptr, offsetof( PhysicsBehaviorModuleData, m_aerodynamicFriction ) },
 
 		{ "CenterOfMassOffset",	INI::parseReal,		nullptr, offsetof( PhysicsBehaviorModuleData, m_centerOfMassOffset ) },
 		{ "AllowBouncing",			INI::parseBool,		nullptr, offsetof( PhysicsBehaviorModuleData, m_allowBouncing ) },
@@ -340,7 +332,7 @@ void PhysicsBehavior::applyMotiveForce( const Coord3D *force )
 {
 	m_motiveForceExpires = 0; // make it accept this force unquestioningly :)
 	applyForce(force);
-	m_motiveForceExpires = TheGameLogic->getFrame() + MOTIVE_FRAMES;
+	m_motiveForceExpires = TheGameLogic->getFrame() + getMotiveFrames();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -372,7 +364,7 @@ void PhysicsBehavior::applyFrictionalForces()
 {
 	if (getFlag(APPLY_FRICTION2D_WHEN_AIRBORNE) || !getObject()->isSignificantlyAboveTerrain())
 	{
-		static const Real groundAngularDamping = 1.0f - physicsFrictionForStep(
+		const Real groundAngularDamping = 1.0f - physicsFrictionForStep(
 			logicRateFromBaseRate(DEFAULT_LATERAL_FRICTION), MIN_NON_AERO_FRICTION, MAX_FRICTION);
 		applyYPRDamping(groundAngularDamping);
 

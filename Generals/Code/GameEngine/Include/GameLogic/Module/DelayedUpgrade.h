@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/UpgradeModule.h"
 
@@ -37,7 +39,7 @@
 class DelayedUpgradeModuleData : public UpgradeModuleData
 {
 public:
-	UnsignedInt m_delayTime;
+	SimulationFrameValue<UnsignedInt> m_delayTime;
 
 	DelayedUpgradeModuleData()
 	{

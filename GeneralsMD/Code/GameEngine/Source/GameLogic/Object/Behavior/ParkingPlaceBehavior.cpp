@@ -589,7 +589,7 @@ void ParkingPlaceBehavior::releaseRunway(ObjectID id)
 
 //-------------------------------------------------------------------------------------------------
 // don't really need to autoheal every frame....
-const Int HEAL_RATE_FRAMES = LOGICFRAMES_PER_SECOND / 5;
+static inline Int getHealRateFrames() { return LOGICFRAMES_PER_SECOND / 5; }
 
 //-------------------------------------------------------------------------------------------------
 void ParkingPlaceBehavior::resetWakeFrame()
@@ -600,7 +600,7 @@ void ParkingPlaceBehavior::resetWakeFrame()
 	}
 	else
 	{
-		m_nextHealFrame = TheGameLogic->getFrame() + HEAL_RATE_FRAMES;
+		m_nextHealFrame = TheGameLogic->getFrame() + getHealRateFrames();
 	}
 }
 
@@ -724,7 +724,7 @@ UpdateSleepTime ParkingPlaceBehavior::update()
 	UnsignedInt now = TheGameLogic->getFrame();
 	if (now >= m_nextHealFrame)
 	{
-		m_nextHealFrame = now + HEAL_RATE_FRAMES;
+		m_nextHealFrame = now + getHealRateFrames();
 		const ParkingPlaceBehaviorModuleData* d = getParkingPlaceBehaviorModuleData();
 		for (std::list<HealingInfo>::iterator it = m_healing.begin(); it != m_healing.end(); /*++it*/)
 		{
@@ -741,10 +741,10 @@ UpdateSleepTime ParkingPlaceBehavior::update()
 					healInfo.in.m_damageType = DAMAGE_HEALING;
 					healInfo.in.m_deathType = DEATH_NONE;
 					healInfo.in.m_sourceID = getObject()->getID();
-  				healInfo.in.m_amount = HEAL_RATE_FRAMES * d->m_healAmount * SECONDS_PER_LOGICFRAME_REAL;
+				healInfo.in.m_amount = getHealRateFrames() * d->m_healAmount * SECONDS_PER_LOGICFRAME_REAL;
 
 //          if ( objToHeal->isKindOf( KINDOF_PRODUCED_AT_HELIPAD ) )
-//            healInfo.in.m_amount += HEAL_RATE_FRAMES * d->m_extraHealAmount4Helicopters * SECONDS_PER_LOGICFRAME_REAL;
+//            healInfo.in.m_amount += getHealRateFrames() * d->m_extraHealAmount4Helicopters * SECONDS_PER_LOGICFRAME_REAL;
 
 					BodyModuleInterface *body = objToHeal->getBodyModule();
 					body->attemptHealing( &healInfo );

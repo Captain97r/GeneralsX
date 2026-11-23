@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/TransportContain.h"
 
@@ -54,7 +56,7 @@ class RiderChangeContainModuleData : public TransportContainModuleData
 public:
 
 	RiderInfo m_riders[ MAX_RIDERS ];
-	UnsignedInt m_scuttleFrames;
+	SimulationFrameValue<UnsignedInt> m_scuttleFrames;
 	ModelConditionFlagType m_scuttleState;
 
 	RiderChangeContainModuleData();

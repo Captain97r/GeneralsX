@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/BehaviorModule.h"
 #include "GameLogic/Module/DieModule.h"
@@ -58,10 +60,10 @@ class StructureCollapseUpdateModuleData : public UpdateModuleData
 {
 public:
 	DieMuxData				m_dieMuxData;
-	Int								m_minCollapseDelay;
-	Int								m_maxCollapseDelay;
-	Int								m_minBurstDelay;
-	Int								m_maxBurstDelay;
+	SimulationFrameValue<Int>								m_minCollapseDelay;
+	SimulationFrameValue<Int>								m_maxCollapseDelay;
+	SimulationFrameValue<Int>								m_minBurstDelay;
+	SimulationFrameValue<Int>								m_maxBurstDelay;
 	Int								m_bigBurstFrequency;
 	Real							m_collapseDamping;
 	Real							m_maxShudder;

@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/Geometry.h"
 #include "GameLogic/Module/DynamicGeometryInfoUpdate.h"
@@ -50,7 +52,7 @@ public:
 	const ParticleSystemTemplate *m_particleSystem[ MAX_FIRESTORM_SYSTEMS ];
 	Real m_particleOffsetZ;
 	Real m_scorchSize;
-	Real m_delayBetweenDamageFrames;
+	SimulationFrameValue<Real> m_delayBetweenDamageFrames;
 	Real m_damageAmount;
 	Real m_maxHeightForDamage;	// things higher than this above us take no damage
 

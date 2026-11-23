@@ -85,9 +85,8 @@ protected:
 
 	virtual void resetSubsystems();
 
-	Bool canUpdateGameLogic(UnsignedInt logicTimeQueryFlags = 0);
-	Bool canUpdateNetworkGameLogic();
-	Bool canUpdateRegularGameLogic(UnsignedInt logicTimeQueryFlags);
+	void prepareLogicFrame();
+	Int getPendingLogicFrames();
 
 	virtual FileSystem *createFileSystem();								///< Factory for FileSystem classes
 	virtual LocalFileSystem *createLocalFileSystem() = 0;	///< Factory for LocalFileSystem classes
@@ -101,8 +100,6 @@ protected:
 	virtual Radar *createRadar(Bool dummy) = 0;						///< Factory for radar
 	virtual ParticleSystemManager* createParticleSystemManager(Bool dummy) = 0;
 	virtual AudioManager *createAudioManager(Bool dummy) = 0;				///< Factory for Audio Manager
-
-	Real m_logicTimeAccumulator; ///< Frame time accumulated towards submitting a new logic frame
 
 	Bool m_quitting; ///< true when we need to quit the game
 	Bool m_isActive; ///< app has OS focus.

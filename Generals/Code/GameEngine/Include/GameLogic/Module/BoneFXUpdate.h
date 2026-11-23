@@ -30,6 +30,7 @@
 #pragma once
 
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
+#include "Common/GameCommon.h"
 #include "GameClient/ParticleSys.h"
 #include "GameLogic/Module/UpdateModule.h"
 
@@ -61,8 +62,11 @@ struct BoneLocInfo
 struct BaseBoneListInfo
 {
 	BoneLocInfo locInfo;
+	// Store the two random ranges in retail frames. Sampling uses the match clock.
 	GameClientRandomVariable gameClientDelay;
 	GameLogicRandomVariable gameLogicDelay;
+	Int sampleClientDelay() const { return REAL_TO_INT(gameClientDelay.getValue() * logicFramesFromBaseFrames(1)); }
+	Int sampleLogicDelay() const { return REAL_TO_INT(gameLogicDelay.getValue() * logicFramesFromBaseFrames(1)); }
 	Bool onlyOnce;
 };
 

@@ -32,7 +32,9 @@
 
 #pragma once
 
-const Int SLAVED_UPDATE_RATE = LOGICFRAMES_PER_SECOND/4; ///< This is a low priority module that only needs to be called every this many frames
+#include "Common/SimulationValue.h"
+
+static inline Int getSlavedUpdateRate() { return LOGICFRAMES_PER_SECOND/4; } ///< This is a low priority module that only needs to be called every this many frames
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/INI.h"
@@ -62,10 +64,10 @@ public:
 
 	Real m_repairRatePerSecond;	//How fast I can repair
 	Int m_repairWhenHealthBelowPercentage; //When should I prioritize repairing my master.
-	Int m_minReadyFrames;
-	Int m_maxReadyFrames;
-	Int m_minWeldFrames;
-	Int m_maxWeldFrames;
+	SimulationFrameValue<Int> m_minReadyFrames;
+	SimulationFrameValue<Int> m_maxReadyFrames;
+	SimulationFrameValue<Int> m_minWeldFrames;
+	SimulationFrameValue<Int> m_maxWeldFrames;
 	AsciiString m_weldingSysName;
 	AsciiString m_weldingFXBone;
 

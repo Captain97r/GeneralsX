@@ -1257,7 +1257,7 @@ void W3DDisplay::reset()
 		TheWritableGlobalData->m_drawSkyBox =0;
 }
 
-const UnsignedInt START_CUMU_FRAME = LOGICFRAMES_PER_SECOND / 2;	// skip first half-sec
+static inline UnsignedInt getStartCumuFrame() { return LOGICFRAMES_PER_SECOND / 2; }	// skip first half-sec
 
 void W3DDisplay::addFpsSample(Real elapsedSeconds)
 {
@@ -1334,7 +1334,7 @@ void W3DDisplay::updatePerformanceMetrics()
 	const Int64 time64 = getPerformanceCounter();
 
 #if defined(RTS_DEBUG)
-	if (TheGameLogic->getFrame() == START_CUMU_FRAME)
+	if (TheGameLogic->getFrame() == getStartCumuFrame())
 	{
 		m_timerAtCumuFPSStart = time64;
 	}
@@ -1446,7 +1446,7 @@ void W3DDisplay::gatherDebugStats()
 #if defined(RTS_DEBUG)
 		double cumuTime = ((double)(time64 - m_timerAtCumuFPSStart) / (double)(freq64));
 		if (cumuTime < 0.0) cumuTime = 0.0;
-		Int numFrames = (Int)TheGameLogic->getFrame() - (Int)START_CUMU_FRAME;
+		Int numFrames = (Int)TheGameLogic->getFrame() - (Int)getStartCumuFrame();
 		double cumuFPS = (numFrames > 0 && cumuTime > 0.0) ? (numFrames / cumuTime) : 0.0;
 		double skinPolysPerFrame = Debug_Statistics::Get_DX8_Skin_Polygons();
 

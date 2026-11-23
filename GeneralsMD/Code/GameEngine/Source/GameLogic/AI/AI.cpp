@@ -26,6 +26,7 @@
 // The Artificial Intelligence system
 // Author: Michael S. Booth, November 2000
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
+#include "Common/SimulationValueXfer.h"
 
 #include "Common/CRCDebug.h"
 #include "Common/GameState.h"
@@ -960,7 +961,7 @@ void TAiData::crc( Xfer *xfer )
 	xfer->xferReal( &m_teamSeconds );
 	xfer->xferInt( &m_resourcesWealthy );
 	xfer->xferInt( &m_resourcesPoor );
-	xfer->xferUnsignedInt( &m_forceIdleFramesCount );
+	xferSimulationValue(xfer, m_forceIdleFramesCount);
 	xfer->xferReal( &m_structuresWealthyMod );
 	xfer->xferReal( &m_teamWealthyMod );
 	xfer->xferReal( &m_structuresPoorMod );
@@ -970,9 +971,9 @@ void TAiData::crc( Xfer *xfer )
 	xfer->xferReal( &m_guardOuterModifierAI );
 	xfer->xferReal( &m_guardInnerModifierHuman );
 	xfer->xferReal( &m_guardOuterModifierHuman );
-	xfer->xferUnsignedInt( &m_guardChaseUnitFrames );
-	xfer->xferUnsignedInt( &m_guardEnemyScanRate );
-	xfer->xferUnsignedInt( &m_guardEnemyReturnScanRate );
+	xferSimulationValue(xfer, m_guardChaseUnitFrames);
+	xferSimulationValue(xfer, m_guardEnemyScanRate);
+	xferSimulationValue(xfer, m_guardEnemyReturnScanRate);
 	xfer->xferReal( &m_alertRangeModifier );
 	xfer->xferReal( &m_aggressiveRangeModifier );
 	xfer->xferReal( &m_attackPriorityDistanceModifier );

@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "Common/KindOf.h"
 #include "GameLogic/Module/UpdateModule.h"
@@ -46,7 +48,7 @@ public:
 	WeaponTemplate	*m_weaponTemplate;
 	KindOfMaskType	m_primaryTargetKindOf;
 	KindOfMaskType  m_secondaryTargetKindOf;
-	UnsignedInt			m_scanFrames;
+	SimulationFrameValue<UnsignedInt>			m_scanFrames;
 	Real						m_scanRange;
 	Real						m_velocityFactor;
 

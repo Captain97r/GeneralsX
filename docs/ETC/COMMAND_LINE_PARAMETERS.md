@@ -34,6 +34,11 @@ Common command line parameters for `GeneralsX` (Generals) and `GeneralsXZH` (Zer
 | `-jobs <count>` | Number of parallel replay jobs | `./GeneralsXZH -jobs 4 -replay *.rep` |
 | `-headless` | Run without graphics (replay testing) | `./GeneralsXZH -headless -replay *.rep` |
 
+`-replay` selects 30 Hz for retail `GENREP` recordings and 60 Hz for native
+`GX60R2` recordings in rendered and headless playback. An explicit file path
+selects that copy. A bare filename is looked up in `Replays60Hz` first and
+then in `Replays`.
+
 ## Common Combinations
 
 ### Quick Testing

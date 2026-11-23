@@ -33,6 +33,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "GameClient/ParticleSys.h"
 #include "GameLogic/Module/BehaviorModule.h"
@@ -52,8 +54,8 @@ public:
 	Bool									m_initiallyActive;
 	Bool									m_singleBurst;
 	Int										m_healingAmount;
-	UnsignedInt						m_healingDelay;
-	UnsignedInt						m_startHealingDelay;	///< how long since our last damage till autoheal starts.
+	SimulationFrameValue<UnsignedInt>						m_healingDelay;
+	SimulationFrameValue<UnsignedInt>						m_startHealingDelay;	///< how long since our last damage till autoheal starts.
 	Real									m_radius; //If non-zero, then it becomes a area effect.
 	Bool									m_affectsWholePlayer; ///< I have more than a range, I try to affect everything the player owns
 	Bool									m_skipSelfForHealing; ///< Don't heal myself.

@@ -161,8 +161,8 @@ void BuildAssistant::reset()
 
 }
 
-static const Real FRAMES_TO_ALLOW_SCAFFOLD = static_cast<float>(LOGICFRAMES_PER_SECOND) * 1.5f;
-static const Real TOTAL_FRAMES_TO_SELL_OBJECT = static_cast<float>(LOGICFRAMES_PER_SECOND) * 3.0f;
+static inline Real getFramesToAllowScaffold() { return static_cast<float>(LOGICFRAMES_PER_SECOND) * 1.5f; }
+static inline Real getTotalFramesToSellObject() { return static_cast<float>(LOGICFRAMES_PER_SECOND) * 3.0f; }
 //-------------------------------------------------------------------------------------------------
 /** Update phase for the build assistant */
 //-------------------------------------------------------------------------------------------------
@@ -200,12 +200,12 @@ void BuildAssistant::update()
 		}
 
 		// decrement the construction percent
-		if( TheGameLogic->getFrame() - sellInfo->m_sellFrame >= FRAMES_TO_ALLOW_SCAFFOLD )
+		if( TheGameLogic->getFrame() - sellInfo->m_sellFrame >= getFramesToAllowScaffold() )
 		{
 			Real previousConstructionPercent = obj->getConstructionPercent();
 
 			// do the construction
-			obj->setConstructionPercent( previousConstructionPercent - (100.0f / TOTAL_FRAMES_TO_SELL_OBJECT) );
+			obj->setConstructionPercent( previousConstructionPercent - (100.0f / getTotalFramesToSellObject()) );
 
 			//
 			// did we cross the threshold from positive to negative ... if so, we will clear
@@ -224,7 +224,7 @@ void BuildAssistant::update()
 				//
 				Drawable *draw = obj->getDrawable();
 				if( draw )
-					draw->setAnimationLoopDuration( TOTAL_FRAMES_TO_SELL_OBJECT / 2 );
+					draw->setAnimationLoopDuration( getTotalFramesToSellObject() / 2 );
 
 			}
 
@@ -1650,7 +1650,7 @@ void BuildAssistant::sellObject( Object *obj )
 	//
 	Drawable *draw = obj->getDrawable();
 	if( draw )
-		draw->setAnimationLoopDuration( TOTAL_FRAMES_TO_SELL_OBJECT / 2 );
+		draw->setAnimationLoopDuration( getTotalFramesToSellObject() / 2 );
 
 	// We also need to refund all production for the object at start-of-sell time
 	ProductionUpdateInterface *production = obj->getProductionUpdateInterface();

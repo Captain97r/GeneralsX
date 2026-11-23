@@ -1271,7 +1271,8 @@ void SpecialAbilityUpdate::triggerAbilityEffect()
 
 						sys->attachToObject(target);
 						sys->setPosition( &offs );
-						sys->setSystemLifetime( data->m_effectDuration * durationInterleaveFactor ); //lifetime of the system, not the particles
+						// GeneralsX @bugfix Codex 23/11/2026 Match the disable effect to the particle clock.
+						sys->setSystemLifetime(data->m_effectDuration.atRate(BaseFps) * durationInterleaveFactor);
 
 					}
 				}

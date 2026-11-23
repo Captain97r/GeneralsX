@@ -79,6 +79,7 @@ UnicodeString LANAPIInterface::getErrorStringFromReturnType( ReturnType ret )
 			return TheGameText->fetch("LAN:ErrorGameFull");
 		case RET_DUPLICATE_NAME:
 			return TheGameText->fetch("LAN:ErrorDuplicateName");
+		// GeneralsX @feature Codex 23/11/2026 Explain why a different simulation version cannot join.
 		case RET_SIMULATION_MISMATCH:
 			return TheGameText->FETCH_OR_SUBSTITUTE("LAN:SimulationProfileMismatch", L"All players must use the same simulation rate and compatible game builds.");
 		case RET_CRC_MISMATCH:
@@ -231,7 +232,8 @@ void LANAPI::OnGameStart()
 		TheNetwork = nullptr;
 
 		// Time to initialize TheNetwork for this game.
-		TheNetwork = NetworkInterface::createNetwork();
+		// GeneralsX @feature Codex 23/11/2026 Native LAN rooms negotiate a compatible 60 Hz profile before starting.
+		TheNetwork = NetworkInterface::createNetwork(NativeFps);
 		TheNetwork->init();
 		TheNetwork->setLocalAddress(m_localIP, 8088);
 		TheNetwork->initTransport();

@@ -104,10 +104,6 @@ static void updateMenuActions()
 	// for loading only, disable the save button, otherwise enable it
 	GameWindow *saveButton = TheWindowManager->winGetWindowFromId( nullptr, buttonSaveKey );
 	DEBUG_ASSERTCRASH( saveButton, ("SaveLoadMenuInit: Unable to find save button") );
-	if( currentLayoutType == SLLT_LOAD_ONLY )
-		saveButton->winEnable( FALSE );
-	else
-		saveButton->winEnable( TRUE );
 
 	// get the games listbox
 	//GameWindow *listboxGames = TheWindowManager->winGetWindowFromId( nullptr, NAMEKEY( "PopupSaveLoad.wnd:ListboxGames" ) );
@@ -117,6 +113,8 @@ static void updateMenuActions()
 	GadgetListBoxGetSelected( listboxGames, &selected );
 	AvailableGameInfo *selectedGameInfo;
 	selectedGameInfo = (AvailableGameInfo *)GadgetListBoxGetItemData( listboxGames, selected );
+	saveButton->winEnable(currentLayoutType != SLLT_LOAD_ONLY &&
+		(!selectedGameInfo || TheGameState->isInSaveDirectory(selectedGameInfo->filename)));
 	GameWindow *buttonLoad = TheWindowManager->winGetWindowFromId( nullptr, buttonLoadKey );
 	buttonLoad->winEnable( selectedGameInfo != nullptr );
 	GameWindow *buttonDelete = TheWindowManager->winGetWindowFromId( nullptr, buttonDeleteKey );
@@ -718,7 +716,7 @@ WindowMsgHandledType SaveLoadMenuSystem( GameWindow *window, UnsignedInt msg,
 					selectedGameInfo = (AvailableGameInfo *)GadgetListBoxGetItemData( listboxGames, selected );
 
 					// construct path to filename
-					AsciiString filepath = TheGameState->getFilePathInSaveDirectory(selectedGameInfo->filename);
+					AsciiString filepath = TheGameState->getSaveGamePathForRead(selectedGameInfo->filename);
 
 					// delete the file
 					DeleteFile( filepath.str() );
@@ -792,7 +790,7 @@ WindowMsgHandledType SaveLoadMenuSystem( GameWindow *window, UnsignedInt msg,
 
 					// save the game
 					AsciiString filename;
-					filename = selectedGameInfo->filename;
+					filename = getFileName(selectedGameInfo->filename.str());
 					presentSaveResult( TheGameState->saveGame( filename, selectedGameInfo->saveGameInfo.description, fileType ) );
 
 /*
@@ -856,7 +854,7 @@ WindowMsgHandledType SaveLoadMenuSystem( GameWindow *window, UnsignedInt msg,
 				// save the game
 				AsciiString filename;
 				if( selectedGameInfo )
-					filename = selectedGameInfo->filename;
+					filename = getFileName(selectedGameInfo->filename.str());
 				presentSaveResult( TheGameState->saveGame( filename, desc, fileType ) );
 
 			}

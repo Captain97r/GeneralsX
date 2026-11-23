@@ -30,6 +30,8 @@
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
+#include "Common/SimulationValue.h"
+
 #include "GameClient/FXList.h"
 
 #include "Common/DrawModule.h"
@@ -241,7 +243,7 @@ public:
 private:
 	AsciiString			m_tracerName;
   AsciiString     m_boneName;
-  Real            m_speed;
+  SimulationRateValue<Real>            m_speed;
   Real            m_decayAt;
 	Real						m_length;
 	Real						m_width;
@@ -378,8 +380,8 @@ private:
 	RGBColor			m_color;
 	Real					m_radius;
 	Real					m_boundingCirclePct;
-	UnsignedInt		m_increaseFrames;
-	UnsignedInt		m_decreaseFrames;
+	SimulationFrameValue<UnsignedInt>		m_increaseFrames;
+	SimulationFrameValue<UnsignedInt>		m_decreaseFrames;
 };
 EMPTY_DTOR(LightPulseFXNugget)
 

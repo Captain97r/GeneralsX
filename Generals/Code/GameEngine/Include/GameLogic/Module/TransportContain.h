@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include "Common/SimulationValue.h"
+
 // USER INCLUDES //////////////////////////////////////////////////////////////////////////////////
 #include "GameLogic/Module/OpenContain.h"
 
@@ -43,11 +45,11 @@ public:
 	};
 
 	Int								m_slotCapacity;								///< max units that can be inside us
-	Real							m_exitPitchRate;
+	SimulationRateValue<Real>							m_exitPitchRate;
 	AsciiString				m_exitBone;
 	InitialPayload		m_initialPayload;
 	Real							m_healthRegen;
-	UnsignedInt				m_exitDelay;
+	SimulationFrameValue<UnsignedInt>				m_exitDelay;
 	Bool							m_scatterNearbyOnExit;
 	Bool							m_orientLikeContainerOnExit;
 	Bool							m_keepContainerVelocityOnExit;
