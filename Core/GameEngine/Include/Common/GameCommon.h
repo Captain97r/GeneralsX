@@ -64,12 +64,8 @@
 enum
 {
 	BaseFps = 30, // The historic base frame rate for this game. This value must never change.
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	// GeneralsX @feature Codex 22/11/2026 Run native simulation steps independently of the W3D asset frame rate.
 	LOGICFRAMES_PER_SECOND = 60,
-#else
-	LOGICFRAMES_PER_SECOND = WWSyncPerSecond,
-#endif
 	MSEC_PER_SECOND = 1000
 };
 const Real LOGICFRAMES_PER_MSEC_REAL = (((Real)LOGICFRAMES_PER_SECOND) / ((Real)MSEC_PER_SECOND));

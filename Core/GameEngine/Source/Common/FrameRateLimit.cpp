@@ -144,19 +144,14 @@ void FrameRateLimit::reset()
 // makes input more responsive. (Root cause of a long "mouse input is delayed" investigation.)
 const UnsignedInt RenderFpsPreset::s_fpsValues[] = {
 	// GeneralsX @feature Codex 22/11/2026 Offer render rates that can service every simulation tick.
-#if !defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
-	30, 50, 56,
-#endif
 	60, 65, 70, 72, 75, 80, 85, 90, 100, 110, 120, 144, 240, 480, UncappedFpsValue };
 
 UnsignedInt RenderFpsPreset::getNextFpsValue(UnsignedInt value)
 {
 	const Int first = 0;
 	const Int last = ARRAY_SIZE(s_fpsValues) - 1;
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	if (value < s_fpsValues[first])
 		return s_fpsValues[first];
-#endif
 	for (Int i = first; i < last; ++i)
 	{
 		if (value >= s_fpsValues[i] && value < s_fpsValues[i + 1])

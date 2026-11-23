@@ -68,11 +68,7 @@ extern NGMPGame* TheNGMPGame;
 
 
 // GeneralsX @feature Codex 22/11/2026 A replay indexes commands by simulation tick; reject recordings from another clock at the header.
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
 constexpr const char s_genrep[] = "GX60RP";
-#else
-constexpr const char s_genrep[] = "GENREP";
-#endif
 constexpr const UnsignedInt replayBufferBytes = 8192;
 
 Int REPLAY_CRC_INTERVAL = logicFramesFromBaseFrames(100);
@@ -1741,10 +1737,7 @@ AsciiString RecorderClass::getReplayDir()
 {
 	AsciiString tmp = TheGlobalData->getPath_UserData();
 	// GeneralsX @bugfix copilot 12/03/2026 Use POSIX separator on non-Windows so replay files are stored in the actual Replays directory.
-	tmp.concat("Replays");
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	tmp.concat("60Hz");
-#endif
+	tmp.concat("Replays60Hz");
 #ifdef _WIN32
 	tmp.concat('\\');
 #else
@@ -1781,10 +1774,7 @@ AsciiString RecorderClass::getReplayArchiveDir()
 {
 	AsciiString tmp = TheGlobalData->getPath_UserData();
 	// GeneralsX @bugfix copilot 12/03/2026 Use POSIX separator on non-Windows so archived replays are stored in the actual directory.
-	tmp.concat("ArchivedReplays");
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	tmp.concat("60Hz");
-#endif
+	tmp.concat("ArchivedReplays60Hz");
 #ifdef _WIN32
 	tmp.concat('\\');
 #else

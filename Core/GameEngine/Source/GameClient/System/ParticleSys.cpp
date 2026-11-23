@@ -3250,10 +3250,8 @@ void ParticleSystemManager::reset()
 void ParticleSystemManager::update()
 {
 	// GeneralsX @feature Codex 22/11/2026 Keep emission, gravity, damping and lifetime on the particle asset clock.
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	if (TheGameClient->getFrame() % (LOGICFRAMES_PER_SECOND / BaseFps) != 0)
 		return;
-#endif
 
 	// TheSuperHackers @tweak Complete the render update of the previous logic frame before the logic update
 	// changes the rates, so that every logic frame integrates exactly one logic time step.
@@ -3326,13 +3324,9 @@ void ParticleSystemManager::draw()
 {
 	// TheSuperHackers @tweak Integrate the part of the logic frame that the render time
 	// has advanced into since the last render update.
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	const UnsignedInt ticksPerParticleFrame = LOGICFRAMES_PER_SECOND / BaseFps;
 	const Real logicFramePhase = ((TheGameClient->getFrame() % ticksPerParticleFrame)
 		+ TheFramePacer->getLogicFramePhase()) / ticksPerParticleFrame;
-#else
-	const Real logicFramePhase = TheFramePacer->getLogicFramePhase();
-#endif
 	if (logicFramePhase > m_drawnLogicFramePhase)
 	{
 		const Real timeScale = logicFramePhase - m_drawnLogicFramePhase;

@@ -357,7 +357,7 @@ void LANAPI::handleRequestJoin( LANMessage *msg, UnsignedInt senderIP, Bool comp
 				PRINTF_IP_AS_4_INTS(senderIP), PRINTF_IP_AS_4_INTS(responseIP)); */
 			DEBUG_LOG(("LANAPI::handleRequestJoin - join denied because game already started."));
 		}
-		else if (!compatibleSimulation || msg->messageType != LANMessage::localJoinRequest)
+		else if (!compatibleSimulation || msg->messageType != LANMessage::MSG_REQUEST_JOIN_60HZ)
 		{
 			reply.messageType = LANMessage::MSG_JOIN_DENY;
 			// Original clients understand the existing game-version mismatch reason.

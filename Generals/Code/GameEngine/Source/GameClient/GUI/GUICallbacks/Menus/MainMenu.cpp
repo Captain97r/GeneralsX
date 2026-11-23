@@ -1569,11 +1569,12 @@ WindowMsgHandledType MainMenuSystem( GameWindow *window, UnsignedInt msg,
 			}
 			else if( controlID == onlineID )
 			{
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
-				// GeneralsX @feature Codex 22/11/2026 The experimental profile negotiates its tick rate in the LAN lobby.
-				MessageBoxOk(UnicodeString(L"60 Hz multiplayer"), UnicodeString(L"Choose Network to play with other 60 Hz clients."), nullptr);
-				break;
-#endif
+				// GeneralsX @feature Codex 22/11/2026 Online rooms use the retail clock. LAN verifies the native simulation profile.
+				if (LOGICFRAMES_PER_SECOND != BaseFps)
+				{
+					MessageBoxOk(UnicodeString(L"60 Hz multiplayer"), UnicodeString(L"Choose Network to play with other 60 Hz clients."), nullptr);
+					break;
+				}
 				if(dontAllowTransitions)
 					break;
 				dontAllowTransitions = TRUE;

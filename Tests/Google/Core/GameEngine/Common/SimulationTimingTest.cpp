@@ -8,6 +8,7 @@
 TEST(SimulationTiming, ModUnitsUseWallClockSeconds)
 {
 	const float steps = LOGICFRAMES_PER_SECONDS_REAL;
+	EXPECT_EQ(60, LOGICFRAMES_PER_SECOND);
 	EXPECT_FLOAT_EQ(ConvertDurationFromMsecsToFrames(10000.0f), steps * 10.0f); // oil derrick
 	EXPECT_FLOAT_EQ(ConvertDurationFromMsecsToFrames(100.0f), steps * 0.1f); // poison damage
 	EXPECT_FLOAT_EQ(ConvertVelocityInSecsToFrames(300.0f) * steps, 300.0f);

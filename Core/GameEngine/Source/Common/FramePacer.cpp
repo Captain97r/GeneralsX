@@ -189,11 +189,7 @@ void FramePacer::setLogicTimeScaleFps( Int fps )
 void FramePacer::configureGameLogicRate(Int fps)
 {
 	setLogicTimeScaleFps(fps);
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	enableLogicTimeScale(TRUE);
-#else
-	enableLogicTimeScale(fps < getFramesPerSecondLimit());
-#endif
 }
 
 Int FramePacer::getLogicTimeScaleFps() const

@@ -184,11 +184,6 @@ struct LANMessage
 		// GeneralsX @feature Codex 22/11/2026 Older hosts must never allocate a slot for a 60 Hz client.
 		MSG_REQUEST_JOIN_60HZ,
 	} messageType;
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	static constexpr Type localJoinRequest = MSG_REQUEST_JOIN_60HZ;
-#else
-	static constexpr Type localJoinRequest = MSG_REQUEST_JOIN;
-#endif
 
 	WideCharWindows name[g_lanPlayerNameLength+1]; ///< My name, for convenience
 	char userName[g_lanLoginNameLength+1];	///< login name, for convenience
@@ -284,7 +279,6 @@ struct LANMessage
 		static_assert(ARRAY_SIZE(GameOptions.options) > m_lanMaxOptionsLength, "GameOptions.options buffer must be larger than m_lanMaxOptionsLength");
 
 	};
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
 	// The legacy packet prefix remains intact so older clients can discover the host and receive a join denial.
 #if RTS_ZEROHOUR
 	// GeneralsX @bugfix Codex 23/11/2026 Earlier native Zero Hour clients simulate Battle Bus wrecks on a different schedule.
@@ -293,15 +287,9 @@ struct LANMessage
 	static constexpr uint32_t native60Profile = 0x36304801; // 60 Hz simulation, revision 1
 #endif
 	uint32_t simulationProfile;
-#endif
 	Bool matchesSimulationProfile(Int length) const
 	{
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
 		return length == sizeof(*this) && simulationProfile == native60Profile;
-#else
-		// Preserve retail discovery compatibility; the host also validates the join opcode.
-		return true;
-#endif
 	}
 };
 #pragma pack(pop)

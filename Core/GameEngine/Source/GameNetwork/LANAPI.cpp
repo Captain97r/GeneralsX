@@ -757,7 +757,7 @@ void LANAPI::RequestGameJoin( LANGameInfo *game, UnsignedInt ip /* = 0 */ )
 	}
 
 	LANMessage msg;
-	msg.messageType = LANMessage::localJoinRequest;
+	msg.messageType = LANMessage::MSG_REQUEST_JOIN_60HZ;
 	fillInLANMessage( &msg );
 	msg.GameToJoin.gameIP = game->getSlot(0)->getIP();
 	msg.GameToJoin.exeCRC = TheGlobalData->m_exeCRC;
@@ -1219,9 +1219,7 @@ void LANAPI::fillInLANMessage( LANMessage *msg )
 	CopyWcharToWindowsWideChar(msg->name, m_name.str(), ARRAY_SIZE(msg->name) - 1);
 	strlcpy(msg->userName, m_userName.str(), ARRAY_SIZE(msg->userName));
 	strlcpy(msg->hostName, m_hostName.str(), ARRAY_SIZE(msg->hostName));
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
 	msg->simulationProfile = LANMessage::native60Profile;
-#endif
 }
 
 void LANAPI::RequestLobbyLeave( Bool forced )

@@ -5275,9 +5275,7 @@ void ScriptEngine::reset()
 		TheScriptConditions->reset();
 	}
 	m_numCounters = 1;
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	m_countdownHalfTick = FALSE;
-#endif
 	m_numAttackInfo = 1;
 	m_numFlags = 1;
 	m_endGameTimer = -1;
@@ -5435,9 +5433,7 @@ void ScriptEngine::reset()
 void ScriptEngine::newMap()
 {
 	m_numCounters = 1;
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	m_countdownHalfTick = FALSE;
-#endif
 	Int i;
 	for (i=0; i<MAX_COUNTERS; i++) {
 		m_counters[i].value = 0;
@@ -5562,11 +5558,9 @@ void ScriptEngine::update()
 	}
 
 	// GeneralsX @feature Codex 22/11/2026 WorldBuilder scripts run on the authored clock, including while world time is frozen.
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	m_countdownHalfTick = !m_countdownHalfTick;
 	if (!m_countdownHalfTick)
 		return;
-#endif
 	if (TheScriptActions) {
 		TheScriptActions->update();
 	}
@@ -5613,10 +5607,8 @@ void ScriptEngine::update()
 
 	// update all sequential stuff.
 	evaluateAndProgressAllSequentialScripts();
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	// GeneralsX @feature Codex 22/11/2026 Consume bridge events after the scripts have observed both native ticks.
 	TheTerrainLogic->clearBridgeScriptEvents();
-#endif
 
 	// Script debugger stuff
 	st_CurrentFrame++;
@@ -8891,13 +8883,7 @@ void ScriptEngine::xfer( Xfer *xfer )
 	Int i;
 
 	// version
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	const XferVersion currentVersion = 7;
-#elif RETAIL_COMPATIBLE_XFER_SAVE
-	const XferVersion currentVersion = 5;
-#else
-	const XferVersion currentVersion = 6;
-#endif
 	XferVersion version = currentVersion;
 	xfer->xferVersion( &version, currentVersion );
 
@@ -9368,12 +9354,10 @@ void ScriptEngine::xfer( Xfer *xfer )
 		}
 	}
 
-#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
 	if (version >= 7)
 		xfer->xferBool(&m_countdownHalfTick);
 	else
 		m_countdownHalfTick = FALSE;
-#endif
 
 	if( xfer->getXferMode() == XFER_LOAD ) {
 		// We are doing a load.  If there is no fade active, do a black fade in to start.
