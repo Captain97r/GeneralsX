@@ -34,6 +34,14 @@ jobs:
     timeout-minutes: 45
 
     steps:
+
+      - name: Check out native 60 Hz replay fixture
+        if: vars.TEST_NATIVE_60HZ_REPLAY == 'true'
+        uses: actions/checkout@v6
+        with:
+          path: native-replay-fixture
+          sparse-checkout: Tests/Replays
+          persist-credentials: false
       # -----------------------------------------------------------------------
       # 1. Download built binary artifact from upstream build job
       # -----------------------------------------------------------------------
@@ -398,6 +406,10 @@ jobs:
             echo "$USER_DATA"
             echo "GHENV_EOF"
           } >> $GITHUB_ENV
+
+      - name: Install native 60 Hz replay fixture
+        if: vars.TEST_NATIVE_60HZ_REPLAY == 'true'
+        run: cp "$GITHUB_WORKSPACE/native-replay-fixture/Tests/Replays/windows_60hz_tournament_desert.rep" "$USER_DATA/Replays/"
 
       # -----------------------------------------------------------------------
       # 6. Run headless replay tests

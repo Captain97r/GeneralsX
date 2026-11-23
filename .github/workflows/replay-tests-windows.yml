@@ -26,6 +26,14 @@ jobs:
     timeout-minutes: 45
 
     steps:
+
+      - name: Check out native 60 Hz replay fixture
+        if: vars.TEST_NATIVE_60HZ_REPLAY == 'true'
+        uses: actions/checkout@v6
+        with:
+          path: native-replay-fixture
+          sparse-checkout: Tests/Replays
+          persist-credentials: false
       - name: Download game artifact
         uses: actions/download-artifact@v8
         with:
@@ -208,7 +216,12 @@ jobs:
 
           "REPLAYS_DIR=$replaysDir" >> $env:GITHUB_ENV
 
-      - name: Run Linux and macOS replay captures
+      - name: Install native 60 Hz replay fixture
+        if: vars.TEST_NATIVE_60HZ_REPLAY == 'true'
+        shell: pwsh
+        run: Copy-Item (Join-Path $env:GITHUB_WORKSPACE "native-replay-fixture\Tests\Replays\windows_60hz_tournament_desert.rep") $env:REPLAYS_DIR
+
+      - name: Run replay captures
         shell: pwsh
         run: |
           $passed = 0
@@ -257,7 +270,7 @@ jobs:
               Write-Host "Process exited with code $exitCode ($hexCode) and produced no output"
             }
 
-            $source = if ($replay.Name.StartsWith("linux_")) { "Linux" } elseif ($replay.Name.StartsWith("macos_")) { "macOS" } else { "other" }
+            $source = if ($replay.Name.StartsWith("linux_")) { "Linux" } elseif ($replay.Name.StartsWith("macos_")) { "macOS" } elseif ($replay.Name.StartsWith("windows_")) { "Windows" } else { "other" }
             $completionLines = @($stdoutOutput |
               Select-String -Pattern '^Elapsed Time: \d{2}:\d{2} Game Time: (\d{2}:\d{2})/\1$')
             $completed = $completionLines.Count -gt 0
