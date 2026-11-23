@@ -3443,23 +3443,23 @@ void operator delete[](void * p, const char *, int)
 // These overloads bypass the pool and use posix_memalign for such allocations.
 // GeneralsX @bugfix 09/03/2026
 #ifndef _WIN32
+#include <algorithm>
 #include <new>
 #include <cstdlib>
 
 void *operator new(size_t size, std::align_val_t alignment)
 {
+	// C++ permits alignments such as 1 or 4. POSIX also requires a multiple of sizeof(void *).
+	const size_t posixAlignment = std::max(static_cast<size_t>(alignment), sizeof(void *));
 	void *p = nullptr;
-	if (::posix_memalign(&p, static_cast<size_t>(alignment), size) != 0)
+	if (::posix_memalign(&p, posixAlignment, size) != 0)
 		throw std::bad_alloc();
 	return p;
 }
 
 void *operator new[](size_t size, std::align_val_t alignment)
 {
-	void *p = nullptr;
-	if (::posix_memalign(&p, static_cast<size_t>(alignment), size) != 0)
-		throw std::bad_alloc();
-	return p;
+	return ::operator new(size, alignment);
 }
 
 void operator delete(void *p, std::align_val_t) noexcept

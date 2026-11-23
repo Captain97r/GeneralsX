@@ -28,6 +28,9 @@ set(COREI_GOOGLETEST_SRC
 add_library(corei_googletest INTERFACE)
 
 target_sources(corei_googletest INTERFACE ${COREI_GOOGLETEST_SRC})
+if(NOT WIN32)
+    target_sources(corei_googletest INTERFACE GameEngine/Common/AlignedAllocationTest.cpp)
+endif()
 
 target_link_libraries(corei_googletest INTERFACE
     comctl32
