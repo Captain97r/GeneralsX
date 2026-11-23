@@ -36,7 +36,9 @@
 #include "Common/MessageStream.h"
 #include "Common/Player.h"
 #include "Common/PlayerList.h"
+#include "GameNetwork/GameInfo.h"
 #include "GameNetwork/NetworkInterface.h"
+#include "GameNetwork/LANStutterLog.h"
 #include "GameNetwork/udp.h"
 #include "GameNetwork/Transport.h"
 #include "WWLib/strtok_r.h"
@@ -118,6 +120,7 @@ public:
 	virtual UnsignedInt getPacketArrivalCushion() override;								///< Returns the smallest packet arrival cushion since this was last called.
 	virtual Bool isFrameDataReady() override;
 	virtual Bool isStalling() override;
+	virtual void beginLANStutterLog(const GameInfo& game) override;
 	virtual void parseUserList( const GameInfo *game ) override;
 	virtual void startGame() override;																			///< Sets the network game frame counter to -1
 
@@ -215,6 +218,7 @@ protected:
 
 	Bool m_frameDataReady;																		///< Is the frame data for the next frame ready to be executed by TheGameLogic?
 	Bool m_isStalling;
+	Bool m_ownsLANStutterLog = FALSE;
 
 	// CRC info
 	Bool m_checkCRCsThisFrame;
@@ -290,6 +294,8 @@ Network::Network(Int nativeSimulationRate) : NetworkInterface(nativeSimulationRa
  */
 Network::~Network()
 {
+	if (m_ownsLANStutterLog)
+		LANStutterLog::end();
 	deinit();
 }
 
@@ -432,6 +438,20 @@ void Network::parseUserList( const GameInfo *game )
 	// Now that we have the players in this game, we need to reset the FrameData stuff.
 	m_conMgr->destroyGameMessages();
 	m_conMgr->zeroFrames(1, m_runAhead-1); ///< we zero out m_runAhead frames +1 because the game actually starts at frame 1.
+}
+
+// GeneralsX @feature Codex 23/11/2026 Identify each LAN match and its peers without recording player names or addresses.
+void Network::beginLANStutterLog(const GameInfo& game)
+{
+	UnsignedInt humanSlots = 0;
+	for (Int i = 0; i < MAX_SLOTS; ++i)
+	{
+		if (game.getConstSlot(i)->isHuman())
+			humanSlots |= 1u << i;
+	}
+	LANStutterLog::begin(TheGlobalData->getPath_UserData().str(), game.getMapCRC(), game.getSeed(),
+		game.getLocalSlotNum(), humanSlots, getNativeSimulationRate());
+	m_ownsLANStutterLog = LANStutterLog::active();
 }
 
 /**
@@ -747,7 +767,9 @@ void Network::update()
 		endOfGameCheck();
 	}
 
-	if (AllCommandsReady(TheGameLogic->getFrame())) {
+	const UnsignedInt frame = TheGameLogic->getFrame();
+	const Bool commandsReady = AllCommandsReady(frame);
+	if (commandsReady) {
 		// If all the commands are ready for the next frame...
 		m_conMgr->handleAllCommandsReady();
 //		DEBUG_LOG(("Network::update - frame %d is ready", TheGameLogic->getFrame()));
@@ -769,6 +791,9 @@ void Network::update()
 		#endif
 		m_isStalling = curTime >= m_nextFrameTime;
 	}
+
+	if (m_ownsLANStutterLog && m_localStatus == NETLOCALSTATUS_INGAME)
+		m_conMgr->traceLANFrame(frame, commandsReady, m_isStalling, m_frameRate, m_runAhead, m_frameDataReady);
 }
 
 void Network::liteupdate() {

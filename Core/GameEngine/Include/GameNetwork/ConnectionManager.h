@@ -69,6 +69,7 @@ public:
 	void sendCommand(NetCommandMsg *msg);
 	Bool allCommandsReady(UnsignedInt frame, Bool justTesting = FALSE);
 	void handleAllCommandsReady();
+	void traceLANFrame(UnsignedInt frame, Bool commandsReady, Bool overdue, Int rate, Int runAhead, Bool granted);
 	NetCommandList *getFrameCommandList(UnsignedInt frame);
 //	void AddConnection(User *user, UnsignedInt slot);
 	void determineRouterFallbackPlan();

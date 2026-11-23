@@ -26,6 +26,7 @@
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "GameNetwork/Connection.h"
+#include "GameNetwork/LANStutterLog.h"
 #include "GameNetwork/networkutil.h"
 #include "GameLogic/GameLogic.h"
 
@@ -227,7 +228,7 @@ void Connection::setQuitting()
  * This is the good part. We take all the network commands queued up for this connection,
  * packetize them and put them on the transport's send queue for actual sending.
  */
-UnsignedInt Connection::doSend() {
+UnsignedInt Connection::doSend(Int peerSlot) {
 	Int numpackets = 0;
 	time_t curtime = timeGetTime();
 	Bool couldQueue = TRUE;
@@ -253,6 +254,7 @@ UnsignedInt Connection::doSend() {
 		packet.setAddress(m_user->GetIPAddr(), m_user->GetPort());
 
 		Bool notDone = TRUE;
+		Bool containsRetry = FALSE;
 
 		// add the command messages until either we run out of messages or the packet is full.
 		while ((msg != nullptr) && notDone) {
@@ -267,6 +269,7 @@ UnsignedInt Connection::doSend() {
 					if (CommandRequiresAck(msg->getCommand())) {
 						if (timeLastSent != -1) {
 							++m_numRetries;
+							containsRetry = TRUE;
 						}
 						doRetryMetrics();
 						msg->setTimeLastSent(curtime);
@@ -290,6 +293,8 @@ UnsignedInt Connection::doSend() {
 			// If the packet actually has any information to give, give it to the transport object
 			// for transmission.
 			couldQueue = m_transport->queueSend(packet.getAddr(), packet.getPort(), packet.getData(), packet.getLength());
+			if (couldQueue)
+				LANStutterLog::packetSent(peerSlot, containsRetry);
 			m_lastTimeSent = curtime;
 		}
 	}

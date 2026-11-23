@@ -44,6 +44,7 @@
 #include "GameClient/GameText.h"
 #include "GameClient/MessageBox.h"
 #include "GameNetwork/ConnectionManager.h"
+#include "GameNetwork/LANStutterLog.h"
 #include "GameNetwork/LANAPICallbacks.h"
 #include "GameNetwork/NAT.h"
 #include "GameNetwork/NetCommandWrapperList.h"
@@ -643,6 +644,7 @@ void ConnectionManager::processFrameResendRequest(NetFrameResendRequestCommandMs
 		return;
 	}
 
+	LANStutterLog::frameResend(msg->getFrameToResend(), playerID, true);
 	sendFrameDataToPlayer(playerID, msg->getFrameToResend());
 }
 
@@ -952,6 +954,7 @@ void ConnectionManager::processFrameInfo(NetFrameCommandMsg *msg) {
 		if (m_frameData[playerID] != nullptr) {
 //			DEBUG_LOG(("ConnectionManager::processFrameInfo - player %d, frame %d, command count %d, received on frame %d", playerID, msg->getExecutionFrame(), msg->getCommandCount(), TheGameLogic->getFrame()));
 			m_frameData[playerID]->setFrameCommandCount(msg->getExecutionFrame(), msg->getCommandCount());
+			LANStutterLog::frameInfoReceived(playerID, msg->getExecutionFrame());
 		}
 	}
 }
@@ -1326,7 +1329,7 @@ void ConnectionManager::update(Bool isInGame) {
 			}
 			*/
 
-			m_connections[i]->doSend();
+			m_connections[i]->doSend(i);
 
 			if (m_connections[i]->isQuitting() && m_connections[i]->isQueueEmpty())
 			{
@@ -1462,6 +1465,8 @@ void ConnectionManager::updateRunAhead(Int oldRunAhead, Int frameRate, Bool didS
 			}
 			msg2->setRunAhead(newRunAhead);
 			msg2->setFrameRate(newMinFps);
+			LANStutterLog::routerPlan(TheGameLogic->getFrame(), msg2->getExecutionFrame(), minFpsPlayer,
+				minFps, newMinFps, newRunAhead, m_fpsAverages, m_latencyAverages);
 
 			sendLocalCommand(msg2, 1 << minFpsPlayer);
 
@@ -1736,6 +1741,32 @@ Bool ConnectionManager::allCommandsReady(UnsignedInt frame, Bool justTesting /* 
 	return retval;
 }
 
+// GeneralsX @feature Codex 23/11/2026 Inspect the lockstep buffers without re-running the readiness check, which can issue resends.
+void ConnectionManager::traceLANFrame(UnsignedInt frame, Bool commandsReady, Bool overdue, Int rate, Int runAhead, Bool granted)
+{
+	UnsignedInt missingFrameInfo = 0;
+	UnsignedInt missingCommands = 0;
+	if (!commandsReady)
+	{
+		for (Int i = 0; i < MAX_SLOTS; ++i)
+		{
+			FrameDataManager *data = m_frameData[i];
+			if (data == nullptr || data->getIsQuitting())
+				continue;
+
+			const UnsignedInt expected = data->getFrameCommandCount(frame);
+			if (expected == static_cast<UnsignedInt>(-1))
+				missingFrameInfo |= 1u << i;
+			else if (data->getCommandCount(frame) != expected)
+				missingCommands |= 1u << i;
+		}
+	}
+	const Bool disconnectHold = !commandsReady && !m_disconnectManager->allowedToContinue();
+	LANStutterLog::networkPoll(frame, commandsReady, overdue, missingFrameInfo, missingCommands,
+		disconnectHold, m_packetRouterSlot, rate, runAhead, m_frameMetrics.getMinimumCushion(), granted,
+		m_frameMetrics.getAverageLatency() * 1000.0f);
+}
+
 void ConnectionManager::handleAllCommandsReady()
 {
 	m_disconnectManager->allCommandsReady(TheGameLogic->getFrame(), this, FALSE);
@@ -1972,7 +2003,7 @@ void ConnectionManager::flushConnections() {
 //				DEBUG_LOG(("ConnectionManager::flushConnections - connection queue empty"));
 			}
 			*/
-			m_connections[i]->doSend();
+			m_connections[i]->doSend(i);
 		}
 	}
 
@@ -2591,6 +2622,7 @@ void ConnectionManager::requestFrameDataResend(Int playerID, UnsignedInt frame) 
 	}
 
 	if (playerID < MAX_SLOTS) {
+		LANStutterLog::frameResend(frame, playerID, false);
 		sendLocalCommandDirect(msg, 1 << playerID);
 	}
 

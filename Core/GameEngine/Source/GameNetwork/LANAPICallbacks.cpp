@@ -268,6 +268,7 @@ void LANAPI::OnGameStart()
 
 		// GeneralsX @bugfix felipebraz 07/11/2026 Keep portable map identity in m_currentGame for protocol integrity, use verified local path for loader pendingFile.
 		m_currentGame->startGame(0);
+		TheNetwork->beginLANStutterLog(*m_currentGame);
 
 		// shutdown the top, but do not pop it off the stack
 		//TheShell->hideShell();

@@ -53,7 +53,7 @@ public:
 	void init();
 	void reset();
 
-	UnsignedInt doSend();
+	UnsignedInt doSend(Int peerSlot);
 	void doRecv();
 
 	Bool allCommandsReady(UnsignedInt frame);

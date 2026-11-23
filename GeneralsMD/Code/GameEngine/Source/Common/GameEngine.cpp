@@ -33,6 +33,7 @@
 #include "Common/BuildAssistant.h"
 #include "Common/CRCDebug.h"
 #include "Common/FramePacer.h"
+#include "Common/LANFrameTiming.h"
 #include "Common/Radar.h"
 #include "Common/PlayerTemplate.h"
 #include "Common/Team.h"
@@ -967,6 +968,7 @@ DECLARE_PERF_TIMER(GameEngine_update)
  */
 void GameEngine::update()
 {
+	LANFrameTiming& timing = LANFrameTiming::get();
 	USE_PERF_TIMER(GameEngine_update)
 	{
 		{
@@ -978,12 +980,12 @@ void GameEngine::update()
 			/// @todo Move audio init, update, etc, into GameClient update
 
 			TheAudio->UPDATE();
-			TheGameClient->UPDATE();
+			timing.measure(&LANFrameTiming::Sample::clientUs, [] { TheGameClient->UPDATE(); });
 			TheMessageStream->propagateMessages();
 
 			if (TheNetwork != nullptr)
 			{
-				TheNetwork->UPDATE();
+				timing.measure(&LANFrameTiming::Sample::networkUs, [] { TheNetwork->UPDATE(); });
 			}
 
 #ifdef SAGE_USE_NGMP
@@ -1010,7 +1012,7 @@ void GameEngine::update()
 				if (TheFramePacer->isGameHalted())
 					break;
 			}
-			TheGameLogic->UPDATE();
+			timing.measure(&LANFrameTiming::Sample::logicUs, [] { TheGameLogic->UPDATE(); });
 			if (!TheFramePacer->isTimeFrozen())
 				TheGameClient->step();
 
@@ -1030,6 +1032,8 @@ extern HWND ApplicationHWnd;
  */
 void GameEngine::executeFrame()
 {
+	LANFrameTiming& timing = LANFrameTiming::get();
+	timing.begin(TheGameLogic->getFrame());
 #if defined(RTS_DEBUG)
 	static const DWORD startTime = timeGetTime() / 1000;
 #endif
@@ -1100,7 +1104,8 @@ void GameEngine::executeFrame()
 		// also throttles the input sampling rate. A low FPS cap therefore makes the mouse feel
 		// laggy (hard to click moving units) even though simulation advances on its own clock.
 		// See RenderFpsPreset::s_fpsValues in FrameRateLimit.cpp for the full explanation.
-		TheFramePacer->update();
+		timing.measure(&LANFrameTiming::Sample::pacerUs, [] { TheFramePacer->update(); });
+		timing.finish(TheGameLogic->getFrame());
 
 		// NOTE: TheDisplay->draw() is called via TheGameClient->UPDATE() above.
 		// GameClient::update() dispatches TheDisplay->DRAW() each frame.

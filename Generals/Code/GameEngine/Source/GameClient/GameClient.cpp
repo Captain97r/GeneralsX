@@ -34,6 +34,7 @@
 // USER INCLUDES //////////////////////////////////////////////////////////////
 #include "Common/ActionManager.h"
 #include "Common/FramePacer.h"
+#include "Common/LANFrameTiming.h"
 #include "Common/GameEngine.h"
 #include "Common/GameState.h"
 #include "Common/Recorder.h"
@@ -542,7 +543,7 @@ void GameClient::update()
 	{
 		// redraw all views, update the GUI
 		TheDisplay->UPDATE();
-		TheDisplay->DRAW();
+		LANFrameTiming::get().measure(&LANFrameTiming::Sample::drawUs, [] { TheDisplay->DRAW(); });
 		return;
 	}
 
@@ -679,7 +680,7 @@ void GameClient::update()
 	// redraw all views, update the GUI
 	//if(TheGameLogic->getFrame() >= 2)
 
-		TheDisplay->DRAW();
+		LANFrameTiming::get().measure(&LANFrameTiming::Sample::drawUs, [] { TheDisplay->DRAW(); });
 	}
 
 	{

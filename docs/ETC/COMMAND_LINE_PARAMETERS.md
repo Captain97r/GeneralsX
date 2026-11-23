@@ -39,6 +39,9 @@ Common command line parameters for `GeneralsX` (Generals) and `GeneralsXZH` (Zer
 selects that copy. A bare filename is looked up in `Replays60Hz` first and
 then in `Replays`.
 
+LAN sessions on the diagnostics branch automatically write a per-player match
+log in Release builds. See [Collecting LAN stutter logs](LAN_STUTTER_LOGS.md).
+
 ## Common Combinations
 
 ### Quick Testing

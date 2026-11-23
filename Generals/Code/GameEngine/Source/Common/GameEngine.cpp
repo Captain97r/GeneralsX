@@ -33,6 +33,7 @@
 #include "Common/BuildAssistant.h"
 #include "Common/CRCDebug.h"
 #include "Common/FramePacer.h"
+#include "Common/LANFrameTiming.h"
 #include "Common/Radar.h"
 #include "Common/PlayerTemplate.h"
 #include "Common/Team.h"
@@ -806,6 +807,7 @@ DECLARE_PERF_TIMER(GameEngine_update)
  */
 void GameEngine::update()
 {
+	LANFrameTiming& timing = LANFrameTiming::get();
 	USE_PERF_TIMER(GameEngine_update)
 	{
 		{
@@ -817,12 +819,12 @@ void GameEngine::update()
 			/// @todo Move audio init, update, etc, into GameClient update
 
 			TheAudio->UPDATE();
-			TheGameClient->UPDATE();
+			timing.measure(&LANFrameTiming::Sample::clientUs, [] { TheGameClient->UPDATE(); });
 			TheMessageStream->propagateMessages();
 
 			if (TheNetwork != nullptr)
 			{
-				TheNetwork->UPDATE();
+				timing.measure(&LANFrameTiming::Sample::networkUs, [] { TheNetwork->UPDATE(); });
 			}
 		}	// end VERIFY_CRC block
 
@@ -842,7 +844,7 @@ void GameEngine::update()
 				if (TheFramePacer->isGameHalted())
 					break;
 			}
-			TheGameLogic->UPDATE();
+			timing.measure(&LANFrameTiming::Sample::logicUs, [] { TheGameLogic->UPDATE(); });
 			if (!TheFramePacer->isTimeFrozen())
 				TheGameClient->step();
 
@@ -869,6 +871,8 @@ void GameEngine::execute()
 	// pretty basic for now
 	while( !m_quitting )
 	{
+		LANFrameTiming& timing = LANFrameTiming::get();
+		timing.begin(TheGameLogic->getFrame());
 
 		//if (TheGlobalData->m_vTune)
 		{
@@ -930,7 +934,8 @@ void GameEngine::execute()
 				}
 			}
 
-			TheFramePacer->update();
+			timing.measure(&LANFrameTiming::Sample::pacerUs, [] { TheFramePacer->update(); });
+			timing.finish(TheGameLogic->getFrame());
 
 			// GeneralsX @bugfix MrMeeseeks 17/06/2026 Remove double-present call to fix uncapped FPS and game running too fast (matches Zero Hour / GeneralsMD)
 			// NOTE: TheDisplay->draw() is called via TheGameClient->UPDATE() above.

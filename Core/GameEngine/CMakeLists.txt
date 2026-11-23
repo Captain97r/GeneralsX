@@ -42,6 +42,7 @@ set(GAMEENGINE_SRC
     Include/Common/file.h
     Include/Common/FileSystem.h
     Include/Common/FramePacer.h
+    Include/Common/LANFrameTiming.h
     Include/Common/FrameRateLimit.h
 #    Include/Common/FunctionLexicon.h
     Include/Common/GameAudio.h
@@ -551,6 +552,7 @@ set(GAMEENGINE_SRC
     Include/GameNetwork/IPEnumeration.h
     Include/GameNetwork/LANAPI.h
     Include/GameNetwork/LANAPICallbacks.h
+    Include/GameNetwork/LANStutterLog.h
     Include/GameNetwork/LANGameInfo.h
     Include/GameNetwork/LANInterfaceDevice.h
     Include/GameNetwork/LANPlayer.h
@@ -1160,6 +1162,7 @@ set(GAMEENGINE_SRC
     Source/GameNetwork/LANAPICallbacks.cpp
     Source/GameNetwork/LANAPIhandlers.cpp
     Source/GameNetwork/LANGameInfo.cpp
+    Source/GameNetwork/LANStutterLog.cpp
     Source/GameNetwork/NAT.cpp
     Source/GameNetwork/NetCommandList.cpp
     Source/GameNetwork/NetCommandMsg.cpp
