@@ -37,6 +37,7 @@
 #include "GameClient/GameText.h"
 #include "GameClient/KeyDefs.h"
 #include "GameClient/Shell.h"
+#include "GameClient/SimulationRateControl.h"
 #include "GameClient/View.h"
 #include "GameClient/WindowLayout.h"
 
@@ -72,6 +73,9 @@ static GameWindow *checkUltrawideUI = nullptr;
 static GameWindow *buttonDefaults = nullptr;
 static GameWindow *buttonAccept = nullptr;
 static GameWindow *buttonClose = nullptr;
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+static GameWindow *buttonSimulationRate = nullptr;
+#endif
 
 static OptionPreferences *pref = nullptr;
 
@@ -221,6 +225,14 @@ static void saveOptions()
 //-------------------------------------------------------------------------------------------------
 static void setDefaults()
 {
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	if (buttonSimulationRate && BitIsSet(buttonSimulationRate->winGetStatus(), WIN_STATUS_ENABLED))
+	{
+		pref->setNativeSimulationRate(30);
+		setSimulationRateButtonText(buttonSimulationRate, 30);
+	}
+#endif
+
 	if (sliderDrawDistance)
 		GadgetSliderSetPosition(sliderDrawDistance, 105);
 
@@ -288,6 +300,10 @@ void GeneralsXMenuInit(WindowLayout *layout, void *userData)
 
 	if (!pref)
 		pref = NEW OptionPreferences;
+
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	buttonSimulationRate = createGeneralsXSimulationRateButton(buttonDefaults, buttonAccept, buttonClose, pref->getNativeSimulationRate());
+#endif
 
 	// Populate controls from current engine / preferences values
 	if (sliderDrawDistance)
@@ -405,6 +421,9 @@ void GeneralsXMenuShutdown(WindowLayout *layout, void *userData)
 	buttonDefaults = nullptr;
 	buttonAccept = nullptr;
 	buttonClose = nullptr;
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	buttonSimulationRate = nullptr;
+#endif
 	parentGeneralsXMenu = nullptr;
 
 	if (pref)
@@ -449,6 +468,15 @@ WindowMsgHandledType GeneralsXMenuSystem(GameWindow *window, UnsignedInt msg,
 			GameWindow *control = (GameWindow *)mData1;
 			Int controlID = control->winGetWindowId();
 
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+			if (control == buttonSimulationRate && BitIsSet(control->winGetStatus(), WIN_STATUS_ENABLED))
+			{
+				const Int rate = pref->getNativeSimulationRate() == 60 ? 30 : 60;
+				pref->setNativeSimulationRate(rate);
+				setSimulationRateButtonText(control, rate);
+				return MSG_HANDLED;
+			}
+#endif
 			if (controlID == buttonCloseID)
 			{
 				TheShell->pop();

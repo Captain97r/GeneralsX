@@ -33,8 +33,8 @@
 
 class GameWindow;
 
-// A room can switch 30 -> 60 -> 30 before a delayed ready or start packet arrives.
-// The game seed identifies the room. Only the host advances the rate revision.
+// The seed identifies the room. Earlier runtime-protocol hosts can also advance
+// the revision before a delayed ready or start packet arrives.
 #pragma pack(push, 1)
 struct LANRoomStamp
 {
@@ -101,7 +101,6 @@ public:
 	Int getSimulationRate() const { return m_simulationRate; }
 	void setSimulationRate(Int rate) { m_simulationRate = rate; }
 	LANRoomStamp getSimulationStamp() const { return {static_cast<uint32_t>(getSeed()), m_simulationRevision}; }
-	void changeSimulationRate(Int rate) { ++m_simulationRevision; setSimulationRate(rate); }
 	Bool adoptSimulationRate(Int rate, const LANRoomStamp &stamp, Bool joining = false);
 	Bool matchesSimulationRate(Int rate, const LANRoomStamp &stamp) const;
 	Bool areRemotePlayersReady() const;

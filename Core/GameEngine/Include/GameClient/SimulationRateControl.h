@@ -3,6 +3,5 @@
 
 class GameWindow;
 
-GameWindow *createOptionsSimulationRateButton(GameWindow *options);
-GameWindow *createLanSimulationRateButton(GameWindow *start, GameWindow *back);
+GameWindow *createGeneralsXSimulationRateButton(GameWindow *defaults, GameWindow *accept, GameWindow *cancel, int preferredRate);
 void setSimulationRateButtonText(GameWindow *button, int rate);

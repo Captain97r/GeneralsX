@@ -1018,21 +1018,6 @@ void LANAPI::RequestGameOptions( AsciiString gameOptions, Bool isPublic, Unsigne
 	//DEBUG_ASSERTCRASH(player != MAX_SLOTS, ("Requested game options, but we're not in slot list!");
 }
 
-void LANAPI::RequestSimulationRate(Int rate)
-{
-#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	if (!m_currentGame || !AmIHost() || m_currentGame->isGameInProgress() ||
-		(rate != 30 && rate != 60) || m_currentGame->getSimulationRate() == rate)
-		return;
-	m_currentGame->changeSimulationRate(rate);
-	m_currentGame->resetAccepted();
-	RequestGameOptions(GenerateGameOptionsString(), true);
-	RequestGameAnnounce();
-	lanUpdateSlotList();
-	updateGameOptions();
-#endif
-}
-
 void LANAPI::RequestGameCreate( UnicodeString gameName, Bool isDirectConnect )
 {
 	// No games of the same name should exist...  Ignore that for now.
@@ -1054,6 +1039,7 @@ void LANAPI::RequestGameCreate( UnicodeString gameName, Bool isDirectConnect )
 	// Create the local game object
 	m_inLobby = false;
 	LANGameInfo *myGame = NEW LANGameInfo;
+	// GeneralsX @feature Codex 23/11/2026 Snapshot the host preference for the lifetime of this room.
 	myGame->setSimulationRate(OptionPreferences().getNativeSimulationRate());
 
 	myGame->setSeed(GetTickCount());

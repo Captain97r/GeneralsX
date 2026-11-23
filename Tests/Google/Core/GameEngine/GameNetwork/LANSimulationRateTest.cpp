@@ -102,7 +102,7 @@ public:
 };
 }
 
-TEST(LANSimulationRate, OptionsReadyAndStartBelongToOneRoomRevision)
+TEST(LANSimulationRate, GuestUsesHostRateForReadyAndStart)
 {
 	SavedLobbyGlobals restoreOnExit;
 	GlobalData data;
@@ -111,48 +111,48 @@ TEST(LANSimulationRate, OptionsReadyAndStartBelongToOneRoomRevision)
 	TheGameState = &gameState;
 	MapCache maps;
 	TheMapCache = &maps;
-	LobbyPeer host(LobbyPeer::hostIP, 30), guest(LobbyPeer::guestIP, 60);
-	LANGameInfo *hostRoom = host.GetMyGame(), *guestRoom = guest.GetMyGame();
-	EXPECT_TRUE(guestRoom->adoptSimulationRate(30, hostRoom->getSimulationStamp(), true));
-	EXPECT_EQ(30, guestRoom->getSimulationRate());
-	guest.RequestSimulationRate(60);
-	EXPECT_EQ(30, guestRoom->getSimulationRate());
-	guest.RequestAccept();
-	const auto oldReady = guest.sent(LANMessage::MSG_SET_ACCEPT);
-	host.receive(oldReady, LobbyPeer::guestIP);
-	EXPECT_TRUE(hostRoom->areRemotePlayersReady());
-	host.RequestGameStart();
-	const auto oldStart = host.sent(LANMessage::MSG_GAME_START);
-	EXPECT_EQ(1, host.starts);
-	for (const Int rate : {60, 30})
+	for (const Int hostRate : {30, 60})
 	{
-		TheLAN = &host;
-		host.RequestSimulationRate(rate);
-		EXPECT_FALSE(hostRoom->areRemotePlayersReady());
-		host.receive(oldReady, LobbyPeer::guestIP);
+		SCOPED_TRACE(hostRate);
+		const Int guestRate = hostRate == 30 ? 60 : 30;
+		LobbyPeer host(LobbyPeer::hostIP, hostRate), guest(LobbyPeer::guestIP, guestRate);
+		LANGameInfo *hostRoom = host.GetMyGame(), *guestRoom = guest.GetMyGame();
+		ASSERT_TRUE(guestRoom->adoptSimulationRate(hostRate, hostRoom->getSimulationStamp(), true));
+		EXPECT_EQ(hostRate, guestRoom->getSimulationRate());
+		guest.RequestAccept();
+		LANMessage ready = guest.sent(LANMessage::MSG_SET_ACCEPT);
+		EXPECT_EQ(hostRate, ready.advertisedSimulationRate(sizeof(ready)));
+		LANMessage staleReady = ready;
+		++staleReady.Accept.simulation.seed;
+		host.receive(staleReady, LobbyPeer::guestIP);
 		EXPECT_FALSE(hostRoom->areRemotePlayersReady());
 		host.RequestGameStart();
-		EXPECT_EQ(1, host.starts);
-		guest.receive(host.sent(LANMessage::MSG_GAME_OPTIONS), LobbyPeer::hostIP);
-		EXPECT_EQ(rate, guestRoom->getSimulationRate());
-		guest.receive(oldStart, LobbyPeer::hostIP);
+		EXPECT_EQ(0, host.starts);
+		host.receive(ready, LobbyPeer::guestIP);
+		EXPECT_TRUE(hostRoom->areRemotePlayersReady());
+		host.RequestGameStart();
+		const LANMessage start = host.sent(LANMessage::MSG_GAME_START);
+		LANMessage staleStart = start;
+		++staleStart.Start.simulation.seed;
+		guest.receive(staleStart, LobbyPeer::hostIP);
 		EXPECT_EQ(0, guest.starts);
+		guest.receive(start, LobbyPeer::hostIP);
+		EXPECT_EQ(1, guest.starts);
+		// Hosts built before the selector moved can still publish a newer room revision.
+		LANMessage options{};
+		options.messageType = LANMessage::MSG_GAME_OPTIONS;
+		options.setSimulationRate(guestRate);
+		options.GameOptions.simulation = hostRoom->getSimulationStamp();
+		++options.GameOptions.simulation.revision;
+		guest.receive(options, LobbyPeer::hostIP);
+		EXPECT_EQ(guestRate, guestRoom->getSimulationRate());
+		guest.receive(start, LobbyPeer::hostIP);
+		EXPECT_EQ(1, guest.starts);
+		const Int updates = guest.optionUpdates;
+		--options.GameOptions.simulation.revision;
+		guest.receive(options, LobbyPeer::hostIP);
+		EXPECT_EQ(updates, guest.optionUpdates);
 	}
-	LANMessage outdated = host.sent(LANMessage::MSG_GAME_OPTIONS);
-	const Int updates = guest.optionUpdates;
-	--outdated.GameOptions.simulation.revision;
-	guest.receive(outdated, LobbyPeer::hostIP);
-	EXPECT_EQ(updates, guest.optionUpdates);
-	guest.RequestAccept();
-	host.receive(guest.sent(LANMessage::MSG_SET_ACCEPT), LobbyPeer::guestIP);
-	EXPECT_TRUE(hostRoom->areRemotePlayersReady());
-	host.RequestGameStart();
-	LANMessage start = host.sent(LANMessage::MSG_GAME_START);
-	guest.receive(start, LobbyPeer::hostIP);
-	EXPECT_EQ(1, guest.starts);
-	++start.Start.simulation.seed;
-	guest.receive(start, LobbyPeer::hostIP);
-	EXPECT_EQ(1, guest.starts);
 }
 
 TEST(LANSimulationRate, CommandBuffersFollowSuccessiveRooms)

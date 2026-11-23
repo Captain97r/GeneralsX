@@ -82,7 +82,6 @@ public:
 	virtual void RequestGameStart() = 0;																				///< Tell everyone the game is starting
 	virtual void RequestGameStartTimer( Int seconds ) = 0;
 	virtual void RequestGameOptions( AsciiString gameOptions, Bool isPublic, UnsignedInt ip = 0 ) = 0;		///< Change the game options
-	virtual void RequestSimulationRate(Int rate) = 0;
 	virtual void RequestGameCreate( UnicodeString gameName, Bool isDirectConnect ) = 0;	///< Try to host a game
 	virtual void RequestGameAnnounce() = 0;																			///< Sound out current game info if host
 //	virtual void RequestSlotList() = 0;																					///< Pump out the Slot info.
@@ -360,7 +359,6 @@ public:
 	virtual void RequestGameStart() override;																				///< Tell everyone the game is starting
 	virtual void RequestGameStartTimer( Int seconds ) override;
 	virtual void RequestGameOptions( AsciiString gameOptions, Bool isPublic, UnsignedInt ip = 0 ) override;		///< Change the game options
-	virtual void RequestSimulationRate(Int rate) override;
 	virtual void RequestGameCreate( UnicodeString gameName, Bool isDirectConnect ) override;	///< Try to host a game
 	virtual void RequestGameAnnounce() override;																			///< Send out game info if host
 	virtual void RequestSetName( UnicodeString newName ) override;													///< Pick a new name
