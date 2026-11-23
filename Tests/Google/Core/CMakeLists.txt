@@ -12,6 +12,7 @@ set(COREI_GOOGLETEST_SRC
     GameEngine/Common/SimulationValueTest.cpp
     GameEngine/GameClient/DisplayStringDummyTest.cpp
     GameEngine/GameNetwork/FixedLANProfileTest.cpp
+    GameEngine/GameNetwork/FrameRecoveryTest.cpp
     GameEngine/GameNetwork/LANStutterLogTest.cpp
     GameEngineDevice/StdDevice/Common/StdLocalFileSystemTest.cpp
     Libraries/Compression/CompressionManagerTest.cpp
