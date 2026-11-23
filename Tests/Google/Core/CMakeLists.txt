@@ -32,6 +32,9 @@ target_sources(corei_googletest INTERFACE ${COREI_GOOGLETEST_SRC})
 if(NOT WIN32)
     target_sources(corei_googletest INTERFACE GameEngine/Common/AlignedAllocationTest.cpp)
 endif()
+if(SAGE_USE_MINIAUDIO AND RTS_BUILD_OPTION_FFMPEG AND NOT EMSCRIPTEN)
+    target_sources(corei_googletest INTERFACE GameEngineDevice/MiniAudioMusicStreamTest.cpp)
+endif()
 
 target_link_libraries(corei_googletest INTERFACE
     comctl32

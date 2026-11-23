@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <vector>
 
@@ -49,12 +50,13 @@ public:
 	explicit FFmpegFile(File *file);
 	~FFmpegFile();
 
-	Bool open(File *file);
+	Bool open(File *file, Bool seekable = false);
+	Bool rewind();
 	void close();
 	void setFrameCallback(FFmpegFrameCallback callback) { m_frameCallback = callback; }
 	void setUserData(void *user_data) { m_userData = user_data; }
 	// Read & decode a packet from the container. Note that we could/should split this step
-	Bool decodePacket();
+	Bool decodePacket(Bool *endOfInput = nullptr);
 	void seekFrame(int frame_idx);
 	Bool hasAudio() const;
 
@@ -62,6 +64,7 @@ public:
 	Int getSizeForSamples(Int numSamples) const;
 	Int getNumChannels() const;
 	Int getSampleRate() const;
+	Int getAudioSampleFormat() const;
 	Int getBytesPerSample() const;
 
 	// Video specific
@@ -83,6 +86,7 @@ private:
 	};
 
 	static Int readPacket(void *opaque, UnsignedByte *buf, Int buf_size);
+	static int64_t seekPacket(void *opaque, int64_t offset, int whence);
 	const FFmpegStream *findMatch(int type) const;
 
 	FFmpegFrameCallback 		m_frameCallback = nullptr; ///< Callback for frame processing
