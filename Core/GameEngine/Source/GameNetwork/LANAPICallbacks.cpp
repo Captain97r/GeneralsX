@@ -80,7 +80,7 @@ UnicodeString LANAPIInterface::getErrorStringFromReturnType( ReturnType ret )
 		case RET_DUPLICATE_NAME:
 			return TheGameText->fetch("LAN:ErrorDuplicateName");
 		case RET_SIMULATION_MISMATCH:
-			return TheGameText->FETCH_OR_SUBSTITUTE("LAN:SimulationRateMismatch", L"All players must use the same simulation rate (30 or 60 Hz).");
+			return TheGameText->FETCH_OR_SUBSTITUTE("LAN:SimulationProfileMismatch", L"All players must use the same simulation rate and compatible game builds.");
 		case RET_CRC_MISMATCH:
 			return TheGameText->fetch("LAN:ErrorCRCMismatch");
 		case RET_GAME_STARTED:

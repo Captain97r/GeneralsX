@@ -29,6 +29,7 @@
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
+#include "Common/GameCommon.h"
 #include "Common/Xfer.h"
 
 #include "GameLogic/Module/BattleBusSlowDeathBehavior.h"
@@ -47,8 +48,9 @@
 
 enum
 {
-	GROUND_CHECK_DELAY = 10,		///< Check for colliding with the ground only after this long, to prevent hitting on the way up
-	EMPTY_HULK_CHECK_DELAY = 15 ///< Check for empty hulk every this often instead of every frame
+	// GeneralsX @bugfix Codex 23/11/2026 The strict landing check first permits contact on the eleventh retail tick.
+	GROUND_CHECK_DELAY = logicFramesFromBaseFrames(11) - 1,
+	EMPTY_HULK_CHECK_DELAY = logicFramesFromBaseFrames(15)
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -221,7 +223,7 @@ UpdateSleepTime BattleBusSlowDeathBehavior::update()
 			if( data->m_emptyHulkDestructionDelay == 0 )
 				return UPDATE_SLEEP_FOREVER;
 			else
-				return UPDATE_SLEEP_NONE; // None, so we check for empty as soon as possible
+				return UPDATE_SLEEP(logicFramesFromBaseFrames(1)); // First passenger check one retail tick after landing.
 		}
 		return UPDATE_SLEEP_NONE;// None, since we are waiting to be able to check for ground collision
 	}

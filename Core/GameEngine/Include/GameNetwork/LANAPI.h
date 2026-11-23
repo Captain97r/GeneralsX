@@ -286,7 +286,12 @@ struct LANMessage
 	};
 #ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
 	// The legacy packet prefix remains intact so older clients can discover the host and receive a join denial.
+#if RTS_ZEROHOUR
+	// GeneralsX @bugfix Codex 23/11/2026 Earlier native Zero Hour clients simulate Battle Bus wrecks on a different schedule.
+	static constexpr uint32_t native60Profile = 0x36304802;
+#else
 	static constexpr uint32_t native60Profile = 0x36304801; // 60 Hz simulation, revision 1
+#endif
 	uint32_t simulationProfile;
 #endif
 	Bool matchesSimulationProfile(Int length) const
