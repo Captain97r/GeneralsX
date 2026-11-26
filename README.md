@@ -90,7 +90,8 @@ cmake --build build/linux64-60hz --target z_generals g_generals
 
 The selected rate applies to every game mode. Multiplayer peers need matching
 builds, including private GeneralsOnline games. LAN checks the rate when joining.
-Use the same simulation build to load a save or play a replay.
+Use the same simulation build to load a save or play a replay. A recorded
+Zero Hour skirmish is available for [cross-platform replay testing](Tests/Replays/README.md).
 
 For complete prerequisites, Docker workflows, and packaging guides, check the Wiki:
 - 📖 [Building on macOS Guide](https://github.com/fbraz3/GeneralsX/wiki/Building-on-macOS)
