@@ -3389,11 +3389,14 @@ void GameLogic::update()
 	if (generateForMP && m_frame == 0 && rts::isMultiplayerGame(TheRecorder->getGameMode()))
 		generateForMP = FALSE;
 #endif
+	// GeneralsX @bugfix Captain97r 26/11/2026 Use the file's interval only during playback, so the next game retains its configured cadence.
+	const bool isPlayback = TheRecorder && TheRecorder->isPlaybackMode();
+	const Int soloCRCInterval = isPlayback ? TheRecorder->getGameInfo()->getCRCInterval() : GameInfo::clampCRCInterval(REPLAY_CRC_INTERVAL);
 #ifdef DEBUG_CRC
-	Bool generateForSolo = isSoloGameOrReplay && ((m_frame && (m_frame%100 == 0)) ||
-		(getFrame() >= TheCRCFirstFrameToLog && getFrame() < TheCRCLastFrameToLog && ((m_frame % REPLAY_CRC_INTERVAL) == 0)));
+	Bool generateForSolo = isSoloGameOrReplay && ((m_frame && (m_frame % GameInfo::defaultCRCInterval == 0)) ||
+		(getFrame() >= TheCRCFirstFrameToLog && getFrame() < TheCRCLastFrameToLog && ((m_frame % soloCRCInterval) == 0)));
 #else
-	Bool generateForSolo = isSoloGameOrReplay && ((m_frame % REPLAY_CRC_INTERVAL) == 0);
+	Bool generateForSolo = isSoloGameOrReplay && ((m_frame % soloCRCInterval) == 0);
 #endif // DEBUG_CRC
 
 	if (generateForSolo || generateForMP)
@@ -3403,7 +3406,6 @@ void GameLogic::update()
 		// TheSuperHackers @tweak Caball009 30/09/2026 Playback CRC is now separate from regular CRC,
 		// removing the need for the second parameter used to distinguish them. Older clients can still
 		// parse newer replays because GameMessage::getArgument returns false for the missing playback argument.
-		const bool isPlayback = TheRecorder && TheRecorder->isPlaybackMode();
 		const GameMessage::Type msgType = isPlayback ? GameMessage::MSG_LOGIC_CRC_PLAYBACK : GameMessage::MSG_LOGIC_CRC;
 		GameMessage *msg = newInstance(GameMessage)(msgType);
 		msg->appendIntegerArgument(m_CRC);

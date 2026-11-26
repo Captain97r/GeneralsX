@@ -2306,7 +2306,15 @@ AGAIN:
 			// TheSuperHackers @info The views are updated in W3DDisplay::update, except in the repeated passes
 			// of this loop, which keep moving the camera while the time is frozen for a camera movement.
 			if (!viewsUpdated)
+			{
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+				// GeneralsX @bugfix Codex 26/11/2026 Sample and pace each frozen cinematic render just like an outer frame.
+				if (TheFramePacer->getActualLogicTimeScaleFps(FramePacer::IgnoreFrozenTime) <= 0)
+					break;
+				TheFramePacer->update();
+#endif
 				updateViews();
+			}
 
 			TheParticleSystemManager->DRAW();
 
@@ -2319,6 +2327,10 @@ AGAIN:
 			if (TheW3DProjectedShadowManager)
 				TheW3DProjectedShadowManager->updateRenderTargetTextures();
 		}
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+		else if (!viewsUpdated)
+			break; // The outer loop services the window until the device can advance the camera again.
+#endif
 
 		viewsUpdated = FALSE;
 		// Switch to offscreen RT AFTER pre-render (shadows/water) completes, BEFORE main render.

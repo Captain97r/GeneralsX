@@ -13,6 +13,8 @@ TEST(FixedSimulationProfile, StockAndExperimentalFilesUseDifferentClocks)
 	EXPECT_FALSE(acceptsReplay(replaySignature, signatureLength - 1));
 	EXPECT_FALSE(acceptsReplay("GX60RP", signatureLength));
 	EXPECT_FALSE(acceptsReplay("GX60R2", signatureLength));
+	EXPECT_FALSE(acceptsReplay("GX60Z3", signatureLength));
+	EXPECT_FALSE(acceptsReplay("GX60G3", signatureLength));
 	EXPECT_TRUE(acceptsSave(saveVersion));
 	EXPECT_FALSE(acceptsSave(0x60));
 	EXPECT_FALSE(acceptsSave(0x61));
@@ -24,8 +26,8 @@ TEST(FixedSimulationProfile, StockAndExperimentalFilesUseDifferentClocks)
 	EXPECT_STREQ("GENREP", replaySignature);
 	EXPECT_EQ(2, saveVersion);
 	EXPECT_TRUE(acceptsSave(1));
-	EXPECT_FALSE(acceptsReplay("GX60Z3", signatureLength));
-	EXPECT_FALSE(acceptsReplay("GX60G3", signatureLength));
+	EXPECT_FALSE(acceptsReplay("GX60Z4", signatureLength));
+	EXPECT_FALSE(acceptsReplay("GX60G4", signatureLength));
 	EXPECT_FALSE(acceptsSave(0x62));
 	EXPECT_FALSE(acceptsSave(0x63));
 #endif
@@ -49,6 +51,11 @@ TEST(FixedSimulationProfile, LANJoinUsesMatchingOpcodeAndPacketLayout)
 	EXPECT_EQ(475u, sizeof(packet));
 	EXPECT_EQ(LANMessage::MSG_REQUEST_JOIN_60HZ, LANMessage::localJoinRequest);
 	EXPECT_FALSE(packet.matchesSimulationProfile(sizeof(packet)));
+	for (uint32_t olderProfile : {0x5A483604u, 0x474E3603u})
+	{
+		packet.simulationProfile = olderProfile;
+		EXPECT_FALSE(packet.matchesSimulationProfile(sizeof(packet)));
+	}
 	packet.simulationProfile = LANMessage::native60Profile;
 #else
 	EXPECT_EQ(471u, sizeof(packet));

@@ -1249,7 +1249,8 @@ void WaterRenderObjClass::enableWaterGrid(Bool state)
 void WaterRenderObjClass::update()
 {
 	// TheSuperHackers @tweak The water movement time step is now decoupled from the render update.
-	const Real timeScale = TheFramePacer->getActualLogicTimeScaleOverFpsRatio();
+	// GeneralsX @bugfix Codex 26/11/2026 The river offsets and bump texture sequence use authored frames.
+	const Real timeScale = logicRateFromBaseRate(TheFramePacer->getActualLogicTimeScaleOverFpsRatio());
 
 	{
 		constexpr const Real MagicOffset = 0.0125f * 33 / 5000; ///< the work of top Munkees; do not question it

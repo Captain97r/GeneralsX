@@ -68,7 +68,7 @@ extern NGMPGame* TheNGMPGame;
 constexpr const UnsignedInt replayBufferBytes = 8192;
 
 // GeneralsX @feature Captain97r 26/11/2026 Use the build-specific replay signature, storage directory, and CRC interval for its simulation clock.
-Int REPLAY_CRC_INTERVAL = logicFramesFromBaseFrames(100);
+Int REPLAY_CRC_INTERVAL = GameInfo::defaultCRCInterval;
 
 const char *replayExtention = ".rep";
 const char *lastReplayFileName = "00000000";	// a name the user is unlikely to ever type, but won't cause panic & confusion
@@ -1262,15 +1262,13 @@ Bool RecorderClass::playbackFile(AsciiString filename)
 	}
 #endif
 
-	REPLAY_CRC_INTERVAL = m_gameInfo.getCRCInterval();
-
 	Int difficulty = 0;
 	m_file->read(&difficulty, sizeof(difficulty));
 
 	m_file->read(&m_originalGameMode, sizeof(m_originalGameMode));
 
 	m_crcInfo = CRCInfo(header.localPlayerIndex);
-	DEBUG_LOG(("Player index is %d, replay CRC interval is %d", m_crcInfo.getLocalPlayer(), REPLAY_CRC_INTERVAL));
+	DEBUG_LOG(("Player index is %d, replay CRC interval is %d", m_crcInfo.getLocalPlayer(), m_gameInfo.getCRCInterval()));
 
 	Int rankPoints = 0;
 	m_file->read(&rankPoints, sizeof(rankPoints));

@@ -351,6 +351,23 @@ public:
 
 
 //-------------------------------------------------------------------------------------------------
+// GeneralsX @bugfix Captain97r 26/11/2026 StrafingIncrement is the distance swept in one 30 Hz frame.
+Bool SpectreGunshipUpdateModuleData::advanceGattlingTarget(Coord3D &position, const Coord3D &target) const
+{
+	const Real step = logicRateFromBaseRate(m_strafingIncrement);
+	Coord3D delta = target;
+	delta.sub(position);
+	if (delta.length() < step)
+	{
+		position = target;
+		return true;
+	}
+	delta.normalize();
+	delta.scale(step);
+	position.add(delta);
+	return false;
+}
+
 /** The update callback. */
 //-------------------------------------------------------------------------------------------------
 UpdateSleepTime SpectreGunshipUpdate::update()
@@ -631,21 +648,10 @@ UpdateSleepTime SpectreGunshipUpdate::update()
             //whether an object's position or a cursor position
 
 
-            Coord3D delta = m_positionToShootAt;
-            delta.sub( m_gattlingTargetPosition );
-            Real dist = delta.length();
-            if ( dist < data->m_strafingIncrement )
-            {
-              m_gattlingTargetPosition = m_positionToShootAt;
+            if (data->advanceGattlingTarget(m_gattlingTargetPosition, m_positionToShootAt))
               ++m_okToFireHowitzerCounter;
-            }
             else
-            {
               m_okToFireHowitzerCounter = ZERO;
-              delta.normalize();
-              delta.scale( data->m_strafingIncrement );
-              m_gattlingTargetPosition.add( delta );
-            }
 
 
 			const Player *localPlayer = rts::getObservedOrLocalPlayer();

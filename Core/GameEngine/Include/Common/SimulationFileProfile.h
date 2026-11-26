@@ -8,10 +8,10 @@ namespace SimulationFileProfile
 {
 #ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
 #if RTS_ZEROHOUR
-	constexpr char replaySignature[] = "GX60Z3";
+	constexpr char replaySignature[] = "GX60Z4";
 	constexpr unsigned char saveVersion = 0x62;
 #else
-	constexpr char replaySignature[] = "GX60G3";
+	constexpr char replaySignature[] = "GX60G4";
 	constexpr unsigned char saveVersion = 0x63;
 #endif
 #else

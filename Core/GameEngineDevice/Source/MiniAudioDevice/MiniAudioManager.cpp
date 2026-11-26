@@ -1337,8 +1337,7 @@ void MiniAudioManager::processRequestList(void)
 		AudioRequest *req = (*it);
 		if (req == NULL) { continue; }
 
-		if (!shouldProcessRequestThisFrame(req)) {
-			adjustRequest(req);
+		if (!req->isReadyToProcess(timeGetTime())) {
 			++it;
 			continue;
 		}
@@ -1450,22 +1449,6 @@ void MiniAudioManager::processStoppedList(void)
 }
 
 //-------------------------------------------------------------------------------------------------
-Bool MiniAudioManager::shouldProcessRequestThisFrame(AudioRequest *req) const
-{
-	if (!req->m_pendingEvent) return true;
-	if (req->m_pendingEvent->getDelay() < MSEC_PER_LOGICFRAME_REAL) return true;
-	return false;
-}
-
-//-------------------------------------------------------------------------------------------------
-void MiniAudioManager::adjustRequest(AudioRequest *req)
-{
-	if (!req->m_pendingEvent) return;
-	req->m_pendingEvent->decrementDelay(MSEC_PER_LOGICFRAME_REAL);
-	req->m_requiresCheckForSample = true;
-}
-
-//-------------------------------------------------------------------------------------------------
 Bool MiniAudioManager::checkForSample(AudioRequest *req)
 {
 	if (!req->m_pendingEvent) return true;
@@ -1540,7 +1523,7 @@ Bool MiniAudioManager::startNextLoop(PlayingAudio *looping)
 
 	looping->m_audioEventRTS->generateFilename();
 
-	if (looping->m_audioEventRTS->getDelay() > MSEC_PER_LOGICFRAME_REAL) {
+	if (AudioRequest::shouldQueueLoop(looping->m_audioEventRTS->getDelay())) {
 		looping->m_requestStop = true;
 
 		AudioRequest *req = allocateAudioRequest();

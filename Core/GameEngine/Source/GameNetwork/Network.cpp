@@ -56,7 +56,8 @@
 #if defined(DEBUG_CRC) && !RETAIL_COMPATIBLE_NETWORKING
 Int NET_CRC_INTERVAL = 1;
 #else
-Int NET_CRC_INTERVAL = 100;
+// GeneralsX @bugfix Captain97r 26/11/2026 Preserve the LAN checksum cadence in seconds at both simulation rates.
+Int NET_CRC_INTERVAL = GameInfo::defaultCRCInterval;
 #endif
 
 // DEFINES ////////////////////////////////////////////////////////////////////

@@ -145,8 +145,7 @@ public:
 	virtual void processFadingList(void);
 	virtual void processStoppedList(void);
 
-	Bool shouldProcessRequestThisFrame(AudioRequest *req) const;
-	void adjustRequest(AudioRequest *req);
+
 	Bool checkForSample(AudioRequest *req);
 
 	virtual void setHardwareAccelerated(Bool accel);

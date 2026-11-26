@@ -47,6 +47,7 @@
 #include "GameLogic/GameLogic.h"
 #include "GameLogic/Object.h"
 #include "GameLogic/AIPlayer.h"
+#include "GameLogic/TeamRecruitment.h"
 #include "GameLogic/SidesList.h"
 #include "GameLogic/AI.h"
 #include "GameLogic/AIPathfind.h"
@@ -3223,13 +3224,9 @@ Bool TeamInQueue::isAllBuilt()
 // ------------------------------------------------------------------------------------------------
 Bool TeamInQueue::isBuildTimeExpired()
 {
-	if (m_team->getPrototype()->getTemplateInfo()->m_initialIdleFrames<1) {
-		return false; // Unlimited time.
-	}
-	if (TheGameLogic->getFrame() > m_frameStarted + m_team->getPrototype()->getTemplateInfo()->m_initialIdleFrames) {
-		return true;
-	}
-	return false;
+	const Int idleFrames = m_team->getPrototype()->getTemplateInfo()->m_initialIdleFrames;
+	const UnsignedInt elapsed = TheGameLogic->getFrame() - m_frameStarted;
+	return teamRecruitmentExpired(elapsed, idleFrames);
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -5,6 +5,8 @@
 #include "GameLogic/PhysicsTimeStep.h"
 #include "GameLogic/WeaponTiming.h"
 #include "Common/FramePacer.h"
+#include "Common/AudioEventRTS.h"
+#include "Common/AudioRequest.h"
 
 TEST(SimulationTiming, ModUnitsUseWallClockSeconds)
 {
@@ -82,6 +84,32 @@ TEST(SimulationTiming, OfflineSimulationTracksWallTimeAtDifferentRenderRates)
 		EXPECT_EQ(0, pacer.advance(-1.0f));
 		pacer.setTimeFrozen(true); // Script countdowns still run while the world is frozen.
 		EXPECT_EQ(1, pacer.advance(1.0f / LOGICFRAMES_PER_SECOND));
+	}
+}
+#endif
+
+TEST(SimulationTiming, SoundLoopsKeepTheRetailImmediateRestartThreshold)
+{
+	EXPECT_FALSE(AudioRequest::shouldQueueLoop(20.0f));
+	EXPECT_TRUE(AudioRequest::shouldQueueLoop(34.0f));
+}
+
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+TEST(SimulationTiming, DelayedAudioUsesTimeSinceEnqueueAtEveryRenderRate)
+{
+	for (UnsignedInt fps : {30u, 60u, 120u})
+	{
+		SCOPED_TRACE(fps);
+		AudioRequest *request = newInstance(AudioRequest);
+		request->m_pendingEvent.Assign_No_Add_Ref(newInstance(DynamicAudioEventRTS));
+		request->m_pendingEvent->decrementDelay(-1000.0f);
+		request->m_queuedAtMs = 0xffffff00u; // The millisecond counter wraps during this delay.
+		for (UnsignedInt frame = 0; frame < fps; ++frame)
+			EXPECT_FALSE(request->isReadyToProcess(request->m_queuedAtMs + frame * 1000 / fps));
+		EXPECT_TRUE(request->m_requiresCheckForSample);
+		EXPECT_TRUE(request->isReadyToProcess(request->m_queuedAtMs + 1000));
+		EXPECT_TRUE(request->isReadyToProcess(request->m_queuedAtMs + 1400));
+		deleteInstance(request);
 	}
 }
 #endif

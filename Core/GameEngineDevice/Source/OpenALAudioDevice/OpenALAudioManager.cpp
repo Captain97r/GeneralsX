@@ -2390,8 +2390,7 @@ void OpenALAudioManager::processRequestList(void)
 			continue;
 		}
 
-		if (!shouldProcessRequestThisFrame(req)) {
-			adjustRequest(req);
+		if (!req->isReadyToProcess(timeGetTime())) {
 			++it;
 			continue;
 		}
@@ -2646,31 +2645,6 @@ void OpenALAudioManager::processStoppedList(void)
 
 
 //-------------------------------------------------------------------------------------------------
-Bool OpenALAudioManager::shouldProcessRequestThisFrame(AudioRequest* req) const
-{
-	if (!req->m_pendingEvent) {
-		return true;
-	}
-
-	if (req->m_pendingEvent->getDelay() < MSEC_PER_LOGICFRAME_REAL) {
-		return true;
-	}
-
-	return false;
-}
-
-//-------------------------------------------------------------------------------------------------
-void OpenALAudioManager::adjustRequest(AudioRequest* req)
-{
-	if (!req->m_pendingEvent) {
-		return;
-	}
-
-	req->m_pendingEvent->decrementDelay(MSEC_PER_LOGICFRAME_REAL);
-	req->m_requiresCheckForSample = true;
-}
-
-//-------------------------------------------------------------------------------------------------
 Bool OpenALAudioManager::checkForSample(AudioRequest* req)
 {
 	if (!req->m_pendingEvent) {
@@ -2876,7 +2850,7 @@ Bool OpenALAudioManager::startNextLoop(PlayingAudio* looping)
 		// generate a new filename, and test to see whether we can play with it now
 		looping->m_audioEventRTS->generateFilename();
 
-		if (looping->m_audioEventRTS->getDelay() > MSEC_PER_LOGICFRAME_REAL) {
+		if (AudioRequest::shouldQueueLoop(looping->m_audioEventRTS->getDelay())) {
 			looping->m_requestStop = true;
 
 			AudioRequest* req = allocateAudioRequest();

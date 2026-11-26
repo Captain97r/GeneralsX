@@ -819,6 +819,12 @@ void AudioManager::releaseAudioRequest( AudioRequest *requestToRelease )
 //-------------------------------------------------------------------------------------------------
 void AudioManager::appendAudioRequest( AudioRequest *request )
 {
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	// GeneralsX @bugfix Codex 26/11/2026 Start each delay when its request enters the queue.
+	request->m_queuedAtMs = timeGetTime();
+	if (request->m_pendingEvent && request->m_pendingEvent->getDelay() > 0.0f)
+		request->m_requiresCheckForSample = true;
+#endif
 	m_audioRequests.push_back(request);
 }
 

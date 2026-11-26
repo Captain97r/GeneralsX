@@ -42,6 +42,7 @@
 
 #include "Common/BuildAssistant.h"
 #include "Common/FramePacer.h"
+#include "GameClient/VisualTiming.h"
 #include "Common/GameUtility.h"
 #include "Common/GlobalData.h"
 #include "Common/Module.h"
@@ -1399,25 +1400,29 @@ static void renderAIDebug()
 // ------------------------------------------------------------------------------------------------
 Bool W3DView::updateCameraMovements()
 {
-	Bool didUpdate = false;
-
-	if (hasScriptedState(Scripted_Zoom))
-	{
-		zoomCameraOneFrame();
-		didUpdate = true;
-	}
-	if (hasScriptedState(Scripted_Pitch))
-	{
-		pitchCameraOneFrame();
-		didUpdate = true;
-	}
-	if (hasScriptedState(Scripted_Rotate))
-	{
+	const Bool rotating = hasScriptedState(Scripted_Rotate);
+	Bool didUpdate = hasScriptedState(Scripted_Zoom | Scripted_Pitch | Scripted_Rotate);
+	if (rotating)
 		m_previousLookAtPosition = getPosition();
-		rotateCameraOneFrame();
-		didUpdate = true;
+	if (didUpdate)
+	{
+		// GeneralsX @bugfix Codex 26/11/2026 Apply every elapsed camera step, including the last eased pose before a hold.
+		Int steps = 1;
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+		steps = takeScriptedCameraFrames(TheFramePacer->getActualLogicTimeScaleOverFpsRatio(FramePacer::IgnoreFrozenTime),
+			m_scriptedCameraFrameRemainder);
+#endif
+		for (Int i = 0; i < steps; ++i)
+		{
+			if (hasScriptedState(Scripted_Zoom))
+				zoomCameraOneFrame();
+			if (hasScriptedState(Scripted_Pitch))
+				pitchCameraOneFrame();
+			if (hasScriptedState(Scripted_Rotate))
+				rotateCameraOneFrame();
+		}
 	}
-	else if (hasScriptedState(Scripted_MoveOnWaypointPath))
+	if (!rotating && hasScriptedState(Scripted_MoveOnWaypointPath))
 	{
 		m_previousLookAtPosition = getPosition();
 		// TheSuperHackers @tweak The scripted camera movement is now decoupled from the render update.
@@ -1451,6 +1456,10 @@ void W3DView::updateView()
 // linear interpolation during the render update.
 void W3DView::stepView()
 {
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	if (!isCameraShakeFrame(TheGameClient->getFrame()))
+		return;
+#endif
 	//
 	// Process camera shake
 	//
@@ -3641,6 +3650,10 @@ Bool W3DView::hasScriptedState(ScriptedState state) const
 // ------------------------------------------------------------------------------------------------
 void W3DView::addScriptedState(ScriptedState state)
 {
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	if (!hasScriptedState(Scripted_Zoom | Scripted_Pitch | Scripted_Rotate))
+		m_scriptedCameraFrameRemainder = 0.0;
+#endif
 	m_scriptedState |= state;
 	setUserControlled(false);
 }

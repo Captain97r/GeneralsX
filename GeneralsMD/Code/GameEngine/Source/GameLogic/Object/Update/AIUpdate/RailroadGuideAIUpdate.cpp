@@ -34,6 +34,7 @@
 #include "Common/ThingTemplate.h"
 
 #include "GameLogic/Locomotor.h"
+#include "GameLogic/RailroadMotion.h"
 #include "GameLogic/Module/RailroadGuideAIUpdate.h"
 #include "GameLogic/Object.h"
 #include "GameLogic/PartitionManager.h"
@@ -370,8 +371,8 @@ void RailroadBehavior::onCollide( Object *other, const Coord3D *loc, const Coord
 		if ( m_pullInfo.speed >= modData->m_killSpeedMin ) // they can grab on safely
 		{
 			other->kill();
-			theirPhys->setPitchRate(GameLogicRandomValueReal(-0.03f, 0.03f));
-			theirPhys->setRollRate(GameLogicRandomValueReal(-0.03f, 0.03f));
+			theirPhys->setPitchRate(logicRateFromBaseRate(GameLogicRandomValueReal(-0.03f, 0.03f)));
+			theirPhys->setRollRate(logicRateFromBaseRate(GameLogicRandomValueReal(-0.03f, 0.03f)));
 		}
 		else
 		{
@@ -395,8 +396,12 @@ void RailroadBehavior::onCollide( Object *other, const Coord3D *loc, const Coord
 
 
 	// This is a special check so that it won't hurl infantry clear across the map!
-	if( ! ( victimIsInfantry && theirPhys->getVelocityMagnitude() > 5.0f ) )
-		theirPhys->addVelocityTo( &delta );
+	if( ! ( victimIsInfantry && theirPhys->getVelocityMagnitude() > logicRateFromBaseRate(5.0f) ) )
+	{
+		Coord3D impulse = delta;
+		impulse.scale(logicRateFromBaseRate(1.0f));
+		theirPhys->addVelocityTo( &impulse );
+	}
 
 
 
@@ -413,7 +418,7 @@ void RailroadBehavior::onCollide( Object *other, const Coord3D *loc, const Coord
 	Real deviationCOG = cross.x * delta.x + cross.y * delta.y + cross.z * delta.z;
 
 	if (dot > 0)
-		theirPhys->setYawRate( deviationCOG * -0.06f * m_pullInfo.speed);
+		theirPhys->setYawRate(logicRateFromBaseRate(deviationCOG * -0.06f * m_pullInfo.speed));
 
 
 
@@ -696,10 +701,12 @@ UpdateSleepTime RailroadBehavior::update()
 	//Object *us = getObject();
 	const RailroadBehaviorModuleData *modData = getRailroadBehaviorModuleData();
 
+	// GeneralsX @bugfix Captain97r 26/11/2026 Retain authored speeds for boarding, impacts and saved carriages.
+	const Bool controlFrame = RailroadMotion::isControlFrame(TheGameLogic->getFrame());
 	if ( m_isLocomotive )
 	{
 
-		if ( m_conductorState == APPLY_BRAKES )
+		if ( m_conductorState == APPLY_BRAKES && controlFrame )
 		{
 			conductorPullInfo.speed *= modData->m_braking;
 			if (WWMath::Fabs(conductorPullInfo.speed) < 0.1f)
@@ -741,18 +748,10 @@ UpdateSleepTime RailroadBehavior::update()
 			}
 
 		}
-		else if ( m_conductorState == ACCELERATE )
+		else if ( m_conductorState == ACCELERATE && controlFrame )
 		{
-			conductorPullInfo.speed += 0.02f * conductorPullInfo.m_direction; // push start multiplier
-			conductorPullInfo.speed *= modData->m_acceleration;
-			if ( conductorPullInfo.speed > modData->m_speedMax)
-			{
-				conductorPullInfo.speed = modData->m_speedMax;
-			}
-			else if ( conductorPullInfo.speed < -modData->m_speedMax)
-			{
-				conductorPullInfo.speed = -modData->m_speedMax;
-			}
+			conductorPullInfo.speed = RailroadMotion::accelerate(conductorPullInfo.speed,
+				conductorPullInfo.m_direction, modData->m_acceleration, modData->m_speedMax);
 
 
 			if ( ! m_runningSound.isCurrentlyPlaying() )
@@ -771,7 +770,7 @@ UpdateSleepTime RailroadBehavior::update()
 
 
 
-	if ( m_wantsToBeLeadCarriage > FRAMES_UNPULLED_LONG_ENOUGH_TO_UNHITCH )//if this flag survived until now, I have lost my puller
+	if ( controlFrame && m_wantsToBeLeadCarriage > FRAMES_UNPULLED_LONG_ENOUGH_TO_UNHITCH )//if this flag survived until now, I have lost my puller
 	{
 		m_isLeadCarriage = TRUE;
 	}
@@ -779,13 +778,13 @@ UpdateSleepTime RailroadBehavior::update()
 	if ( m_isLeadCarriage )
 	{
 
-		if ( m_conductorState == COAST )
+		if ( m_conductorState == COAST && controlFrame )
 		{
 			conductorPullInfo.speed *= modData->m_friction;
 			TheAudio->removeAudioEvent( m_runningSound.getPlayingHandle() );
 		}
 
-		conductorPullInfo.trackDistance += conductorPullInfo.speed ;
+		conductorPullInfo.trackDistance += logicRateFromBaseRate(conductorPullInfo.speed);
 		// only normalize track position for a looping track, otherwise, let train exit by exceeding tracklength
 		while ( (conductorPullInfo.trackDistance > m_track->m_length) && m_track->m_isLooping)
 			conductorPullInfo.trackDistance -= m_track->m_length;
@@ -821,7 +820,7 @@ UpdateSleepTime RailroadBehavior::update()
 				TheGameLogic->destroyObject( getObject() );
 		}
 	}
-	else if ( m_wantsToBeLeadCarriage <= FRAMES_UNPULLED_LONG_ENOUGH_TO_UNHITCH )// if I am not the lead carriage
+	else if ( controlFrame && m_wantsToBeLeadCarriage <= FRAMES_UNPULLED_LONG_ENOUGH_TO_UNHITCH )// if I am not the lead carriage
 	{
 		m_wantsToBeLeadCarriage ++; // like every young carriage, I aspire to be the lead carriage some day
 															// unless getpulled() set this false, I will be on the next update! Joy!

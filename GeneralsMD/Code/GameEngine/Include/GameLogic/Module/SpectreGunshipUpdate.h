@@ -71,6 +71,7 @@ public:
 
 	SpectreGunshipUpdateModuleData();
 	static void buildFieldParse(MultiIniFieldParse& p);
+	Bool advanceGattlingTarget(Coord3D &position, const Coord3D &target) const;
 
 private:
 

@@ -288,9 +288,9 @@ struct LANMessage
 	// The legacy packet prefix remains intact so older clients can discover the host and receive a join denial.
 #if RTS_ZEROHOUR
 	// GeneralsX @feature Captain97r 26/11/2026 Identify the edition and its deterministic simulation rules.
-	static constexpr uint32_t native60Profile = 0x5A483604;
+	static constexpr uint32_t native60Profile = 0x5A483605;
 #else
-	static constexpr uint32_t native60Profile = 0x474E3603;
+	static constexpr uint32_t native60Profile = 0x474E3604;
 #endif
 	uint32_t simulationProfile;
 #endif

@@ -2280,8 +2280,7 @@ void MilesAudioManager::processRequestList()
 	std::list<AudioRequest*>::iterator it;
 	for (it = m_audioRequests.begin(); it != m_audioRequests.end(); ) {
 		AudioRequest *req = (*it);
-		if (!shouldProcessRequestThisFrame(req)) {
-			adjustRequest(req);
+		if (!req->isReadyToProcess(timeGetTime())) {
 			++it;
 			continue;
 		}
@@ -2483,31 +2482,6 @@ void MilesAudioManager::processFadingList()
 	// Release audio with locking. Must not call into Miles!
 	//
 	releasePlayingAudioInListIfStopped(m_fadingAudio, m_fadingAudioCS);
-}
-
-//-------------------------------------------------------------------------------------------------
-Bool MilesAudioManager::shouldProcessRequestThisFrame( AudioRequest *req ) const
-{
-	if (req->m_pendingEvent == nullptr) {
-		return true;
-	}
-
-	if (req->m_pendingEvent->getDelay() < MSEC_PER_LOGICFRAME_REAL) {
-		return true;
-	}
-
-	return false;
-}
-
-//-------------------------------------------------------------------------------------------------
-void MilesAudioManager::adjustRequest( AudioRequest *req )
-{
-	if (req->m_pendingEvent == nullptr) {
-		return;
-	}
-
-	req->m_pendingEvent->decrementDelay(MSEC_PER_LOGICFRAME_REAL);
-	req->m_requiresCheckForSample = true;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -2740,7 +2714,7 @@ Bool MilesAudioManager::startNextLoop( PlayingAudio *playing )
 		// generate a new filename, and test to see whether we can play with it now
 		playing->m_audioEventRTS->generateFilename();
 
-		if (playing->m_audioEventRTS->getDelay() > MSEC_PER_LOGICFRAME_REAL) {
+		if (AudioRequest::shouldQueueLoop(playing->m_audioEventRTS->getDelay())) {
 			playing->m_rerequestOnNextUpdate = true;
 			InterlockedCompareExchange(reinterpret_cast<volatile long*>(&playing->m_status), PS_Stopping, PS_Playing);
 			return true;

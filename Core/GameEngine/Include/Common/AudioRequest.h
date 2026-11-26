@@ -54,6 +54,13 @@ public:
 		, m_requestStop(false)
 	{}
 
+	// GeneralsX @bugfix Codex 26/11/2026 Use elapsed milliseconds for queued sounds in the 60 Hz build.
+	Bool isReadyToProcess(UnsignedInt now);
+	static Bool shouldQueueLoop(Real delayMs);
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	UnsignedInt m_queuedAtMs = 0;
+#endif
+
 	RequestType m_request;
 	RefCountPtr<DynamicAudioEventRTS> m_pendingEvent;
 	AudioHandle m_handleToInteractOn;

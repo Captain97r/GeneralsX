@@ -269,6 +269,9 @@ private:
 	Vector3 m_shakerAngles;													//WST 11/12/2002 new multiple instance camera shaker system
 
 	ScriptedState m_scriptedState; ///< Flags for scripted camera movements. Use functions addScriptedState, removeScriptedState for write.
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	double m_scriptedCameraFrameRemainder = 0.0;
+#endif
 
 	TRotateCameraInfo m_rcInfo;
 	TPitchCameraInfo m_pcInfo;

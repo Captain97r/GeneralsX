@@ -227,8 +227,6 @@ class MilesAudioManager : public AudioManager
 		virtual void processPlayingList();
 		virtual void processFadingList();
 
-		Bool shouldProcessRequestThisFrame( AudioRequest *req ) const;
-		void adjustRequest( AudioRequest *req );
 		Bool checkForSample( AudioRequest *req );
 
 		virtual void setHardwareAccelerated(Bool accel) override;

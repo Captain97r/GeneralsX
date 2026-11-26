@@ -218,8 +218,10 @@ public:
 	virtual void closeOpenSlots();						///< close all slots that are currently unoccupied.
 
 	// CRC checking hack
-	// GeneralsX @bugfix Captain97r 26/11/2026 Preserve the recorded CRC interval when playing back a 60 Hz skirmish.
-	void setCRCInterval(Int val) { m_crcInterval = min(val, logicFramesFromBaseFrames(100)); }
+	// GeneralsX @bugfix Captain97r 26/11/2026 Keep the default CRC period in game time and allow shorter intervals in simulation ticks.
+	static constexpr Int defaultCRCInterval = logicFramesFromBaseFrames(100);
+	static Int clampCRCInterval(Int ticks) { return ticks > 0 ? min(ticks, defaultCRCInterval) : defaultCRCInterval; }
+	void setCRCInterval(Int val) { m_crcInterval = clampCRCInterval(val); }
 	Int getCRCInterval() const { return m_crcInterval; }
 
 	Bool haveWeSurrendered() { return m_surrendered; }

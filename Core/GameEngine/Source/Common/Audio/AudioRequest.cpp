@@ -26,8 +26,34 @@
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
 
 #include "Common/AudioRequest.h"
+#include "Common/AudioEventRTS.h"
+#include "Common/GameCommon.h"
 
 
 AudioRequest::~AudioRequest()
 {
+}
+
+// GeneralsX @bugfix Codex 26/11/2026 Audio is polled once per render, including renders with multiple simulation ticks.
+Bool AudioRequest::isReadyToProcess(UnsignedInt now)
+{
+	if (!m_pendingEvent)
+		return true;
+
+#ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
+	if (now - m_queuedAtMs >= m_pendingEvent->getDelay())
+		return true;
+#else
+	if (m_pendingEvent->getDelay() < MSEC_PER_LOGICFRAME_REAL)
+		return true;
+	m_pendingEvent->decrementDelay(MSEC_PER_LOGICFRAME_REAL);
+#endif
+	m_requiresCheckForSample = true;
+	return false;
+}
+
+// Keep the retail cutoff for restarting a loop immediately on the audio device.
+Bool AudioRequest::shouldQueueLoop(Real delayMs)
+{
+	return delayMs > static_cast<Real>(MSEC_PER_SECOND) / BaseFps;
 }
