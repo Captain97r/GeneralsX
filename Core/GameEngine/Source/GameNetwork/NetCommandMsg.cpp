@@ -471,9 +471,10 @@ NetCommandMsg::Select NetRunAheadMetricsCommandMsg::getSmallNetPacketSelect() co
 //-------------------------
 // NetRunAheadCommandMsg
 //-------------------------
+// GeneralsX @feature Captain97r 26/11/2026 Initialize lockstep timing in ticks at the compiled simulation rate.
 NetRunAheadCommandMsg::NetRunAheadCommandMsg() {
-	m_runAhead = min(max(20, MIN_RUNAHEAD), MAX_FRAMES_AHEAD/2);
-	m_frameRate = 30;
+	m_runAhead = clamp<Int>(MIN_RUNAHEAD, logicFramesFromBaseFrames(20), MAX_FRAMES_AHEAD / 2);
+	m_frameRate = LOGICFRAMES_PER_SECOND;
 	m_commandType = NETCOMMANDTYPE_RUNAHEAD;
 }
 

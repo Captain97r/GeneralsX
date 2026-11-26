@@ -626,7 +626,7 @@ void GameEngine::init()
 		// GeneralsX @bugfix Copilot 11/05/2026 Prevent uncapped render when FPS limiter is enabled but no valid limit value was loaded.
 		if (TheGlobalData->m_useFpsLimit && TheGlobalData->m_framesPerSecondLimit <= 0)
 		{
-			TheWritableGlobalData->m_framesPerSecondLimit = BaseFps;
+			TheWritableGlobalData->m_framesPerSecondLimit = LOGICFRAMES_PER_SECOND;
 		}
 
 		TheFramePacer->setFramesPerSecondLimit(TheGlobalData->m_framesPerSecondLimit);
@@ -774,7 +774,7 @@ void GameEngine::resetSubsystems()
 }
 
 /// -----------------------------------------------------------------------------------------------
-Bool GameEngine::canUpdateGameLogic(UnsignedInt logicTimeQueryFlags)
+Int GameEngine::getPendingLogicFrames(UnsignedInt logicTimeQueryFlags)
 {
 	// This updates the paused game status of the game logic.
 	TheGameLogic->preUpdate();
@@ -788,7 +788,7 @@ Bool GameEngine::canUpdateGameLogic(UnsignedInt logicTimeQueryFlags)
 	}
 	else
 	{
-		return canUpdateRegularGameLogic(logicTimeQueryFlags);
+		return getPendingOfflineLogicFrames(logicTimeQueryFlags);
 	}
 }
 
@@ -809,8 +809,16 @@ Bool GameEngine::canUpdateNetworkGameLogic()
 }
 
 /// -----------------------------------------------------------------------------------------------
-Bool GameEngine::canUpdateRegularGameLogic(UnsignedInt logicTimeQueryFlags)
+Int GameEngine::getPendingOfflineLogicFrames(MAYBE_UNUSED UnsignedInt logicTimeQueryFlags)
 {
+#if defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
+	const Bool useFastMode = TheGlobalData->m_TiVOFastMode;
+#else	//always allow this cheat key if we're in a replay game.
+	const Bool useFastMode = TheGlobalData->m_TiVOFastMode && TheGameLogic->isInReplayGame();
+#endif
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	return TheFramePacer->takeOfflineLogicFrames(useFastMode);
+#else
 	const Int logicTimeScaleFps = TheFramePacer->getActualLogicTimeScaleFps(logicTimeQueryFlags);
 
 	if (logicTimeScaleFps <= 0)
@@ -820,12 +828,6 @@ Bool GameEngine::canUpdateRegularGameLogic(UnsignedInt logicTimeQueryFlags)
 
 	const Bool enabled = TheFramePacer->isLogicTimeScaleEnabled();
 	const Int maxRenderFps = TheFramePacer->getActualFramesPerSecondLimit();
-
-#if defined(_ALLOW_DEBUG_CHEATS_IN_RELEASE)
-	const Bool useFastMode = TheGlobalData->m_TiVOFastMode;
-#else	//always allow this cheat key if we're in a replay game.
-	const Bool useFastMode = TheGlobalData->m_TiVOFastMode && TheGameLogic->isInReplayGame();
-#endif
 
 	if (useFastMode || !enabled || logicTimeScaleFps >= maxRenderFps)
 	{
@@ -847,6 +849,7 @@ Bool GameEngine::canUpdateRegularGameLogic(UnsignedInt logicTimeQueryFlags)
 	}
 
 	return false;
+#endif
 }
 
 /// -----------------------------------------------------------------------------------------------
@@ -878,14 +881,31 @@ void GameEngine::update()
 		}	// end VERIFY_CRC block
 
 		// TheSuperHackers @info Ignores frozen time because the script engine needs updating in the logic update regardless.
-		if (canUpdateGameLogic(FramePacer::IgnoreFrozenTime))
+		// GeneralsX @feature Codex 26/11/2026 Service each offline tick due between renders; lockstep grants one at a time.
+		const Int pendingFrames = getPendingLogicFrames(FramePacer::IgnoreFrozenTime);
+		const GameMode mode = TheGameLogic->getGameMode();
+		for (Int i = 0; i < pendingFrames; ++i)
 		{
+			if (i > 0)
+			{
+				if (TheGameLogic->hasUpdated())
+					TheParticleSystemManager->UPDATE();
+				TheMessageStream->propagateMessages();
+				TheGameLogic->preUpdate();
+				TheFramePacer->setTimeFrozen(isTimeFrozen());
+				TheFramePacer->setGameHalted(isGameHalted());
+				if (TheFramePacer->isGameHalted())
+					break;
+			}
 			TheGameLogic->UPDATE();
 
 			if (!TheFramePacer->isTimeFrozen())
 			{
 				TheGameClient->step();
 			}
+			if (i + 1 < pendingFrames && (m_quitting || TheNetwork || TheGameLogic->getGameMode() != mode ||
+				(!TheGameLogic->hasUpdated() && !TheFramePacer->isTimeFrozen())))
+				break;
 		}
 	}
 }

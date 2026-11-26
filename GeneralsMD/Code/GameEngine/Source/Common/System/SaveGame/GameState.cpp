@@ -41,6 +41,7 @@
 #include "Common/FramePacer.h"
 #include "Common/GameEngine.h"
 #include "Common/GameState.h"
+#include "Common/SimulationFileProfile.h"
 #include "Common/GameStateMap.h"
 #include "Common/LatchRestore.h"
 #include "Common/MapObject.h"
@@ -737,9 +738,9 @@ SaveCode GameState::loadGame( AvailableGameInfo gameInfo )
 	{
 		const Int tickRate = TheFramePacer->getLogicTimeScaleFps();
 		const Int maxFPS = TheFramePacer->getFramesPerSecondLimit();
-		TheFramePacer->enableLogicTimeScale(tickRate < maxFPS);
+		TheFramePacer->configureGameLogicRate(tickRate);
 		fprintf(stderr, "[SAVELOAD] Logic time scale re-evaluated after load: tick=%d Hz, render cap=%d FPS, scale=%s\n",
-			tickRate, maxFPS, (tickRate < maxFPS) ? "on" : "off");
+			tickRate, maxFPS, TheFramePacer->isLogicTimeScaleEnabled() ? "on" : "off");
 		fflush(stderr);
 	}
 
@@ -852,6 +853,10 @@ void GameState::loadQueuedSaveGame()
 AsciiString GameState::getSaveDirectory() const
 {
 	AsciiString tmp = TheGlobalData->getPath_UserData();
+	// GeneralsX @feature Codex 22/11/2026 Give frame-stamped 60 Hz saves their own directory.
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	tmp.concat("60Hz");
+#endif
 	// GeneralsX @bugfix copilot 12/03/2026 Use POSIX separator on non-Windows so saves are created inside a real Save directory.
 #ifdef _WIN32
 	tmp.concat("Save\\");
@@ -1415,7 +1420,9 @@ void GameState::iterateSaveFiles( IterateSaveFileCallback callback, void *userDa
 	GetCurrentDirectory( _MAX_PATH, currentDirectory );
 
 	// switch into the save directory
-	SetCurrentDirectory( getSaveDirectory().str() );
+	// GeneralsX @bugfix Captain97r 26/11/2026 A new profile can have no save directory yet.
+	if (!SetCurrentDirectory(getSaveDirectory().str()))
+		return;
 
 	// iterate all items in the directory
 	WIN32_FIND_DATA item;  // search item
@@ -1485,7 +1492,10 @@ void GameState::iterateSaveFiles( IterateSaveFileCallback callback, void *userDa
 			// start search
 			hFile = FindFirstFile( "*", &item );
 			if( hFile == INVALID_HANDLE_VALUE )
+			{
+				SetCurrentDirectory(currentDirectory);
 				return;
+			}
 
 			// we are no longer on our first item
 			first = FALSE;
@@ -1774,10 +1784,11 @@ void GameState::gameStatePostProcessLoad()
 void GameState::xfer( Xfer *xfer )
 {
 
-	// version
-	XferVersion currentVersion = 2;
-	XferVersion version = currentVersion;
-	xfer->xferVersion( &version, currentVersion );
+	// Frame-stamped saves require the same simulation profile as this build.
+	XferVersion version = SimulationFileProfile::saveVersion;
+	xfer->xferVersion(&version, SimulationFileProfile::saveVersion);
+	if (!SimulationFileProfile::acceptsSave(version))
+		throw XFER_INVALID_VERSION;
 
 	// get structure for our current game info
 	SaveGameInfo *saveGameInfo = getSaveGameInfo();

@@ -1897,7 +1897,8 @@ Bool ScriptConditions::evaluateUnitHasEmptied(Parameter *pUnitParm)
 	ContainModuleInterface *cmi = object->getContain();
 	Int numPeeps = cmi ? cmi->getContainCount() : 0;
 
-	UnsignedInt frameNum = TheGameLogic->getFrame();
+	// GeneralsX @bugfix Codex 23/11/2026 Compare consecutive WorldBuilder samples on the authored script clock.
+	const UnsignedInt frameNum = TheGameLogic->getFrame() / logicFramesFromBaseFrames(1);
 
 
 	if (stats == nullptr)

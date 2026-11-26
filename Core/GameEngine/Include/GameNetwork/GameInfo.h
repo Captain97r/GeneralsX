@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "Common/GameCommon.h"
 #include "Common/Snapshot.h"
 #include "Common/Money.h"
 #include "GameNetwork/NetworkDefs.h"
@@ -217,7 +218,8 @@ public:
 	virtual void closeOpenSlots();						///< close all slots that are currently unoccupied.
 
 	// CRC checking hack
-	void setCRCInterval( Int val ) { m_crcInterval = (val<100)?val:100; }
+	// GeneralsX @bugfix Captain97r 26/11/2026 Preserve the recorded CRC interval when playing back a 60 Hz skirmish.
+	void setCRCInterval(Int val) { m_crcInterval = min(val, logicFramesFromBaseFrames(100)); }
 	Int getCRCInterval() const { return m_crcInterval; }
 
 	Bool haveWeSurrendered() { return m_surrendered; }

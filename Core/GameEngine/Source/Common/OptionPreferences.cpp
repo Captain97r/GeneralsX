@@ -1107,6 +1107,7 @@ Real OptionPreferences::getGameWindowTransitionSpeedMultiplier() const
 }
 
 // GeneralsX @feature felipebraz 17/09/2026 Skirmish simulation tick rate configuration (#281)
+// GeneralsX @feature Codex 26/11/2026 Interpret saved skirmish speeds on the original scale, with 30 as normal.
 Int OptionPreferences::getSkirmishTickRate() const
 {
 	OptionPreferences::const_iterator it = find("TickRate");
@@ -1120,13 +1121,13 @@ Int OptionPreferences::getSkirmishTickRate() const
 	}
 	if (it == end())
 	{
-		return LOGICFRAMES_PER_SECOND;
+		return BaseFps;
 	}
 
 	Int rate = atoi(it->second.str());
 	if (rate <= 0)
 	{
-		return LOGICFRAMES_PER_SECOND;
+		return BaseFps;
 	}
 
 	return clamp(5, rate, 120);

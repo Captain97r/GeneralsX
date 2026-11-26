@@ -30,6 +30,7 @@
 UnsignedInt AssembleIp(UnsignedByte a, UnsignedByte b, UnsignedByte c, UnsignedByte d);
 UnsignedInt ResolveIP(AsciiString host);
 UnsignedShort GenerateNextCommandID();
+Int clampNetworkFrameRate(Int measuredFps, Int renderLimit);
 Bool DoesCommandRequireACommandID(NetCommandType type);
 Bool CommandRequiresAck(NetCommandMsg *msg);
 Bool CommandRequiresDirectSend(NetCommandMsg *msg);

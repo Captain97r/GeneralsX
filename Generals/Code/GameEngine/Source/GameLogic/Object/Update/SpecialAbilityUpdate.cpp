@@ -1271,7 +1271,8 @@ void SpecialAbilityUpdate::triggerAbilityEffect()
 
 						sys->attachToObject(target);
 						sys->setPosition( &offs );
-						sys->setSystemLifetime( data->m_effectDuration * durationInterleaveFactor ); //lifetime of the system, not the particles
+						// GeneralsX @feature Codex 26/11/2026 Pass the effect duration to the 30 Hz particle system.
+						sys->setSystemLifetime(baseFramesFromLogicDuration(data->m_effectDuration) * durationInterleaveFactor);
 
 					}
 				}

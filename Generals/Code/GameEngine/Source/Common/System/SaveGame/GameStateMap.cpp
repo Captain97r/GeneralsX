@@ -190,6 +190,8 @@ static void extractAndSaveMap( AsciiString mapToSave, Xfer *xfer )
 {
 	UnsignedInt dataSize;
 
+	// An external save can be the first save loaded with this profile.
+	TheFileSystem->createDirectory(TheGameState->getSaveDirectory());
 	// open handle to output file
 	FILE *fp = fopen( mapToSave.str(), "w+b" );
 	if( fp == nullptr )
@@ -463,7 +465,9 @@ void GameStateMap::clearScratchPadMaps()
 	GetCurrentDirectory( _MAX_PATH, currentDirectory );
 
 	// switch into the save directory
-	SetCurrentDirectory( TheGameState->getSaveDirectory().str() );
+	// GeneralsX @bugfix Captain97r 26/11/2026 Never remove scratch maps from the launch directory when the save directory is missing.
+	if (!SetCurrentDirectory(TheGameState->getSaveDirectory().str()))
+		return;
 
 	// iterate all items in the directory
 	AsciiString fileToDelete;
@@ -484,7 +488,10 @@ void GameStateMap::clearScratchPadMaps()
 			// start search
 			hFile = FindFirstFile( "*", &item );
 			if( hFile == INVALID_HANDLE_VALUE )
+			{
+				SetCurrentDirectory(currentDirectory);
 				return;
+			}
 
 			// we are no longer on our first item
 			first = FALSE;

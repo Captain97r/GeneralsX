@@ -29,6 +29,7 @@
 
 // INCLUDES ///////////////////////////////////////////////////////////////////////////////////////
 #include "PreRTS.h"	// This must go first in EVERY cpp file in the GameEngine
+#include <limits>
 
 #include "Common/CRCDebug.h"
 #include "Common/FramePacer.h"
@@ -301,9 +302,8 @@ void GameLogic::clearGameData( Bool showScoreScreen )
 		TheRecorder->stopPlayback();
 	}
 	// GeneralsX @feature felipebraz 17/09/2026 Reset simulation tick rate and FPS cap to global defaults (#281)
-	TheFramePacer->setLogicTimeScaleFps(LOGICFRAMES_PER_SECOND);
 	TheFramePacer->setFramesPerSecondLimit(TheGlobalData->m_framesPerSecondLimit);
-	TheFramePacer->enableLogicTimeScale(LOGICFRAMES_PER_SECOND < TheGlobalData->m_framesPerSecondLimit);
+	TheFramePacer->configureGameLogicRate(LOGICFRAMES_PER_SECOND);
 //	m_background->bringForward();
 //	if(shellGame)
 
@@ -914,26 +914,25 @@ bool GameLogic::onNewGame(MAYBE_UNUSED GameMessage *msg)
 	// GeneralsX @feature felipebraz 17/09/2026 Apply configured Skirmish simulation tick rate (#281)
 	if (gameMode == GAME_SKIRMISH)
 	{
-		Int tickRate = TheGlobalData->m_skirmishTickRate;
-		if (tickRate <= 0)
-			tickRate = LOGICFRAMES_PER_SECOND;
+		// GeneralsX @feature Codex 26/11/2026 Keep existing 30-based game speed preferences at the same wall-clock speed.
+		const Int gameSpeed = TheGlobalData->m_skirmishTickRate;
+		const Int maximumSpeed = (std::numeric_limits<Int>::max)() / logicFramesFromBaseFrames(1);
+		const Int tickRate = gameSpeed > 0 ? logicFramesFromBaseFrames(min(gameSpeed, maximumSpeed)) : LOGICFRAMES_PER_SECOND;
 
-		// Ensure render FPS limit is at least equal to logic tick rate so simulation is not starved
-		if (TheFramePacer->getFramesPerSecondLimit() < tickRate)
+		// The retail loop services at most one logic tick per render.
+		if (LOGICFRAMES_PER_SECOND == BaseFps && TheFramePacer->getFramesPerSecondLimit() < tickRate)
 		{
 			TheFramePacer->setFramesPerSecondLimit(tickRate);
 		}
 
-		TheFramePacer->setLogicTimeScaleFps(tickRate);
-		TheFramePacer->enableLogicTimeScale(tickRate < TheFramePacer->getFramesPerSecondLimit());
+		TheFramePacer->configureGameLogicRate(tickRate);
 
 		fprintf(stderr, "[SKIRMISH] Simulation tick rate configured: %d Hz (base: %d Hz)\n", tickRate, LOGICFRAMES_PER_SECOND);
 		fflush(stderr);
 	}
 	else
 	{
-		TheFramePacer->setLogicTimeScaleFps(LOGICFRAMES_PER_SECOND);
-		TheFramePacer->enableLogicTimeScale(LOGICFRAMES_PER_SECOND < TheFramePacer->getFramesPerSecondLimit());
+		TheFramePacer->configureGameLogicRate(LOGICFRAMES_PER_SECOND);
 	}
 
 	// prepare for new game

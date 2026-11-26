@@ -77,7 +77,7 @@ void FramePacer::update()
 
 		if (TheGameLogic->hasUpdated())
 		{
-			m_logicFramePhase = timeScale;
+			m_logicFramePhase = min(1.0f, timeScale);
 		}
 		else
 		{
@@ -91,6 +91,9 @@ void FramePacer::reset()
 	m_frameRateLimit.reset();
 	m_updateTime = 1.0f / (Real)getActualFramesPerSecondLimit();
 	m_logicFramePhase = 1.0f;
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	m_pendingOfflineFrames = 0.0;
+#endif
 }
 
 void FramePacer::setFramesPerSecondLimit( Int fps )
@@ -140,7 +143,12 @@ Bool FramePacer::isActualFramesPerSecondLimitEnabled() const
 
 Int FramePacer::getActualFramesPerSecondLimit() const
 {
-	return isActualFramesPerSecondLimitEnabled() ? getFramesPerSecondLimit() : RenderFpsPreset::UncappedFpsValue;
+	if (!isActualFramesPerSecondLimitEnabled())
+		return RenderFpsPreset::UncappedFpsValue;
+	// GeneralsX @feature Codex 26/11/2026 Lockstep services at most one network frame per render.
+	if (LOGICFRAMES_PER_SECOND != BaseFps && TheNetwork && getFramesPerSecondLimit() < LOGICFRAMES_PER_SECOND)
+		return LOGICFRAMES_PER_SECOND;
+	return getFramesPerSecondLimit();
 }
 
 Real FramePacer::getUpdateTime()  const
@@ -184,6 +192,66 @@ void FramePacer::setLogicTimeScaleFps( Int fps )
 {
 	m_logicTimeScaleFPS = fps;
 }
+
+// GeneralsX @feature Codex 22/11/2026 Retain the native clock when the render cap changes during a match.
+void FramePacer::configureGameLogicRate(Int fps)
+{
+	setLogicTimeScaleFps(fps);
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	m_pendingOfflineFrames = 0.0;
+	enableLogicTimeScale(TRUE);
+#else
+	enableLogicTimeScale(fps < getFramesPerSecondLimit());
+#endif
+}
+
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+// GeneralsX @bugfix Codex 23/11/2026 Keep speed hotkeys usable when normal play needs multiple ticks per render.
+void FramePacer::changeOfflineLogicTimeScale(FpsValueChange change)
+{
+	const Int configuredCap = getFramesPerSecondLimit();
+	const UnsignedInt renderCap = configuredCap > 0 ? min<Int>(configuredCap, RenderFpsPreset::UncappedFpsValue) : RenderFpsPreset::UncappedFpsValue;
+	const Bool useRenderClockAtLimit = renderCap > UnsignedInt(LOGICFRAMES_PER_SECOND) &&
+		(!isLogicTimeScaleEnabled() || UnsignedInt(getLogicTimeScaleFps()) <= renderCap);
+	const UnsignedInt step = LogicTimeScaleFpsPreset::StepFpsValue;
+	const UnsignedInt roundedRenderCap = ((renderCap + step - 1) / step) * step;
+	const UnsignedInt limit = useRenderClockAtLimit ? roundedRenderCap : renderCap * MaxCatchUpFrames;
+	const UnsignedInt current = isLogicTimeScaleEnabled() ? getLogicTimeScaleFps() : roundedRenderCap;
+	const UnsignedInt next = min(limit, LogicTimeScaleFpsPreset::changeFpsValue(min(current, limit), change));
+
+	// Above normal speed a fast renderer can still run one tick per render at its cap.
+	const Bool enabled = !useRenderClockAtLimit || next < renderCap;
+	if (isLogicTimeScaleEnabled() || enabled)
+		setLogicTimeScaleFps(next);
+	enableLogicTimeScale(enabled);
+}
+
+// GeneralsX @feature Codex 23/11/2026 Advance offline simulation in whole steps, retaining the fractional remainder.
+Int FramePacer::takeOfflineLogicFrames(Bool fastMode)
+{
+	// A script can freeze the world while its own timers still need to advance.
+	if (m_isGameHalted || (m_enableLogicTimeScale && m_logicTimeScaleFPS <= 0))
+	{
+		m_pendingOfflineFrames = 0.0;
+		return 0;
+	}
+
+	if (fastMode || !m_enableLogicTimeScale)
+	{
+		m_pendingOfflineFrames = 0.0;
+		return 1;
+	}
+
+	// Discard excess wall time after a long stall so the next render can still service input.
+	if (!(m_updateTime > 0.0f))
+		return 0;
+	m_pendingOfflineFrames += min(double(MaxCatchUpFrames), double(m_updateTime) * m_logicTimeScaleFPS);
+	const Int due = static_cast<Int>(m_pendingOfflineFrames);
+	m_pendingOfflineFrames -= due;
+	return due;
+}
+
+#endif
 
 Int FramePacer::getLogicTimeScaleFps() const
 {
@@ -239,8 +307,13 @@ Real FramePacer::getActualLogicTimeScaleRatio(LogicTimeQueryFlags flags) const
 
 Real FramePacer::getActualLogicTimeScaleOverFpsRatio(LogicTimeQueryFlags flags) const
 {
-	// Clamps ratio to min 1, because the logic frame rate is currently capped by the render frame rate.
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	// Network lockstep grants at most one update per render iteration.
+	const Real limit = TheNetwork || !m_enableLogicTimeScale ? 1.0f : Real(MaxCatchUpFrames);
+	return min(limit, Real(getActualLogicTimeScaleFps(flags)) * m_updateTime);
+#else
 	return min(1.0f, (Real)getActualLogicTimeScaleFps(flags) / getUpdateFps());
+#endif
 }
 
 Real FramePacer::getLogicTimeStepSeconds(LogicTimeQueryFlags flags) const

@@ -211,6 +211,11 @@ bool changeLogicTimeScale(FpsValueChange change)
 	if (TheNetwork != nullptr)
 		return false;
 
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	// GeneralsX @feature Codex 26/11/2026 Apply offline speed hotkeys independently of the render cap.
+	TheFramePacer->changeOfflineLogicTimeScale(change);
+	const UnsignedInt logicTimeScaleFps = TheFramePacer->getLogicTimeScaleFps();
+#else
 	const UnsignedInt maxRenderFps = TheFramePacer->getFramesPerSecondLimit();
 	UnsignedInt maxRenderRemainder = LogicTimeScaleFpsPreset::StepFpsValue;
 	maxRenderRemainder -= maxRenderFps % LogicTimeScaleFpsPreset::StepFpsValue;
@@ -245,6 +250,7 @@ bool changeLogicTimeScale(FpsValueChange change)
 	}
 
 	logicTimeScaleFps = TheFramePacer->getLogicTimeScaleFps();
+#endif
 	const UnsignedInt actualLogicTimeScaleFps = TheFramePacer->getActualLogicTimeScaleFps();
 	const Real actualLogicTimeScaleRatio = TheFramePacer->getActualLogicTimeScaleRatio();
 

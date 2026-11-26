@@ -69,6 +69,7 @@
 #include "GameLogic/ObjectCreationList.h"
 #include "GameLogic/PartitionManager.h"
 #include "GameLogic/Weapon.h"
+#include "GameLogic/WeaponTiming.h"
 
 #include "GameLogic/Module/AIUpdate.h"
 #include "GameLogic/Module/AssistedTargetingUpdate.h"
@@ -490,16 +491,19 @@ Int WeaponTemplate::getDelayBetweenShots(const WeaponBonus& bonus) const
 	// yes, divide, not multiply; the larger the rate-of-fire bonus, the shorter
 	// we want the delay time to be.
 	Int delayToUse;
-	if( m_minDelayBetweenShots == m_maxDelayBetweenShots )
-		delayToUse = m_minDelayBetweenShots; // Random number thing doesn't like this case
+	// GeneralsX @bugfix Codex 26/11/2026 Roll and round weapon delays on their authored tick.
+	const Int minimum = baseFramesFromLogicDuration(m_minDelayBetweenShots);
+	const Int maximum = baseFramesFromLogicDuration(m_maxDelayBetweenShots);
+	if (minimum == maximum)
+		delayToUse = minimum;
 	else
-		delayToUse = GameLogicRandomValue( m_minDelayBetweenShots, m_maxDelayBetweenShots );
+		delayToUse = GameLogicRandomValue(minimum, maximum);
 
 	Real bonusROF = bonus.getField(WeaponBonus::RATE_OF_FIRE);
 	//CRCDEBUG_LOG(("WeaponTemplate::getDelayBetweenShots() - min:%d max:%d val:%d, bonusROF=%g/%8.8X",
 		//m_minDelayBetweenShots, m_maxDelayBetweenShots, delayToUse, bonusROF, AS_INT(bonusROF)));
 
-	return REAL_TO_INT_FLOOR(delayToUse / bonusROF);
+	return weaponCooldownInLogicFrames(delayToUse, bonusROF);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -507,13 +511,13 @@ Int WeaponTemplate::getClipReloadTime(const WeaponBonus& bonus) const
 {
 	// yes, divide, not multiply; the larger the rate-of-fire bonus, the shorter
 	// we want the reload time to be.
-	return REAL_TO_INT_FLOOR(m_clipReloadTime / bonus.getField(WeaponBonus::RATE_OF_FIRE));
+	return weaponCooldownInLogicFrames(baseFramesFromLogicDuration(m_clipReloadTime), bonus.getField(WeaponBonus::RATE_OF_FIRE));
 }
 
 //-------------------------------------------------------------------------------------------------
 Int WeaponTemplate::getPreAttackDelay( const WeaponBonus& bonus ) const
 {
-	return m_preAttackDelay * bonus.getField( WeaponBonus::PRE_ATTACK );
+	return logicFramesFromBaseFrames(static_cast<Int>(baseFramesFromLogicDuration(m_preAttackDelay) * bonus.getField(WeaponBonus::PRE_ATTACK)));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -2659,6 +2663,8 @@ WeaponStatus Weapon::getStatus() const
 	}
 	if( now >= m_whenWeCanFireAgain )
 	{
+		if (m_ammoInClip > 0 && weaponIsBetweenZeroDelayShots(now, m_lastFireFrame, m_whenWeCanFireAgain))
+			return BETWEEN_FIRING_SHOTS;
 		if (m_ammoInClip > 0)
 			m_status = READY_TO_FIRE;
 		else

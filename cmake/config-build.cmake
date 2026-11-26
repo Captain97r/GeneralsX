@@ -10,6 +10,8 @@ option(RTS_BUILD_OPTION_ASAN "Build code with Address Sanitizer." OFF)
 option(RTS_BUILD_OPTION_VC6_FULL_DEBUG "Build VC6 with full debug info." OFF)
 option(RTS_BUILD_OPTION_FFMPEG "Enable FFmpeg support" OFF)
 option(RTS_BUILD_OPTION_DEEP_CRC "Enable deep CRC snapshots on sync mismatch" ON)
+# GeneralsX @feature Codex 26/11/2026 Select the simulation tick rate for both game executables.
+option(RTS_EXPERIMENTAL_60HZ_SIMULATION "Run game logic at 60 Hz in all game modes" OFF)
 
 # Linux/macOS audio and windowing options
 option(SAGE_USE_SDL3 "Use SDL3 for windowing/input (Linux/macOS)" OFF)
@@ -54,6 +56,7 @@ add_feature_info(AddressSanitizer RTS_BUILD_OPTION_ASAN "Building with address s
 add_feature_info(Vc6FullDebug RTS_BUILD_OPTION_VC6_FULL_DEBUG "Building VC6 with full debug info")
 add_feature_info(FFmpegSupport RTS_BUILD_OPTION_FFMPEG "Building with FFmpeg support")
 add_feature_info(DeepCRC RTS_BUILD_OPTION_DEEP_CRC "Enable deep CRC snapshots on sync mismatch")
+add_feature_info(Experimental60HzSimulation RTS_EXPERIMENTAL_60HZ_SIMULATION "Run game logic at 60 Hz in all game modes")
 add_feature_info(SDL3Windowing SAGE_USE_SDL3 "Using SDL3 for windowing (Linux/macOS)")
 add_feature_info(OpenALAudio SAGE_USE_OPENAL "Using OpenAL for audio (Legacy/Deprecated)")
 add_feature_info(MiniAudioAudio SAGE_USE_MINIAUDIO "Using MiniAudio for audio (Linux/macOS - Primary)")
@@ -182,6 +185,10 @@ endif()
 if(RTS_BUILD_OPTION_DEEP_CRC)
     target_compile_definitions(core_config INTERFACE DEEP_CRC_TO_MEMORY=1)
     message(STATUS "Deep CRC logging on sync mismatch enabled")
+endif()
+
+if(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+    target_compile_definitions(core_config INTERFACE RTS_EXPERIMENTAL_60HZ_SIMULATION=1)
 endif()
 
 # macOS MoltenVK detection (Phase 5)

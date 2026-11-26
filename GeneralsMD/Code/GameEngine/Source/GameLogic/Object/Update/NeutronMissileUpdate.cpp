@@ -256,9 +256,10 @@ void NeutronMissileUpdate::doLaunch()
 	// fall
 	Coord3D pos = *getObject()->getPosition();
 
-	pos.x += m_vel.x;
-	pos.y += m_vel.y;
-	pos.z += m_vel.z;
+	const Int ticksPerFlightStep = logicFramesFromBaseFrames(1);
+	pos.x += m_vel.x * ticksPerFlightStep;
+	pos.y += m_vel.y * ticksPerFlightStep;
+	pos.z += m_vel.z * ticksPerFlightStep;
 
 	getObject()->setPosition( &pos );
 
@@ -334,7 +335,8 @@ static Real calcTransform(const Object* obj, const Coord3D *pos, Real maxTurnRat
 void NeutronMissileUpdate::doAttack()
 {
 	Matrix3D mx;
-	Real speed = getNeutronMissileUpdateModuleData()->m_relativeSpeed;
+	const Int ticksPerFlightStep = logicFramesFromBaseFrames(1);
+	Real speed = logicRateFromBaseRate(getNeutronMissileUpdateModuleData()->m_relativeSpeed);
 
 	if (getNeutronMissileUpdateModuleData()->m_targetFromDirectlyAbove && m_reachedIntermediatePos)
 		speed *= STRAIGHT_DOWN_SLOW_FACTOR;
@@ -350,7 +352,7 @@ void NeutronMissileUpdate::doAttack()
 			//
 			// Orient toward destination
 			//
-			Real relAngle = calcTransform(getObject(), m_reachedIntermediatePos ? &m_targetPos : &m_intermedPos, getNeutronMissileUpdateModuleData()->m_maxTurnRate, &mx);
+			Real relAngle = calcTransform(getObject(), m_reachedIntermediatePos ? &m_targetPos : &m_intermedPos, getNeutronMissileUpdateModuleData()->m_maxTurnRate * ticksPerFlightStep, &mx);
 
 			//
 			// Modulate speed according to turning. The more we have to turn, the slower we go
@@ -393,9 +395,9 @@ void NeutronMissileUpdate::doAttack()
 			Coord3D newPos = pos;
 			newPos.z = m_heightAtLaunch + (sqr(accelFactor * timeFrac) / accelFactor) * d->m_specialSpeedHeight;
 
-			m_vel.x = newPos.x - pos.x;
-			m_vel.y = newPos.y - pos.y;
-			m_vel.z = newPos.z - pos.z;
+			m_vel.x = logicRateFromBaseRate(newPos.x - pos.x);
+			m_vel.y = logicRateFromBaseRate(newPos.y - pos.y);
+			m_vel.z = logicRateFromBaseRate(newPos.z - pos.z);
 
 			if (d->m_specialJitterDistance > 0.0f)
 			{
@@ -413,9 +415,9 @@ void NeutronMissileUpdate::doAttack()
 		}
 	}
 
-	pos.x += m_vel.x;
-	pos.y += m_vel.y;
-	pos.z += m_vel.z;
+	pos.x += m_vel.x * ticksPerFlightStep;
+	pos.y += m_vel.y * ticksPerFlightStep;
+	pos.z += m_vel.z * ticksPerFlightStep;
 
 //DEBUG_LOG(("vel %f accel %f z %f",m_vel.length(),m_accel.length(), pos.z));
 //Real vm = WWMath::Sqrt(m_vel.x*m_vel.x+m_vel.y*m_vel.y+m_vel.z*m_vel.z);
@@ -472,6 +474,10 @@ void NeutronMissileUpdate::detonate()
 UpdateSleepTime NeutronMissileUpdate::update()
 {
 	m_deliveryDecal.update();
+
+	// GeneralsX @bugfix Codex 23/11/2026 The missile steering, drag and collision trajectory are authored per retail step.
+	if (m_state == ATTACK && (TheGameLogic->getFrame() - m_frameAtLaunch) % logicFramesFromBaseFrames(1) != 0)
+		return UPDATE_SLEEP_NONE;
 
 	if (!m_reachedIntermediatePos)
 	{

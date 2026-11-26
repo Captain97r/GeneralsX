@@ -58,7 +58,8 @@ FireOCLAfterWeaponCooldownUpdateModuleData::FireOCLAfterWeaponCooldownUpdateModu
 	m_weaponSlot						= PRIMARY_WEAPON;
 	m_minShotsRequired			= 1;
 	m_oclLifetimePerSecond	= 1000;
-	m_oclMaxFrames					= 1000;
+	// GeneralsX @feature Captain97r 26/11/2026 Preserve the maximum lifetime of objects created after the weapon cools down.
+	m_oclMaxFrames					= logicFramesFromBaseFrames(1000);
 	m_ocl										= nullptr;
 }
 

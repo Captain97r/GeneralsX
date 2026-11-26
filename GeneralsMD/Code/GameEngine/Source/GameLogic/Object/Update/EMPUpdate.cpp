@@ -327,7 +327,13 @@ void EMPUpdate::doDisableAttack()
 
 							sys->attachToObject(curVictim);
 							sys->setPosition( &offs );
+							// GeneralsX @feature Codex 26/11/2026 EMP particles retain their 30 Hz asset clock.
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+							const UnsignedInt duration = baseFramesFromLogicDuration(data->m_disabledDuration);
+							sys->setSystemLifetime(duration > BaseFps ? duration - BaseFps : 0);
+#else
 							sys->setSystemLifetime(MAX(0, data->m_disabledDuration - 30));
+#endif
 							sys->setInitialDelay(GameLogicRandomValue(1,100));
 						}
 					}

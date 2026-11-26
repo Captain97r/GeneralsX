@@ -41,6 +41,8 @@
 #include "GameLogic/Module/ContainModule.h"
 #include "GameLogic/Module/CrushDie.h"		// for CrushEnum
 #include "GameLogic/Module/PhysicsUpdate.h"
+// GeneralsX @feature Captain97r 26/11/2026 Scale drag, collision impulses, and speed thresholds to the simulation timestep.
+#include "GameLogic/PhysicsTimeStep.h"
 #include "GameLogic/Object.h"
 #include "GameLogic/ScriptEngine.h"
 #include "GameLogic/TerrainLogic.h"
@@ -101,10 +103,10 @@ static Real heightToSpeed(Real height)
 PhysicsBehaviorModuleData::PhysicsBehaviorModuleData()
 {
 	m_mass = DEFAULT_MASS;
-	m_forwardFriction = DEFAULT_FORWARD_FRICTION;
-	m_lateralFriction = DEFAULT_LATERAL_FRICTION;
-	m_ZFriction = DEFAULT_Z_FRICTION;
-	m_aerodynamicFriction = DEFAULT_AERO_FRICTION;
+	m_forwardFriction = logicRateFromBaseRate(DEFAULT_FORWARD_FRICTION);
+	m_lateralFriction = logicRateFromBaseRate(DEFAULT_LATERAL_FRICTION);
+	m_ZFriction = logicRateFromBaseRate(DEFAULT_Z_FRICTION);
+	m_aerodynamicFriction = logicRateFromBaseRate(DEFAULT_AERO_FRICTION);
 	m_centerOfMassOffset = 0.0f;
 	m_allowBouncing = false;
 	m_allowCollideForce = true;
@@ -255,37 +257,29 @@ Bool PhysicsBehavior::isIgnoringCollisionsWith(ObjectID id) const
 //-------------------------------------------------------------------------------------------------
 Real PhysicsBehavior::getAerodynamicFriction() const
 {
-	Real f = getPhysicsBehaviorModuleData()->m_aerodynamicFriction + m_extraFriction;
-	if (f < MIN_AERO_FRICTION) f = MIN_AERO_FRICTION;
-	if (f > MAX_FRICTION) f = MAX_FRICTION;
-	return f;
+	const Real friction = getPhysicsBehaviorModuleData()->m_aerodynamicFriction + m_extraFriction;
+	return physicsFrictionForStep(friction, MIN_AERO_FRICTION, MAX_FRICTION);
 }
 
 //-------------------------------------------------------------------------------------------------
 Real PhysicsBehavior::getForwardFriction() const
 {
-	Real f = getPhysicsBehaviorModuleData()->m_forwardFriction + m_extraFriction;
-	if (f < MIN_NON_AERO_FRICTION) f = MIN_NON_AERO_FRICTION;
-	if (f > MAX_FRICTION) f = MAX_FRICTION;
-	return f;
+	const Real friction = getPhysicsBehaviorModuleData()->m_forwardFriction + m_extraFriction;
+	return physicsFrictionForStep(friction, MIN_NON_AERO_FRICTION, MAX_FRICTION);
 }
 
 //-------------------------------------------------------------------------------------------------
 Real PhysicsBehavior::getLateralFriction() const
 {
-	Real f = getPhysicsBehaviorModuleData()->m_lateralFriction + m_extraFriction;
-	if (f < MIN_NON_AERO_FRICTION) f = MIN_NON_AERO_FRICTION;
-	if (f > MAX_FRICTION) f = MAX_FRICTION;
-	return f;
+	const Real friction = getPhysicsBehaviorModuleData()->m_lateralFriction + m_extraFriction;
+	return physicsFrictionForStep(friction, MIN_NON_AERO_FRICTION, MAX_FRICTION);
 }
 
 //-------------------------------------------------------------------------------------------------
 Real PhysicsBehavior::getZFriction() const
 {
-	Real f = getPhysicsBehaviorModuleData()->m_ZFriction + m_extraFriction;
-	if (f < MIN_NON_AERO_FRICTION) f = MIN_NON_AERO_FRICTION;
-	if (f > MAX_FRICTION) f = MAX_FRICTION;
-	return f;
+	const Real friction = getPhysicsBehaviorModuleData()->m_ZFriction + m_extraFriction;
+	return physicsFrictionForStep(friction, MIN_NON_AERO_FRICTION, MAX_FRICTION);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -379,7 +373,9 @@ void PhysicsBehavior::applyFrictionalForces()
 {
 	if (getFlag(APPLY_FRICTION2D_WHEN_AIRBORNE) || !getObject()->isSignificantlyAboveTerrain())
 	{
-		applyYPRDamping(1.0f - DEFAULT_LATERAL_FRICTION);
+		static const Real groundAngularDamping = 1.0f - physicsFrictionForStep(
+			logicRateFromBaseRate(DEFAULT_LATERAL_FRICTION), MIN_NON_AERO_FRICTION, MAX_FRICTION);
+		applyYPRDamping(groundAngularDamping);
 
 		if (m_vel.x || m_vel.y)
 		{
@@ -469,7 +465,7 @@ Bool PhysicsBehavior::handleBounce(Real oldZ, Real newZ, Real groundZ, Coord3D* 
 //-------------------------------------------------------------------------------------------------
 inline Bool isVerySmall3D(const Coord3D& v)
 {
-	const Real THRESH = 0.01f;
+	const Real THRESH = logicRateFromBaseRate(0.01f);
 	return (WWMath::Fabs(v.x) < THRESH && WWMath::Fabs(v.y) < THRESH && WWMath::Fabs(v.z) < THRESH);
 }
 
@@ -567,7 +563,7 @@ UpdateSleepTime PhysicsBehavior::update()
 		m_vel.z += m_accel.z;
 
 		// when vel gets tiny, just clamp to zero
-		const Real THRESH = 0.001f;
+		const Real THRESH = logicRateFromBaseRate(0.001f);
 		if (WWMath::Fabsf(m_vel.x) < THRESH) m_vel.x = 0.0f;
 		if (WWMath::Fabsf(m_vel.y) < THRESH) m_vel.y = 0.0f;
 		if (WWMath::Fabsf(m_vel.z) < THRESH) m_vel.z = 0.0f;
@@ -736,11 +732,11 @@ UpdateSleepTime PhysicsBehavior::update()
 			// only apply force if it's a pretty steep fall, so that things
 			// going down hills don't injure themselves (unless the hill is really steep)
 			const Real MIN_ANGLE_TAN = 3.0f;	//	roughly 71 degrees
-			const Real TINY_DELTA = 0.01f;
+			const Real TINY_DELTA = logicRateFromBaseRate(0.01f);
 			if ((WWMath::Fabs(m_vel.x) <= TINY_DELTA || WWMath::Fabs(activeVelZ / m_vel.x) >= MIN_ANGLE_TAN) &&
 				(WWMath::Fabs(m_vel.y) <= TINY_DELTA || WWMath::Fabs(activeVelZ / m_vel.y) >= MIN_ANGLE_TAN))
 			{
-				Real damageAmt = netSpeed * getMass() * d->m_fallHeightDamageFactor;
+				Real damageAmt = (netSpeed * logicFramesFromBaseFrames(1)) * getMass() * d->m_fallHeightDamageFactor;
 
 				DamageInfo damageInfo;
 				damageInfo.in.m_damageType = DAMAGE_FALLING;
@@ -901,7 +897,7 @@ Bool PhysicsBehavior::wasPreviouslyOverlapped(Object *obj) const
 //-------------------------------------------------------------------------------------------------
 void PhysicsBehavior::scrubVelocityZ( Real desiredVelocity )
 {
-	if (WWMath::Fabs(desiredVelocity) < 0.001f)
+	if (WWMath::Fabs(desiredVelocity) < logicRateFromBaseRate(0.001f))
 	{
 		m_vel.z = 0;
 	}
@@ -1000,7 +996,7 @@ void PhysicsBehavior::doBounceSound(const Coord3D& prevPos)
 	if (!m_bounceSound)
 		return;
 
-	const Real NORMAL_VEL_Z	= 0.25f;
+	const Real NORMAL_VEL_Z	= logicRateFromBaseRate(0.25f);
 	const Real NORMAL_MASS	= 50.0f;
 
 	// get the per-unit sound for the collision which was stuffed in on Object creation.
@@ -1232,7 +1228,7 @@ void PhysicsBehavior::onCollide( Object *other, const Coord3D *loc, const Coord3
 				while (objToBounce->getContainedBy() != nullptr)
 					objToBounce = objToBounce->getContainedBy();
 
-				Real bounceOutDist = usRadius * 0.1f;
+				Real bounceOutDist = usRadius * logicRateFromBaseRate(0.1f);
 				Coord3D tmp = *objToBounce->getPosition();
 				tmp.x -= bounceOutDist * delta.x / dist;
 				tmp.y -= bounceOutDist * delta.y / dist;
@@ -1296,7 +1292,7 @@ void PhysicsBehavior::onCollide( Object *other, const Coord3D *loc, const Coord3
 		{
 			if (overlap > 5.0f)
 				overlap = 5.0f;
-			factor = -overlap;
+			factor = logicAccelerationFromBaseAcceleration(-overlap);
 		}
 
 		force.x = factor * delta.x / dist;

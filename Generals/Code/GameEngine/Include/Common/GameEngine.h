@@ -85,9 +85,10 @@ protected:
 
 	virtual void resetSubsystems();
 
-	Bool canUpdateGameLogic(UnsignedInt logicTimeQueryFlags = 0);
+	// GeneralsX @feature Codex 26/11/2026 Count the logic ticks due in this render iteration.
+	Int getPendingLogicFrames(UnsignedInt logicTimeQueryFlags = 0);
 	Bool canUpdateNetworkGameLogic();
-	Bool canUpdateRegularGameLogic(UnsignedInt logicTimeQueryFlags);
+	Int getPendingOfflineLogicFrames(UnsignedInt logicTimeQueryFlags);
 
 	virtual FileSystem *createFileSystem();								///< Factory for FileSystem classes
 	virtual LocalFileSystem *createLocalFileSystem() = 0;	///< Factory for LocalFileSystem classes

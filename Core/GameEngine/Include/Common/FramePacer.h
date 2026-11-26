@@ -59,6 +59,11 @@ public:
 
 	void setLogicTimeScaleFps( Int fps ); ///< Set the logic time scale fps and therefore scale the simulation time. Is capped by the max render fps and does not apply to network matches.
 	Int  getLogicTimeScaleFps() const; ///< Get the raw logic time scale fps value.
+	void configureGameLogicRate(Int fps);
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	Int takeOfflineLogicFrames(Bool fastMode);
+	void changeOfflineLogicTimeScale(FpsValueChange change);
+#endif
 	void enableLogicTimeScale( Bool enable ); ///< Enable or disable the logic time scale setup. If disabled, the simulation time scale is bound to the render frame time or network update time.
 	Bool isLogicTimeScaleEnabled() const; ///< Check whether the logic time scale setup is enabled.
 	Int  getActualLogicTimeScaleFps(LogicTimeQueryFlags flags = 0) const; ///< Get the real logic time scale fps, depending on the max render fps, network state and enabled state.
@@ -72,6 +77,10 @@ public:
 protected:
 
 	FrameRateLimit m_frameRateLimit;
+#if defined(RTS_EXPERIMENTAL_60HZ_SIMULATION)
+	enum { MaxCatchUpFrames = 8 };
+	double m_pendingOfflineFrames = 0.0;
+#endif
 
 	Int m_maxFPS; ///< Maximum frames per second for rendering
 	Int m_logicTimeScaleFPS; ///< Maximum frames per second for logic time scale

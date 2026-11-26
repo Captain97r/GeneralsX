@@ -80,6 +80,18 @@ cmake --preset linux64-deploy
 cmake --build build/linux64-deploy --target z_generals
 ```
 
+Generals and Zero Hour use a 30 Hz simulation by default. To build the experimental
+60 Hz version in a separate directory, add the option when configuring CMake.
+
+```sh
+cmake --preset linux64-deploy -B build/linux64-60hz -DRTS_EXPERIMENTAL_60HZ_SIMULATION=ON
+cmake --build build/linux64-60hz --target z_generals g_generals
+```
+
+The selected rate applies to every game mode. Multiplayer peers need matching
+builds, including private GeneralsOnline games. LAN checks the rate when joining.
+Use the same simulation build to load a save or play a replay.
+
 For complete prerequisites, Docker workflows, and packaging guides, check the Wiki:
 - 📖 [Building on macOS Guide](https://github.com/fbraz3/GeneralsX/wiki/Building-on-macOS)
 - 📖 [Building on Linux Guide](https://github.com/fbraz3/GeneralsX/wiki/Building-on-Linux)
