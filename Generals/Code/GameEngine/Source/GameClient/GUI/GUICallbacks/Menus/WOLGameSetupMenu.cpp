@@ -62,6 +62,8 @@
 #include "GameNetwork/GameSpyOverlay.h"
 #include "GameNetwork/NAT.h"
 #include "GameNetwork/GUIUtil.h"
+// GeneralsX @bugfix Captain97r 28/11/2026 Use the same Accept tooltip in the LAN and online menus.
+#include "GameNetwork/LobbyTooltips.h"
 #include "GameNetwork/GameSpy/GSConfig.h"
 
 void WOLDisplaySlotList();
@@ -465,24 +467,6 @@ static void playerTooltip(GameWindow *window,
 	tooltip.concat(playerInfo);
 
 	TheMouse->setCursorTooltip( tooltip, -1, nullptr, 1.5f ); // the text and width are the only params used.  the others are the default values.
-}
-
-void gameAcceptTooltip(GameWindow *window, WinInstanceData *instData, UnsignedInt mouse)
-{
-	Int x, y;
-	x = LOLONGTOSHORT(mouse);
-	y = HILONGTOSHORT(mouse);
-
-	Int winPosX, winPosY, winWidth, winHeight;
-
-	window->winGetScreenPosition(&winPosX, &winPosY);
-
-	window->winGetSize(&winWidth, &winHeight);
-
-	if ((x > winPosX && x < (winPosX + winWidth)) && (y > winPosY && y < (winPosY + winHeight)))
-	{
-		TheMouse->setCursorTooltip(TheGameText->fetch("TOOLTIP:GameAcceptance"), -1, nullptr);
-	}
 }
 
 void pingTooltip(GameWindow *window, WinInstanceData *instData, UnsignedInt mouse)

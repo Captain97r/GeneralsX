@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "Common/CRCDebug.h"
+#include "Common/INI.h"
 #include "GameNetwork/GameInfo.h"
 
 TEST(ReplayChecksumTiming, NormalDefaultsHaveTheRetailPeriodInGameTime)

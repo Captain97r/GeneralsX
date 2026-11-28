@@ -7,7 +7,6 @@
 
 #if RTS_ZEROHOUR
 #include "Common/ThingTemplate.h"
-#include "GameClient/ControlBar.h"
 #include "GameClient/RadiusDecal.h"
 #include "GameLogic/Module/UpdateModule.h"
 #include "GameLogic/Module/SpecialPowerModule.h"
