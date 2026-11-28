@@ -41,8 +41,13 @@ Bool AudioRequest::isReadyToProcess(UnsignedInt now)
 		return true;
 
 #ifdef RTS_EXPERIMENTAL_60HZ_SIMULATION
-	if (now - m_queuedAtMs >= m_pendingEvent->getDelay())
+	const Real delay = m_pendingEvent->getDelay();
+	if (now - m_queuedAtMs >= delay)
+	{
+		// Miles reads any remaining delay when it configures its sample filter.
+		m_pendingEvent->decrementDelay(delay);
 		return true;
+	}
 #else
 	if (m_pendingEvent->getDelay() < MSEC_PER_LOGICFRAME_REAL)
 		return true;

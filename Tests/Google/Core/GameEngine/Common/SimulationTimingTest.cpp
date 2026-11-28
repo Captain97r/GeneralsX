@@ -108,6 +108,7 @@ TEST(SimulationTiming, DelayedAudioUsesTimeSinceEnqueueAtEveryRenderRate)
 			EXPECT_FALSE(request->isReadyToProcess(request->m_queuedAtMs + frame * 1000 / fps));
 		EXPECT_TRUE(request->m_requiresCheckForSample);
 		EXPECT_TRUE(request->isReadyToProcess(request->m_queuedAtMs + 1000));
+		EXPECT_FLOAT_EQ(0.0f, request->m_pendingEvent->getDelay());
 		EXPECT_TRUE(request->isReadyToProcess(request->m_queuedAtMs + 1400));
 		deleteInstance(request);
 	}
