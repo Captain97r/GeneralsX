@@ -1,6 +1,6 @@
 # Check 60 Hz replay determinism
 
-`linux_60hz_tournament_desert.rep` records a 739-tick Zero Hour skirmish on Tournament Desert. At frame 89 the player orders a construction dozer to move. The recording uses Zero Hour 1.04 assets with INI checksum `0xDDF31B10` and map checksum `0x15F63DEA`.
+`linux_60hz_tournament_desert.rep` records a 739-tick Zero Hour skirmish on Tournament Desert. It was recorded on Linux x86-64 with the `GX60Z4` replay signature. At frame 89 the player orders a construction dozer to move. The recording uses Zero Hour 1.04 assets with INI checksum `0xDDF31B10` and map checksum `0x15F63DEA`.
 
 Build with `-DRTS_EXPERIMENTAL_60HZ_SIMULATION=ON`. Launch the resulting Zero Hour executable from a working game installation. On Windows, place the executable alongside the game assets before running it. Pass the absolute path to the fixture.
 
